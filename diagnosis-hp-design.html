@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>転職×占い 診断HP 設計書</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060610;
+  --s1: #0c0c1e;
+  --s2: #111128;
+  --s3: #171730;
+  --rim: #22224a;
+  --rim2: #2e2e60;
+  --a: #a78bfa;   /* violet */
+  --b: #f59e0b;   /* amber */
+  --c: #34d399;   /* emerald */
+  --d: #f87171;   /* red */
+  --e: #60a5fa;   /* blue */
+  --text: #e2e8ff;
+  --mid: #8888bb;
+  --dim: #44447a;
+  --white: #f0f4ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+/* HERO */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 0 72px;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 20%, #3b0764aa, transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%, #0c4a2622, transparent),
+    radial-gradient(ellipse 40% 60% at 10% 60%, #1e1b4b44, transparent);
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--rim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rim) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.15;
+  mask-image: radial-gradient(ellipse 100% 100% at 50% 0%, black 30%, transparent);
+}
+.hero-inner {
+  position: relative; z-index: 1;
+  max-width: 960px; margin: 0 auto; padding: 0 40px;
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 4px; color: var(--a);
+  border: 1px solid #a78bfa44; background: #a78bfa0c;
+  padding: 5px 14px; border-radius: 3px; margin-bottom: 24px;
+}
+.hero h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(42px, 7vw, 88px);
+  font-weight: 900; line-height: 1.0;
+  letter-spacing: -0.04em; margin-bottom: 20px;
+}
+.hero h1 .t1 { display: block; color: var(--white); }
+.hero h1 .t2 { display: block; color: var(--a); }
+.hero h1 .t3 {
+  display: block; font-weight: 300;
+  font-size: 0.45em; color: var(--mid);
+  letter-spacing: 0.06em; margin-top: 12px;
+}
+.hero-desc { font-size: 15px; color: var(--mid); max-width: 540px; line-height: 1.8; margin-bottom: 40px; }
+.hero-kpis {
+  display: flex; gap: 0; flex-wrap: wrap;
+  border: 1px solid var(--rim2); border-radius: 6px; overflow: hidden;
+}
+.kpi {
+  flex: 1; min-width: 140px;
+  padding: 16px 22px; background: var(--s1);
+  border-right: 1px solid var(--rim);
+}
+.kpi:last-child { border-right: none; }
+.kpi-n {
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 3px;
+}
+.kpi-l { font-size: 10px; color: var(--mid); letter-spacing: 1px; }
+
+/* WRAP */
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 40px 100px; }
+
+/* SECTION */
+.sec { margin: 80px 0; }
+.sec-ew {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.sec-ew .bar { flex: 1; height: 1px; background: var(--rim); max-width: 80px; }
+.sec-h {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 800; margin-bottom: 8px;
+  letter-spacing: -0.02em; line-height: 1.1;
+}
+.sec-sub { color: var(--mid); font-size: 13px; max-width: 640px; margin-bottom: 32px; line-height: 1.7; }
+
+/* FLOW DIAGRAM */
+.flow-diagram {
+  position: relative;
+  display: flex; flex-direction: column; gap: 0;
+}
+.flow-connector {
+  width: 2px; height: 32px;
+  background: linear-gradient(var(--rim2), transparent);
+  margin: 0 auto;
+}
+.flow-node {
+  background: var(--s2);
+  border: 1px solid var(--rim2);
+  border-radius: 8px; padding: 22px 28px;
+  position: relative;
+}
+.flow-node.active { border-color: var(--a); }
+.flow-node.result { border-color: var(--c); background: linear-gradient(135deg, #0c1e18, #0c0c1e); }
+.flow-node.share { border-color: var(--b); background: linear-gradient(135deg, #1e1400, #0c0c1e); }
+.fn-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 3px; margin-bottom: 6px;
+}
+.fn-label.a { color: var(--a); }
+.fn-label.c { color: var(--c); }
+.fn-label.b { color: var(--b); }
+.fn-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px; font-weight: 700; margin-bottom: 8px;
+}
+.fn-desc { font-size: 13px; color: var(--mid); line-height: 1.7; }
+.fn-items { list-style: none; margin-top: 12px; }
+.fn-items li {
+  font-size: 12px; color: var(--mid);
+  padding: 5px 0; border-bottom: 1px solid var(--rim);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.fn-items li:last-child { border-bottom: none; }
+.fn-items li .mk { flex-shrink: 0; margin-top: 2px; }
+.fn-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  padding: 2px 8px; border-radius: 3px; margin-right: 6px;
+}
+.fb-a { background: #a78bfa18; color: var(--a); border: 1px solid #a78bfa44; }
+.fb-c { background: #34d39918; color: var(--c); border: 1px solid #34d39944; }
+.fb-b { background: #f59e0b18; color: var(--b); border: 1px solid #f59e0b44; }
+.fb-e { background: #60a5fa18; color: var(--e); border: 1px solid #60a5fa44; }
+
+/* QUESTION DESIGN */
+.q-grid {
+  display: flex; flex-direction: column; gap: 16px;
+  margin-bottom: 24px;
+}
+.q-card {
+  background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 8px; overflow: hidden;
+}
+.q-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--rim);
+  display: flex; align-items: center; gap: 14px;
+}
+.q-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px; font-weight: 800; color: var(--a);
+  min-width: 32px; line-height: 1;
+}
+.q-title { font-size: 15px; font-weight: 700; }
+.q-purpose {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; color: var(--mid);
+  margin-left: auto; white-space: nowrap;
+}
+.q-body { padding: 14px 20px; }
+.q-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.q-choice {
+  font-size: 12px; padding: 6px 14px; border-radius: 4px;
+  border: 1px solid var(--rim2); color: var(--mid);
+  background: var(--s3); cursor: pointer;
+}
+.q-choice.sel {
+  background: #a78bfa18; border-color: var(--a); color: var(--a);
+}
+.q-scoring {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--dim);
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rim);
+}
+
+/* 48 MATRIX */
+.matrix-intro {
+  background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+  display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+}
+.matrix-eq {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--white);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.matrix-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 40px; font-weight: 900; line-height: 1;
+}
+.matrix-label { font-size: 11px; color: var(--mid); }
+.mbox {
+  padding: 8px 14px; border-radius: 4px;
+  font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700;
+}
+.mb-a { background: #a78bfa18; color: var(--a); border: 1px solid #a78bfa44; }
+.mb-b { background: #f59e0b18; color: var(--b); border: 1px solid #f59e0b44; }
+.mb-c { background: #34d39918; color: var(--c); border: 1px solid #34d39944; }
+
+.type-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px; margin-bottom: 24px;
+}
+.type-card {
+  background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 6px; padding: 16px 18px;
+}
+.type-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 700; margin-bottom: 4px;
+}
+.type-desc { font-size: 11px; color: var(--mid); line-height: 1.6; margin-bottom: 8px; }
+.type-affiliate {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--b);
+  background: #f59e0b10; border: 1px solid #f59e0b33;
+  padding: 3px 8px; border-radius: 3px; display: inline-block;
+}
+
+/* SAMPLE RESULT */
+.result-mockup {
+  background: linear-gradient(135deg, var(--s1), var(--s2));
+  border: 1px solid var(--c);
+  border-radius: 12px; padding: 32px; margin-bottom: 24px;
+  max-width: 480px;
+}
+.rm-zodiac {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; color: var(--mid); margin-bottom: 4px;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 2px;
+}
+.rm-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 22px; font-weight: 900; margin-bottom: 4px;
+}
+.rm-type {
+  display: inline-block; font-size: 11px; padding: 3px 10px;
+  background: #a78bfa18; border: 1px solid var(--a); color: var(--a);
+  border-radius: 3px; margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+}
+.rm-score-bar {
+  background: var(--s3); border-radius: 4px; height: 8px;
+  margin-bottom: 6px; overflow: hidden;
+}
+.rm-score-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--c), var(--a));
+  animation: score-in 1.2s ease forwards;
+}
+@keyframes score-in { from { width: 0; } }
+.rm-score-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--mid); margin-bottom: 16px;
+}
+.rm-timing {
+  background: #34d39912; border: 1px solid #34d39944;
+  border-radius: 6px; padding: 12px 14px; margin-bottom: 16px;
+}
+.rm-timing-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; color: var(--c); margin-bottom: 4px;
+}
+.rm-timing-text { font-size: 13px; font-weight: 700; }
+.rm-services { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.rm-service {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--s3); border: 1px solid var(--rim);
+  border-radius: 6px; padding: 10px 14px;
+  cursor: pointer; transition: border-color .2s;
+}
+.rm-service:hover { border-color: var(--b); }
+.rm-service-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  padding: 2px 6px; border-radius: 2px;
+  background: #f59e0b18; color: var(--b); border: 1px solid #f59e0b44;
+  white-space: nowrap;
+}
+.rm-service-name { font-size: 13px; font-weight: 700; flex: 1; }
+.rm-service-arrow { color: var(--b); font-size: 14px; }
+.rm-share {
+  background: linear-gradient(135deg, #1a1000, #0c0c1e);
+  border: 1px solid var(--b);
+  border-radius: 8px; padding: 16px; text-align: center;
+}
+.rm-share-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.share-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.share-btn {
+  font-size: 12px; padding: 7px 16px; border-radius: 4px;
+  border: 1px solid; cursor: pointer; font-weight: 700;
+}
+.sb-tiktok { background: #00000020; border-color: #ffffff44; color: var(--white); }
+.sb-insta { background: #e1306c18; border-color: #e1306c44; color: #e1306c; }
+.sb-x { background: #1da1f218; border-color: #1da1f244; color: #1da1f2; }
+.sb-line { background: #00b90018; border-color: #00b90044; color: #00b900; }
+
+/* SHARE IMAGE CONCEPT */
+.share-concept {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-bottom: 24px;
+}
+@media(max-width:580px) { .share-concept { grid-template-columns: 1fr; } }
+.share-card {
+  background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 8px; overflow: hidden;
+}
+.sc-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--rim);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px;
+}
+.sc-preview {
+  padding: 16px;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #1a0d2a, #0c1a2a);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 8px; text-align: center;
+}
+.sc-zodiac { font-size: 32px; }
+.sc-result-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 15px; font-weight: 900; color: var(--white);
+}
+.sc-score-text { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: var(--c); }
+.sc-tag { font-size: 11px; color: var(--a); background: #a78bfa18; padding: 3px 10px; border-radius: 20px; }
+.sc-brand { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--dim); }
+.sc-desc {
+  padding: 12px 16px; font-size: 11px; color: var(--mid); line-height: 1.6;
+  border-top: 1px solid var(--rim);
+}
+
+/* TECH STACK */
+.tech-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.tech-card {
+  background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 6px; padding: 16px 18px;
+  border-top: 2px solid;
+}
+.tech-card.a { border-top-color: var(--a); }
+.tech-card.b { border-top-color: var(--b); }
+.tech-card.c { border-top-color: var(--c); }
+.tech-card.e { border-top-color: var(--e); }
+.tech-name { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.tech-role {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 2px; margin-bottom: 8px;
+}
+.tech-card.a .tech-role { color: var(--a); }
+.tech-card.b .tech-role { color: var(--b); }
+.tech-card.c .tech-role { color: var(--c); }
+.tech-card.e .tech-role { color: var(--e); }
+.tech-desc { font-size: 11px; color: var(--mid); line-height: 1.6; }
+.tech-price {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--b); margin-top: 6px;
+}
+
+/* REVENUE LOGIC */
+.rev-flow {
+  display: flex; flex-direction: column; gap: 2px;
+  margin-bottom: 24px;
+}
+.rev-step {
+  background: var(--s2); border: 1px solid var(--rim);
+  padding: 14px 20px; display: flex; gap: 16px; align-items: flex-start;
+}
+.rev-step:first-child { border-radius: 8px 8px 0 0; }
+.rev-step:last-child { border-radius: 0 0 8px 8px; border-top-color: transparent; }
+.rev-icon { font-size: 20px; flex-shrink: 0; padding-top: 1px; }
+.rev-body { flex: 1; }
+.rev-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.rev-desc { font-size: 12px; color: var(--mid); line-height: 1.6; }
+.rev-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px; font-weight: 800; color: var(--c);
+  white-space: nowrap; padding-top: 2px;
+}
+
+/* PHASE TABLE */
+.phase-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.phase-table th {
+  background: var(--s2); padding: 10px 16px;
+  text-align: left; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 2px; color: var(--mid);
+  border-bottom: 1px solid var(--rim2);
+}
+.phase-table td { padding: 12px 16px; border-bottom: 1px solid var(--rim); font-size: 13px; }
+.phase-table tr:last-child td { border-bottom: none; }
+.phase-table tr:hover td { background: var(--s2); }
+.pn { font-family: 'JetBrains Mono', monospace; color: var(--b); }
+.pt { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--a); }
+
+/* INSIGHT BOX */
+.insight {
+  border-left: 3px solid; padding: 14px 18px;
+  border-radius: 0 6px 6px 0; margin-bottom: 14px; font-size: 13px;
+}
+.ia { background: #a78bfa0a; border-left-color: var(--a); }
+.ib { background: #f59e0b0a; border-left-color: var(--b); }
+.ic { background: #34d3990a; border-left-color: var(--c); }
+.il {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; margin-bottom: 5px;
+}
+.il-a { color: var(--a); }
+.il-b { color: var(--b); }
+.il-c { color: var(--c); }
+
+/* SUMMARY */
+.summary-final {
+  background: linear-gradient(135deg, var(--s2), var(--s3));
+  border: 1px solid var(--rim2); border-radius: 10px;
+  padding: 36px; margin-top: 20px;
+}
+.sf-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px; font-weight: 800; margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+.sf-items { display: flex; flex-direction: column; gap: 10px; }
+.sfi {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 12px 14px; background: #ffffff06; border-radius: 4px;
+}
+.sfi-n {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--a); flex-shrink: 0; padding-top: 1px;
+}
+.sfi-t { font-size: 13px; line-height: 1.6; }
+.sfi-t strong { color: var(--white); }
+.sfi-t span { color: var(--mid); font-size: 12px; }
+
+/* REVEAL */
+.r { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+.r.in { opacity: 1; transform: translateY(0); }
+
+@media(max-width: 640px) {
+  .hero-inner { padding: 0 20px; }
+  .wrap { padding: 0 20px 60px; }
+  .hero { min-height: auto; padding: 40px 0 60px; }
+  .hero h1 { font-size: 40px; }
+  .sec { margin: 56px 0; }
+  .hero-kpis { flex-direction: column; }
+  .kpi { border-right: none; border-bottom: 1px solid var(--rim); }
+  .kpi:last-child { border-bottom: none; }
+  .result-mockup { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-tag">🔮 DIAGNOSIS HP — FULL DESIGN SPEC</div>
+    <h1>
+      <span class="t1">転職×占い</span>
+      <span class="t2">診断HP設計書</span>
+      <span class="t3">User Flow / Result Matrix / Share System / Revenue Logic / Tech Stack</span>
+    </h1>
+    <p class="hero-desc">単なるアフィリリンクではなく「体験」を設計する。診断を通じてユーザーと信頼関係を作り、自然な形で転職サービスへ誘導する。シェア機能でバイラルエンジンを内蔵。</p>
+    <div class="hero-kpis">
+      <div class="kpi">
+        <div class="kpi-n" style="color:var(--a)">48</div>
+        <div class="kpi-l">個別化された診断結果パターン</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-n" style="color:var(--c)">8〜15%</div>
+        <div class="kpi-l">推定アフィリCVR（直リンクの3〜5倍）</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-n" style="color:var(--b)">4媒体</div>
+        <div class="kpi-l">シェア対応（TikTok/X/Instagram/LINE）</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-n" style="color:var(--e)">ゼロ円</div>
+        <div class="kpi-l">初期制作コスト（Vercel無料枠で運用）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ─── SECTION 1: ユーザーフロー ─── -->
+<div class="sec r">
+  <div class="sec-ew" style="color:var(--a)">01 / USER FLOW <span class="bar"></span></div>
+  <div class="sec-h">5ステップの診断体験設計</div>
+  <p class="sec-sub">SNSから流入したユーザーが「診断完了→アフィリCV→シェア」するまでの完全な動線。各ステップの目的と設計意図を定義する。</p>
+
+  <div class="flow-diagram">
+
+    <div class="flow-node active">
+      <div class="fn-label a">STEP 01 — LANDING</div>
+      <div class="fn-title">🌙 トップページ（ランディング）</div>
+      <div class="fn-desc">SNS動画の「プロフのリンクから」で流入するユーザーの最初の画面。3秒で「これは自分のための診断だ」と感じさせる。</div>
+      <ul class="fn-items">
+        <li><span class="mk">◈</span><span><strong>キャッチコピー：</strong>「あなたの転職タイミング、星が知っている」</span></li>
+        <li><span class="mk">◈</span><span><strong>サブコピー：</strong>「生年月日と3つの質問で、星座×転職タイプを診断。今すぐ無料で試す」</span></li>
+        <li><span class="mk">◈</span><span><strong>実績表示：</strong>「累計◯万人が診断」（数が増えたら表示）</span></li>
+        <li><span class="mk">◈</span><span><strong>CTAボタン：</strong>「無料で診断スタート →」ボタン1つだけ</span></li>
+        <li><span class="mk">◈</span><span><strong>デザイン：</strong>星空・神秘的な紫〜紺グラデーション。スマホ縦型最適化</span></li>
+      </ul>
+    </div>
+
+    <div class="flow-connector"></div>
+
+    <div class="flow-node active">
+      <div class="fn-label a">STEP 02 — INPUT</div>
+      <div class="fn-title">📅 生年月日入力（星座自動判定）</div>
+      <div class="fn-desc">生年月日を入力すると星座を自動判定。「あなたは◯◯座です」と表示することで、診断への没入感を高める。</div>
+      <ul class="fn-items">
+        <li><span class="mk">◈</span><span><strong>入力形式：</strong>年・月・日のセレクトボックス（スマホで打ちやすい）</span></li>
+        <li><span class="mk">◈</span><span><strong>判定演出：</strong>星座アイコンがアニメで出現する</span></li>
+        <li><span class="mk">◈</span><span><strong>プライバシー：</strong>「個人情報は取得しません」の一文を表示</span></li>
+      </ul>
+    </div>
+
+    <div class="flow-connector"></div>
+
+    <div class="flow-node active">
+      <div class="fn-label a">STEP 03 — QUESTIONS</div>
+      <div class="fn-title">❓ 3問の仕事診断</div>
+      <div class="fn-desc">転職タイプを判定するための3問。1問につき4択。UIをゲーム的に設計して離脱を防ぐ。</div>
+      <div style="margin-top:12px">
+        <div class="q-grid">
+          <div class="q-card">
+            <div class="q-header">
+              <div class="q-num">Q1</div>
+              <div class="q-title">今の職場への満足度は？</div>
+              <div class="q-purpose">→ 緊急度判定</div>
+            </div>
+            <div class="q-body">
+              <div class="q-choices">
+                <span class="q-choice sel">もう限界に近い</span>
+                <span class="q-choice">不満はあるが続けられる</span>
+                <span class="q-choice">まあまあ満足</span>
+                <span class="q-choice">特に問題ない</span>
+              </div>
+              <div class="q-scoring">SCORE AXIS: 転職緊急度（高←→低）</div>
+            </div>
+          </div>
+          <div class="q-card">
+            <div class="q-header">
+              <div class="q-num">Q2</div>
+              <div class="q-title">仕事で一番大事にしたいことは？</div>
+              <div class="q-purpose">→ 転職タイプ判定</div>
+            </div>
+            <div class="q-body">
+              <div class="q-choices">
+                <span class="q-choice">年収・キャリアアップ</span>
+                <span class="q-choice sel">職場環境・人間関係</span>
+                <span class="q-choice">やりがい・天職</span>
+                <span class="q-choice">安定・ワークライフ</span>
+              </div>
+              <div class="q-scoring">SCORE AXIS: タイプ分類（A/B/C/D）</div>
+            </div>
+          </div>
+          <div class="q-card">
+            <div class="q-header">
+              <div class="q-num">Q3</div>
+              <div class="q-title">転職の経験は？</div>
+              <div class="q-purpose">→ サービス推薦精度向上</div>
+            </div>
+            <div class="q-body">
+              <div class="q-choices">
+                <span class="q-choice">未経験（初めて）</span>
+                <span class="q-choice sel">1回ある</span>
+                <span class="q-choice">2〜3回ある</span>
+                <span class="q-choice">4回以上ある</span>
+              </div>
+              <div class="q-scoring">SCORE AXIS: サービスマッチング（初心者向け←→ハイキャリア）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-connector"></div>
+
+    <div class="flow-node result">
+      <div class="fn-label c">STEP 04 — RESULT</div>
+      <div class="fn-title">🌟 診断結果ページ（最重要）</div>
+      <div class="fn-desc">ここが収益化の核心。ユーザーが「自分専用の結果をもらった」と感じる設計。アフィリリンクは「おすすめサービス」として自然に配置。</div>
+      <ul class="fn-items">
+        <li><span class="mk">◈</span><span>星座 + 転職タイプ名を大きく表示（例：「牡羊座の環境改善型」）</span></li>
+        <li><span class="mk">◈</span><span>転職運スコア（0〜100）をアニメーションで表示</span></li>
+        <li><span class="mk">◈</span><span>タイミング診断（今すぐ / 3ヶ月以内 / 半年後 / まだ早い）</span></li>
+        <li><span class="mk">◈</span><span>Claude APIが生成した「あなただけの鑑定文」（50〜100文字）</span></li>
+        <li><span class="mk">◈</span><span>「あなたの星座×タイプに合うサービス」として2〜3件を推薦 →<span class="fn-badge fb-b">アフィリリンク</span></span></li>
+        <li><span class="mk">◈</span><span>「もっと詳しく占ってもらう」→<span class="fn-badge fb-a">LINE登録へ</span>（個別鑑定の入口）</span></li>
+      </ul>
+    </div>
+
+    <div class="flow-connector"></div>
+
+    <div class="flow-node share">
+      <div class="fn-label b">STEP 05 — SHARE</div>
+      <div class="fn-title">📤 シェア → バイラルエンジン</div>
+      <div class="fn-desc">結果ページの下部に常設。シェアした人の診断URLが拡散 → 新規ユーザーが流入 → 診断 → アフィリCV というループを作る。</div>
+      <ul class="fn-items">
+        <li><span class="mk">◈</span><span><span class="fn-badge fb-b">OGP画像自動生成</span>シェア時に星座・タイプ・スコアが入った画像が自動生成される</span></li>
+        <li><span class="mk">◈</span><span><span class="fn-badge fb-e">TikTok / X / Instagram / LINE</span> 4媒体に対応したシェアボタン</span></li>
+        <li><span class="mk">◈</span><span>シェアテキスト自動生成：「私は◯◯座の△△型！転職運スコア82点🔮 あなたも診断して → [URL]」</span></li>
+        <li><span class="mk">◈</span><span>URLパラメータで「どの投稿から来たか」を追跡可能（アナリティクス）</span></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── SECTION 2: 48パターンマトリクス ─── -->
+<div class="sec r">
+  <div class="sec-ew" style="color:var(--b)">02 / RESULT MATRIX <span class="bar"></span></div>
+  <div class="sec-h">12星座 × 4タイプ = 48パターン設計</div>
+  <p class="sec-sub">すべての結果が「自分だけのもの」に感じられる設計。各パターンに対して鑑定文テンプレートと推薦アフィリサービスを紐付ける。</p>
+
+  <div class="matrix-intro">
+    <div class="matrix-eq">
+      <div>
+        <div class="matrix-num" style="color:var(--a)">12</div>
+        <div class="matrix-label">星座</div>
+      </div>
+      <span style="color:var(--dim)">×</span>
+      <div>
+        <div class="matrix-num" style="color:var(--b)">4</div>
+        <div class="matrix-label">転職タイプ</div>
+      </div>
+      <span style="color:var(--dim)">=</span>
+      <div>
+        <div class="matrix-num" style="color:var(--c)">48</div>
+        <div class="matrix-label">個別化結果</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--mid);max-width:280px;line-height:1.7">
+      48通りの結果に加え、Q1の緊急度スコアで「今すぐ」「3ヶ月以内」「半年後」「まだ早い」の4段階タイミング判定が加わるため、実質的に<strong style="color:var(--white)">192通り</strong>の診断パターンになる。
+    </div>
+  </div>
+
+  <div class="type-grid">
+    <div class="type-card">
+      <div class="type-name" style="color:var(--a)">🚀 キャリアアップ型</div>
+      <div class="type-desc">年収・スキルアップ・昇進を重視。論理的・野心的。</div>
+      <div class="type-affiliate">→ BIZREACH / リクルートエージェント</div>
+    </div>
+    <div class="type-card">
+      <div class="type-name" style="color:var(--c)">🌿 環境改善型</div>
+      <div class="type-desc">職場の雰囲気・人間関係・働きやすさを重視。</div>
+      <div class="type-affiliate">→ doda / マイナビ転職</div>
+    </div>
+    <div class="type-card">
+      <div class="type-name" style="color:var(--b)">✨ 天職探し型</div>
+      <div class="type-desc">やりがい・使命感・自己実現を最優先にする。</div>
+      <div class="type-affiliate">→ ハタラクティブ / type転職</div>
+    </div>
+    <div class="type-card">
+      <div class="type-name" style="color:var(--e)">🛡️ 安定志向型</div>
+      <div class="type-desc">安定・ワークライフバランス・福利厚生を重視。</div>
+      <div class="type-affiliate">→ リクナビNEXT / マイナビ転職</div>
+    </div>
+  </div>
+
+  <div class="insight ia">
+    <div class="il il-a">AFFILIATE LOGIC</div>
+    各パターンに対して「第1推薦（単価高）」「第2推薦（登録しやすい）」「第3推薦（補完）」の3段構成でアフィリリンクを配置。ユーザーは「自分に合う順番で提示された」と感じるためCVRが上がる。
+  </div>
+</div>
+
+<!-- ─── SECTION 3: 結果ページ実物イメージ ─── -->
+<div class="sec r">
+  <div class="sec-ew" style="color:var(--c)">03 / RESULT PAGE MOCKUP <span class="bar"></span></div>
+  <div class="sec-h">結果ページの実物イメージ</div>
+  <p class="sec-sub">これが収益化の核心画面。ユーザーが診断後に見るページのUI設計コンセプト。</p>
+
+  <div class="result-mockup">
+    <div class="rm-zodiac">♈ ARIES / 牡羊座</div>
+    <div class="rm-title">環境改善型の<br>転職ファイター</div>
+    <div class="rm-type">環境改善型 — TYPE B</div>
+
+    <div class="rm-score-label">転職運スコア</div>
+    <div class="rm-score-bar"><div class="rm-score-fill" style="width:82%"></div></div>
+    <div class="rm-score-label" style="text-align:right;margin-bottom:16px">82 / 100</div>
+
+    <div class="rm-timing">
+      <div class="rm-timing-label">TIMING DIAGNOSIS</div>
+      <div class="rm-timing-text">⚡ 今が転職の好機。3ヶ月以内に動くと吉。</div>
+    </div>
+
+    <div style="font-size:12px;color:var(--mid);margin-bottom:12px;line-height:1.7;font-style:italic;border-left:2px solid var(--a);padding-left:12px">
+      「牡羊座のあなたは今、土星と火星の交差期。職場の不満が最高潮に達しているこの時期が、実は転職のベストタイミング。行動力で一気に動いて。」
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mid);letter-spacing:2px;margin-bottom:8px">あなたに合う転職サービス</div>
+    <div class="rm-services">
+      <div class="rm-service">
+        <span class="rm-service-badge">第1推薦</span>
+        <span class="rm-service-name">doda</span>
+        <span class="rm-service-arrow">→</span>
+      </div>
+      <div class="rm-service">
+        <span class="rm-service-badge">第2推薦</span>
+        <span class="rm-service-name">マイナビ転職</span>
+        <span class="rm-service-arrow">→</span>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);margin-bottom:16px">
+      ※ アフィリエイト広告を含みます
+    </div>
+
+    <div class="rm-share">
+      <div class="rm-share-title">🔮 友達にも診断させよう</div>
+      <div class="share-btns">
+        <button class="share-btn sb-x">X でシェア</button>
+        <button class="share-btn sb-line">LINE でシェア</button>
+        <button class="share-btn sb-insta">Instagram</button>
+        <button class="share-btn sb-tiktok">TikTok</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight ib">
+    <div class="il il-b">KEY DESIGN DECISION</div>
+    アフィリリンクの上に「※アフィリエイト広告を含みます」の表示を必ず入れる（ステマ規制2023年対応）。表示することで逆に信頼感が上がり、長期的なCVRの安定につながる。
+  </div>
+</div>
+
+<!-- ─── SECTION 4: シェア機能設計 ─── -->
+<div class="sec r">
+  <div class="sec-ew" style="color:var(--b)">04 / SHARE SYSTEM <span class="bar"></span></div>
+  <div class="sec-h">バイラルを起こすシェア機能設計</div>
+  <p class="sec-sub">「結果をシェアしたくなる」心理設計と、シェアされた先で新規ユーザーが自動的に診断に流入するループの構造。</p>
+
+  <div class="share-concept">
+    <div class="share-card">
+      <div class="sc-header" style="color:var(--a)">SHARE IMAGE TYPE A — 縦型（TikTok/Instagram）</div>
+      <div class="sc-preview">
+        <div class="sc-zodiac">♈</div>
+        <div class="sc-result-title">牡羊座 / 環境改善型</div>
+        <div class="sc-score-text">82点</div>
+        <div class="sc-tag">⚡ 今すぐ転職好機</div>
+        <div style="font-size:11px;color:var(--mid)">転職×占い診断</div>
+        <div class="sc-brand">hoshiyomi-tenshoku.jp</div>
+      </div>
+      <div class="sc-desc">9:16縦型。TikTokプロフのリンク先から来たユーザーが「これ私の結果！」とTikTokストーリーにシェア。視覚的にキャッチーな配色でSNS映え重視。</div>
+    </div>
+    <div class="share-card">
+      <div class="sc-header" style="color:var(--b)">SHARE IMAGE TYPE B — 正方形（X/Instagram）</div>
+      <div class="sc-preview" style="aspect-ratio:1">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:8px">転職運診断</div>
+          <div style="font-size:40px">♈</div>
+          <div style="font-family:'Noto Serif JP',serif;font-size:14px;font-weight:900;color:var(--white);margin:4px 0">牡羊座の環境改善型</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:32px;font-weight:800;color:var(--c)">82/100</div>
+          <div style="font-size:11px;color:var(--a);margin-top:4px">⚡ 転職好機</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:8px;font-family:'JetBrains Mono',monospace">hoshiyomi-tenshoku.jp</div>
+        </div>
+      </div>
+      <div class="sc-desc">1:1正方形。X（Twitter）やInstagramフィードに最適化。「転職運スコア○○点」という数字がシェアのフックになる。</div>
+    </div>
+  </div>
+
+  <div style="background:var(--s2);border:1px solid var(--rim);border-radius:8px;padding:20px 24px;margin-bottom:16px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--b);margin-bottom:12px">SHARE TEXT AUTO-GENERATE</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--s3);border:1px solid var(--rim2);border-radius:4px;padding:14px 16px;color:var(--mid);line-height:1.9">
+      <span style="color:var(--white)">🔮 転職×占い診断やってみた</span><br><br>
+      私は<span style="color:var(--a)">牡羊座 × 環境改善型</span><br>
+      転職運スコア：<span style="color:var(--c)">82点</span> ⚡<br>
+      タイミング：<span style="color:var(--b)">今すぐが好機</span><br><br>
+      <span style="color:var(--mid)">あなたも診断してみて↓</span><br>
+      <span style="color:var(--e)">https://hoshiyomi-tenshoku.jp/?ref=share</span><br><br>
+      <span style="color:var(--dim)">#転職占い #星座診断 #転職 #占い</span>
+    </div>
+  </div>
+
+  <div class="insight ib">
+    <div class="il il-b">VIRAL LOOP</div>
+    シェアURLに<code style="background:var(--s3);padding:2px 6px;border-radius:3px">?ref=share</code>パラメータを付与することで「SNS経由の流入」「シェアCV貢献度」を計測可能。将来的にシェアしたユーザーへの特典（詳細鑑定など）でシェア率をさらに高められる。
+  </div>
+</div>
+
+<!-- ─── SECTION 5: 収益ロジック ─── -->
+<div class="sec r">
+  <div class="sec-ew" style="color:var(--c)">05 / REVENUE LOGIC <span class="bar"></span></div>
+  <div class="sec-h">診断HPの収益化メカニズム</div>
+  <p class="sec-sub">診断HPは「体験提供」と「収益化」を同時に実現する。各タッチポイントに収益源を組み込む。</p>
+
+  <div class="rev-flow">
+    <div class="rev-step">
+      <div class="rev-icon">🌙</div>
+      <div class="rev-body">
+        <div class="rev-title">SNS動画 → 診断HP流入</div>
+        <div class="rev-desc">TikTok/InstagramのAIキャラ動画に「プロフのリンクで転職運診断できます」と入れて誘導。SNS自体はコンバージョン狙わずに「診断HPへのトラフィック集め」に特化。</div>
+      </div>
+      <div class="rev-num">流入</div>
+    </div>
+    <div class="rev-step">
+      <div class="rev-icon">✅</div>
+      <div class="rev-body">
+        <div class="rev-title">診断完了 → アフィリリンククリック</div>
+        <div class="rev-desc">結果ページで「あなたの星座×タイプに最も合うサービス」として転職エージェントを推薦。「体験後の自然な推薦」のためCVR8〜15%を目標に設定（業界平均1〜3%の3〜5倍）。</div>
+      </div>
+      <div class="rev-num" style="color:var(--b)">1〜2万円/日</div>
+    </div>
+    <div class="rev-step">
+      <div class="rev-icon">💬</div>
+      <div class="rev-body">
+        <div class="rev-title">「もっと詳しく」→ LINE登録</div>
+        <div class="rev-desc">結果ページ下部に「AIルナから詳しい鑑定を受け取る（無料）」バナーを設置。LINE公式に誘導し、メールアドレス取得なしでリスト化。フォロー後に転職アフィリ配信へ。</div>
+      </div>
+      <div class="rev-num" style="color:var(--a)">LINE獲得</div>
+    </div>
+    <div class="rev-step">
+      <div class="rev-icon">🔗</div>
+      <div class="rev-body">
+        <div class="rev-title">シェア → 新規ユーザー流入（無コスト集客）</div>
+        <div class="rev-desc">結果をシェアするユーザーが出るたびに新規ユーザーが無コストで流入。「診断 → シェア → 流入 → 診断」のバイラルループが回り始めると広告費ゼロで集客が加速する。</div>
+      </div>
+      <div class="rev-num" style="color:var(--c)">複利成長</div>
+    </div>
+    <div class="rev-step">
+      <div class="rev-icon">🔮</div>
+      <div class="rev-body">
+        <div class="rev-title">有料個別鑑定・note販売への接続</div>
+        <div class="rev-desc">結果ページ下部に「より詳しい個別鑑定（3,000〜8,000円）」のバナーを設置。無料診断で価値を体験した後に有料鑑定を提案することで、ゼロから有料を売るより圧倒的に高い成約率を実現。</div>
+      </div>
+      <div class="rev-num" style="color:var(--e)">高単価化</div>
+    </div>
+  </div>
+
+  <table class="phase-table">
+    <thead>
+      <tr><th>フェーズ</th><th>月間診断数（目安）</th><th>アフィリCV想定</th><th>月収目標</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="pt">MONTH 1</span></td>
+        <td>300〜500件</td>
+        <td>24〜75件（CVR8〜15%）</td>
+        <td class="pn">7〜20万円</td>
+      </tr>
+      <tr>
+        <td><span class="pt">MONTH 2〜3</span></td>
+        <td>1,000〜3,000件（シェア拡散後）</td>
+        <td>80〜450件</td>
+        <td class="pn">20〜60万円</td>
+      </tr>
+      <tr>
+        <td><span class="pt">STABLE</span></td>
+        <td>バイラルループ確立</td>
+        <td>ストック型に移行</td>
+        <td class="pn">30〜100万円+</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ─── SECTION 6: 技術スタック ─── -->
+<div class="sec r">
+  <div class="sec-ew" style="color:var(--e)">06 / TECH STACK <span class="bar"></span></div>
+  <div class="sec-h">実装に必要な技術と構成</div>
+  <p class="sec-sub">エンジニア経験がある場合の推奨構成。React Nativeの経験があるため、Next.js（React）での実装が最短経路。</p>
+
+  <div class="tech-grid">
+    <div class="tech-card a">
+      <div class="tech-name">Next.js</div>
+      <div class="tech-role">フロントエンド</div>
+      <div class="tech-desc">React Native知識を活かせる。OGP画像生成（og:image）、SSR、アナリティクス統合がすぐできる。</div>
+      <div class="tech-price">無料</div>
+    </div>
+    <div class="tech-card b">
+      <div class="tech-name">Vercel</div>
+      <div class="tech-role">ホスティング</div>
+      <div class="tech-desc">Next.jsとの相性が最高。無料プランで月10万PV以上捌ける。独自ドメイン対応。デプロイが1コマンド。</div>
+      <div class="tech-price">無料（Hobbyプラン）</div>
+    </div>
+    <div class="tech-card c">
+      <div class="tech-name">Claude API</div>
+      <div class="tech-role">AI鑑定文生成</div>
+      <div class="tech-desc">診断結果の「あなただけの鑑定文」をリアルタイム生成。星座×タイプ×Q1スコアをプロンプトに入れてパーソナル化。</div>
+      <div class="tech-price">〜$0.02/件（月数百円〜）</div>
+    </div>
+    <div class="tech-card e">
+      <div class="tech-name">Vercel OG</div>
+      <div class="tech-role">シェア画像生成</div>
+      <div class="tech-desc">@vercel/ogライブラリで診断結果のシェア用OGP画像を動的生成。星座・スコア・タイプを入れた画像が自動で作られる。</div>
+      <div class="tech-price">無料（Vercel込み）</div>
+    </div>
+    <div class="tech-card a">
+      <div class="tech-name">Supabase</div>
+      <div class="tech-role">データ計測</div>
+      <div class="tech-desc">診断数・シェア数・アフィリクリック数を記録。フィットネスアプリで使用経験があるため導入がスムーズ。</div>
+      <div class="tech-price">無料（Freeプラン）</div>
+    </div>
+    <div class="tech-card b">
+      <div class="tech-name">A8.net / VC</div>
+      <div class="tech-role">アフィリASP</div>
+      <div class="tech-desc">A8.net（審査なし）とバリューコマースを結果ページに組み込む。クリック計測はASP側で管理。</div>
+      <div class="tech-price">成果報酬型</div>
+    </div>
+  </div>
+
+  <div class="insight ic">
+    <div class="il il-c">EXISTING SKILLS FIT</div>
+    React Native + Supabaseのフィットネスアプリ開発経験がそのまま活かせる。Next.jsはReact Native と構文が近く、学習コストが低い。OGP画像生成だけが新規学習事項で、1日あれば習得可能。
+  </div>
+</div>
+
+<!-- ─── SUMMARY ─── -->
+<div class="sec r">
+  <div class="summary-final">
+    <div class="sf-title">📌 設計まとめ — 実装前に確定すべき5点</div>
+    <div class="sf-items">
+      <div class="sfi">
+        <div class="sfi-n">01</div>
+        <div class="sfi-t">
+          <strong>診断フロー：5ステップで固定</strong><br>
+          <span>TOP → 生年月日入力 → 3問 → 結果（アフィリ） → シェア。このフローは変えない。</span>
+        </div>
+      </div>
+      <div class="sfi">
+        <div class="sfi-n">02</div>
+        <div class="sfi-t">
+          <strong>結果パターン：12星座 × 4タイプ = 48パターン</strong><br>
+          <span>鑑定文テンプレートを48本用意し、Claude APIで個別化する。アフィリ推薦もタイプ別に設定。</span>
+        </div>
+      </div>
+      <div class="sfi">
+        <div class="sfi-n">03</div>
+        <div class="sfi-t">
+          <strong>シェア機能：OGP画像自動生成 ＋ 4媒体対応</strong><br>
+          <span>@vercel/ogで診断結果の画像を自動生成。X・LINE・Instagram・TikTokのシェアボタンを設置。</span>
+        </div>
+      </div>
+      <div class="sfi">
+        <div class="sfi-n">04</div>
+        <div class="sfi-t">
+          <strong>収益化：アフィリリンクは結果ページのみに集約</strong><br>
+          <span>「あなたの星座×タイプに合うサービス第1推薦」として最大3件。アフィリ表示は明記する。</span>
+        </div>
+      </div>
+      <div class="sfi">
+        <div class="sfi-n">05</div>
+        <div class="sfi-t">
+          <strong>技術構成：Next.js + Vercel + Supabase + Claude API</strong><br>
+          <span>既存スキルを最大活用。初期コストほぼゼロで月数百万PVまでスケール可能な構成。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.06 });
+document.querySelectorAll('.r').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

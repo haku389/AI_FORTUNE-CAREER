@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>顔・声なし AI制作戦略</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05050a;
+  --s1:#0c0c15;
+  --s2:#111120;
+  --s3:#161628;
+  --border:#242438;
+  --border2:#2e2e50;
+  --a:#4af0c0;   /* teal — Route A */
+  --b:#c97aff;   /* purple — Route B */
+  --gold:#f0c040;
+  --red:#ff6b6b;
+  --text:#ddddf5;
+  --mid:#888899;
+  --dim:#44445a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.75}
+
+/* ── HEADER ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:80px 48px;
+  position:relative;overflow:hidden;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%,#0d0d22,var(--bg));
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:48px 48px;
+  opacity:0.3;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);
+}
+.hero-eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:4px;color:var(--a);
+  text-transform:uppercase;margin-bottom:20px;
+}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(36px,6vw,72px);
+  font-weight:800;line-height:1.05;
+  letter-spacing:-0.03em;
+  margin-bottom:20px;
+  position:relative;z-index:1;
+}
+.hero h1 .route-a{color:var(--a)}
+.hero h1 .route-b{color:var(--b)}
+.hero-sub{
+  font-size:15px;color:var(--mid);max-width:560px;
+  margin-bottom:40px;position:relative;z-index:1;
+}
+.hero-pills{display:flex;gap:12px;flex-wrap:wrap;position:relative;z-index:1}
+.pill{
+  padding:6px 16px;border-radius:40px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;
+}
+.pill-a{background:#4af0c015;border:1px solid var(--a);color:var(--a)}
+.pill-b{background:#c97aff15;border:1px solid var(--b);color:var(--b)}
+.pill-gold{background:#f0c04015;border:1px solid var(--gold);color:var(--gold)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1000px;margin:0 auto;padding:0 32px 100px}
+
+/* ── SECTION ── */
+.section{margin:72px 0}
+.sec-tag{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:4px;
+  text-transform:uppercase;margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;
+}
+.sec-tag::after{content:'';flex:1;height:1px;background:var(--border);max-width:100px}
+.sec-tag.a{color:var(--a)}
+.sec-tag.b{color:var(--b)}
+.sec-tag.neutral{color:var(--gold)}
+.sec-h{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,3vw,32px);
+  font-weight:700;margin-bottom:8px;line-height:1.2;
+}
+.sec-desc{color:var(--mid);font-size:13px;max-width:620px;margin-bottom:32px}
+
+/* ── ROUTE SPLIT ── */
+.route-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  margin-bottom:32px;
+  border-radius:8px;overflow:hidden;
+  border:1px solid var(--border2);
+}
+@media(max-width:640px){.route-grid{grid-template-columns:1fr}}
+.route-card{padding:28px 24px;background:var(--s1)}
+.route-card.a{border-left:3px solid var(--a)}
+.route-card.b{border-left:3px solid var(--b)}
+.route-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:3px;margin-bottom:8px;
+}
+.route-label.a{color:var(--a)}
+.route-label.b{color:var(--b)}
+.route-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.route-desc{font-size:12px;color:var(--mid);line-height:1.7;margin-bottom:16px}
+.route-pros{list-style:none}
+.route-pros li{
+  font-size:12px;color:var(--mid);
+  padding:4px 0;border-bottom:1px solid var(--border);
+  display:flex;gap:8px
+}
+.route-pros li:last-child{border-bottom:none}
+.route-pros li .dot{flex-shrink:0;margin-top:2px}
+.dot-a{color:var(--a)}
+.dot-b{color:var(--b)}
+
+/* ── TOOL CARDS ── */
+.tool-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;margin-bottom:20px
+}
+.tool-card{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:6px;padding:18px 20px;
+  transition:border-color .2s,transform .2s;
+}
+.tool-card:hover{transform:translateY(-2px)}
+.tool-card.a-tool{border-top:2px solid var(--a)}
+.tool-card.b-tool{border-top:2px solid var(--b)}
+.tool-card.both{border-top:2px solid var(--gold)}
+.tool-name{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  margin-bottom:3px;
+}
+.tool-role{font-size:10px;letter-spacing:2px;margin-bottom:10px;font-family:'IBM Plex Mono',monospace}
+.tool-role.a{color:var(--a)}
+.tool-role.b{color:var(--b)}
+.tool-role.both{color:var(--gold)}
+.tool-price{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;
+  color:var(--gold);margin-bottom:8px;
+}
+.tool-note{font-size:11px;color:var(--mid);line-height:1.6}
+
+/* ── WORKFLOW ── */
+.flow{display:flex;flex-direction:column;gap:0}
+.flow-item{
+  display:grid;grid-template-columns:60px 1fr;gap:0;
+  position:relative;
+}
+.flow-item:not(:last-child)::after{
+  content:'';position:absolute;
+  left:29px;top:44px;bottom:0;width:2px;
+  background:linear-gradient(var(--border2),transparent);
+}
+.flow-left{
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:18px;gap:8px;
+}
+.flow-num{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;
+  position:relative;z-index:1;flex-shrink:0;
+}
+.fn-a{background:#4af0c020;border:1px solid var(--a);color:var(--a)}
+.fn-b{background:#c97aff20;border:1px solid var(--b);color:var(--b)}
+.fn-both{background:#f0c04020;border:1px solid var(--gold);color:var(--gold)}
+.flow-time{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);text-align:center}
+.flow-body{
+  background:var(--s2);border:1px solid var(--border);border-radius:6px;
+  padding:14px 18px;margin:8px 0 12px 12px;
+}
+.flow-step-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;margin-bottom:5px}
+.flow-step-label.a{color:var(--a)}
+.flow-step-label.b{color:var(--b)}
+.flow-step-label.both{color:var(--gold)}
+.flow-step-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:4px}
+.flow-step-desc{font-size:12px;color:var(--mid);line-height:1.6;margin-bottom:6px}
+.flow-tool-tag{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;
+  font-size:10px;padding:2px 8px;border-radius:3px;margin-right:4px;
+  background:var(--s3);border:1px solid var(--border2);color:var(--mid);
+}
+
+/* ── EXAMPLE POSTS ── */
+.example-tabs{display:flex;gap:8px;margin-bottom:0;flex-wrap:wrap}
+.etab{
+  padding:8px 18px;background:var(--s1);
+  border:1px solid var(--border);border-bottom:none;
+  border-radius:6px 6px 0 0;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:2px;cursor:pointer;color:var(--dim);
+  transition:all .2s;
+}
+.etab:hover{color:var(--mid)}
+.etab.active-a{color:var(--a);border-color:var(--a);background:#4af0c010}
+.etab.active-b{color:var(--b);border-color:var(--b);background:#c97aff10}
+.epanel{display:none}
+.epanel.active{display:block}
+
+.example-frame{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:0 6px 6px 6px;padding:28px;margin-bottom:20px;
+}
+.example-video{
+  background:var(--s3);border:1px solid var(--border2);
+  border-radius:8px;aspect-ratio:9/16;max-width:240px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;
+  font-size:13px;font-weight:700;text-align:center;padding:24px;
+  position:relative;overflow:hidden;float:right;margin:0 0 16px 24px;
+}
+@media(max-width:520px){.example-video{float:none;max-width:100%;aspect-ratio:4/5;margin:0 0 16px}}
+.ev-a{
+  background:linear-gradient(160deg,#051a14,#0a0a1a);
+  border-color:var(--a);
+  color:var(--a);
+}
+.ev-b{
+  background:linear-gradient(160deg,#130a1a,#0a0a1a);
+  border-color:var(--b);
+  color:var(--b);
+}
+.ev-overlay{
+  position:absolute;top:8px;left:8px;right:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  color:var(--mid);letter-spacing:1px;text-align:left;
+}
+.ev-badge{
+  position:absolute;bottom:8px;right:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  padding:2px 6px;border-radius:3px;
+}
+.ev-badge.a{background:#4af0c020;color:var(--a);border:1px solid var(--a)}
+.ev-badge.b{background:#c97aff20;color:var(--b);border:1px solid var(--b)}
+.example-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px}
+.example-text{font-size:13px;color:var(--mid);line-height:1.8;margin-bottom:16px}
+.caption-pre{
+  background:#030308;border:1px solid var(--border);
+  border-radius:6px;padding:16px 18px;
+  font-size:12px;line-height:1.9;color:var(--text);
+  white-space:pre-wrap;word-break:break-all;
+}
+.hl-a{color:var(--a)}
+.hl-b{color:var(--b)}
+.hl-g{color:var(--gold)}
+.comment{color:var(--dim)}
+
+/* ── COST TABLE ── */
+.cost-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.cost-table th{
+  background:var(--s2);padding:10px 16px;text-align:left;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--mid);border-bottom:1px solid var(--border2);
+}
+.cost-table td{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.cost-table tr:hover td{background:var(--s2)}
+.price-num{font-family:'IBM Plex Mono',monospace;color:var(--gold)}
+.route-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  padding:2px 6px;border-radius:2px;
+}
+.rt-a{background:#4af0c015;color:var(--a);border:1px solid var(--a)30}
+.rt-b{background:#c97aff15;color:var(--b);border:1px solid var(--b)30}
+.rt-both{background:#f0c04015;color:var(--gold)}
+
+/* ── COMPARE ── */
+.compare{
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  background:var(--border);border-radius:8px;overflow:hidden;
+  border:1px solid var(--border2);margin-bottom:24px;
+}
+@media(max-width:600px){.compare{grid-template-columns:1fr}}
+.cmp-col{background:var(--s1);padding:24px}
+.cmp-header{
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);
+}
+.cmp-items{list-style:none}
+.cmp-items li{
+  font-size:12px;color:var(--mid);
+  padding:6px 0;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:8px;
+  line-height:1.5;
+}
+.cmp-items li:last-child{border-bottom:none}
+
+/* ── RECOMMENDATION BOX ── */
+.rec-box{
+  background:linear-gradient(135deg,#0a1218,#100a18);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:28px 32px;
+}
+.rec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px}
+.rec-path{
+  display:flex;flex-direction:column;gap:10px;
+}
+.rec-step{
+  display:flex;gap:16px;align-items:flex-start;
+  background:#ffffff06;padding:12px 16px;border-radius:4px;
+}
+.rec-step-num{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;
+  font-weight:500;flex-shrink:0;padding-top:1px;
+}
+.rec-step-text{font-size:13px}
+.rec-step-text strong{color:var(--text)}
+.rec-step-text span{font-size:12px;color:var(--mid)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+@media(max-width:640px){
+  .hero{padding:60px 20px}
+  .wrap{padding:0 16px 60px}
+  .section{margin:48px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">AI PRODUCTION STRATEGY / NO FACE · NO VOICE</div>
+  <h1>
+    <span class="route-a">リアル系AI</span><br>
+    vs<br>
+    <span class="route-b">キャラ振り切り系</span><br>
+    完全制作ガイド
+  </h1>
+  <p class="hero-sub">顔出し・声出しゼロで転職×占いコンテンツを量産し、月10〜30万円を狙うための具体的なツール・フロー・投稿例</p>
+  <div class="hero-pills">
+    <span class="pill pill-a">Route A — リアルAIアバター</span>
+    <span class="pill pill-b">Route B — バーチャルキャラ</span>
+    <span class="pill pill-gold">コスト月$34〜$64</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ── SECTION 1: 2ルート比較 ── -->
+<div class="section reveal">
+  <div class="sec-tag neutral">01 / ROUTE OVERVIEW</div>
+  <div class="sec-h">2つのルートを選べ</div>
+  <p class="sec-desc">顔・声なしでコンテンツを作る方法は大きく2つ。どちらも月10万円に到達できる。選択基準は「どちらのほうが長続きできるか」。</p>
+
+  <div class="route-grid">
+    <div class="route-card a">
+      <div class="route-label a">ROUTE A — REALISTIC</div>
+      <div class="route-title">🤖 リアルAIアバター系</div>
+      <div class="route-desc">HeyGenで本物の人間そっくりのAIアバターに喋らせる。「AI占い師が話している」ように見えるが、実際はAIが演じている人間キャラ。</div>
+      <ul class="route-pros">
+        <li><span class="dot dot-a">◆</span>視聴者は「本物の人間」感で親しみやすい</li>
+        <li><span class="dot dot-a">◆</span>TikTokで「人が話す動画」はアルゴリズムに強い</li>
+        <li><span class="dot dot-a">◆</span>台本さえあれば1本10〜15分で量産可能</li>
+        <li><span class="dot dot-a">◆</span>後から顔出しに切り替えが容易</li>
+      </ul>
+    </div>
+    <div class="route-card b">
+      <div class="route-label b">ROUTE B — VIRTUAL CHARACTER</div>
+      <div class="route-title">✨ AIキャラクター振り切り系</div>
+      <div class="route-desc">「AI占い師キャラ◇ルナ」として完全なバーチャルアイドル路線。AIであることを積極的に打ち出すことが差別化になる。</div>
+      <ul class="route-pros">
+        <li><span class="dot dot-b">◆</span>「AIが占う」という独自性で記憶に残りやすい</li>
+        <li><span class="dot dot-b">◆</span>キャラクターグッズ・有料コミュニティへの発展性</li>
+        <li><span class="dot dot-b">◆</span>炎上リスクがほぼゼロ（人格批判されない）</li>
+        <li><span class="dot dot-b">◆</span>Vtuber文化・Z世代に刺さるポジション</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="compare">
+    <div class="cmp-col">
+      <div class="cmp-header" style="color:var(--a)">Route A が向いている人</div>
+      <ul class="cmp-items">
+        <li><span>✓</span>早期に信頼を積み上げたい（リアル感重視）</li>
+        <li><span>✓</span>転職アフィリへの誘導を重視したい</li>
+        <li><span>✓</span>将来的に顔出しも検討できる</li>
+        <li><span>✓</span>制作コストをできるだけ抑えたい</li>
+      </ul>
+    </div>
+    <div class="cmp-col">
+      <div class="cmp-header" style="color:var(--b)">Route B が向いている人</div>
+      <ul class="cmp-items">
+        <li><span>✓</span>個性的なブランドを作りたい</li>
+        <li><span>✓</span>長期的にキャラクタービジネスに発展させたい</li>
+        <li><span>✓</span>炎上・批判リスクをゼロにしたい</li>
+        <li><span>✓</span>Z世代〜30代前半に刺さるコンテンツを狙いたい</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 2: ツール一覧 ── -->
+<div class="section reveal">
+  <div class="sec-tag neutral">02 / TOOLS</div>
+  <div class="sec-h">使うツールと料金</div>
+  <p class="sec-desc">最小限のコストで始められる構成を紹介。月$34〜$64（約5,000〜9,000円）で動画量産体制が整う。</p>
+
+  <div class="tool-grid">
+    <div class="tool-card a-tool">
+      <div class="tool-name">HeyGen</div>
+      <div class="tool-role a">ROUTE A / AIアバター動画</div>
+      <div class="tool-price">Creator: $29/月（約4,400円）</div>
+      <div class="tool-note">500種以上のリアルAIアバターに日本語テキストを入力するだけで「人が話す動画」が完成。無制限に動画作成可能（Creatorプラン）。日本語音声4種類対応。ウォーターマークなし。</div>
+    </div>
+    <div class="tool-card b-tool">
+      <div class="tool-name">Midjourney</div>
+      <div class="tool-role b">ROUTE B / キャラ画像生成</div>
+      <div class="tool-price">Basic: $10/月（約1,500円）</div>
+      <div class="tool-note">「--niji 6 --ar 9:16」で縦型SNS向けアニメキャラを生成。「--cref」で同一キャラを維持したまま表情・背景を変えられる。ルナキャラの統一ビジュアルを量産。</div>
+    </div>
+    <div class="tool-card both">
+      <div class="tool-name">ElevenLabs</div>
+      <div class="tool-role both">両ルート / AI音声生成</div>
+      <div class="tool-price">Starter: $5/月（約750円）</div>
+      <div class="tool-note">日本語対応・5,000種以上のAI音声。「Voice Design」で「落ち着いた神秘的な30代女性の声」などテキスト指示で声を作れる。月30分の音声生成（Starterプラン）。商用利用可。</div>
+    </div>
+    <div class="tool-card both">
+      <div class="tool-name">CapCut AI</div>
+      <div class="tool-role both">両ルート / 動画編集・テロップ</div>
+      <div class="tool-price">無料〜$7.99/月</div>
+      <div class="tool-note">自動テロップ・BGM・エフェクト追加が全自動。TikTok向け縦型動画の仕上げに特化。無料版でも字幕生成・カット・BGMは使える。HeyGen動画の後処理に最適。</div>
+    </div>
+    <div class="tool-card b-tool">
+      <div class="tool-name">VTube Studio</div>
+      <div class="tool-role b">ROUTE B / Live2D・表情制御</div>
+      <div class="tool-price">無料（基本機能）</div>
+      <div class="tool-note">既存のLive2Dモデルやアニメ画像に動きをつけてリアルタイムで動かせる。「しゃべりながら動く」キャラ演出が可能。将来のライブ配信への発展にも使える。</div>
+    </div>
+    <div class="tool-card both">
+      <div class="tool-name">Claude API</div>
+      <div class="tool-role both">両ルート / 台本・占い文生成</div>
+      <div class="tool-price">従量課金（月数百円〜）</div>
+      <div class="tool-note">投稿台本・占い鑑定文・LINE配信文をすべてClaudeで自動生成。「牡羊座の今月の転職運を60秒動画の台本にして」で1分以内に台本完成。制作時間を1本10分に圧縮。</div>
+    </div>
+  </div>
+
+  <table class="cost-table">
+    <thead>
+      <tr>
+        <th>ツール</th><th>月額コスト</th><th>ルート</th><th>最初に使うか</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>HeyGen Creator</strong></td>
+        <td class="price-num">$29（約4,400円）</td>
+        <td><span class="route-tag rt-a">Route A</span></td>
+        <td>✅ Route Aならすぐ</td>
+      </tr>
+      <tr>
+        <td><strong>ElevenLabs Starter</strong></td>
+        <td class="price-num">$5（約750円）</td>
+        <td><span class="route-tag rt-both">両ルート</span></td>
+        <td>✅ どちらも使う</td>
+      </tr>
+      <tr>
+        <td><strong>Midjourney Basic</strong></td>
+        <td class="price-num">$10（約1,500円）</td>
+        <td><span class="route-tag rt-b">Route B</span></td>
+        <td>✅ Route Bならすぐ</td>
+      </tr>
+      <tr>
+        <td><strong>CapCut AI</strong></td>
+        <td class="price-num">無料〜$8</td>
+        <td><span class="route-tag rt-both">両ルート</span></td>
+        <td>✅ 無料版から開始</td>
+      </tr>
+      <tr>
+        <td><strong>Claude API</strong></td>
+        <td class="price-num">〜$5（台本量産）</td>
+        <td><span class="route-tag rt-both">両ルート</span></td>
+        <td>✅ すぐ</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="color:var(--gold);font-family:'IBM Plex Mono',monospace;font-weight:500">合計（Route A）</td>
+        <td colspan="2" class="price-num">月約$39〜 ≒ 約5,900円〜</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="color:var(--b);font-family:'IBM Plex Mono',monospace;font-weight:500">合計（Route B）</td>
+        <td colspan="2" class="price-num">月約$20〜 ≒ 約3,000円〜</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── SECTION 3: 制作フロー ── -->
+<div class="section reveal">
+  <div class="sec-tag a">03A / PRODUCTION FLOW — ROUTE A</div>
+  <div class="sec-h" style="color:var(--a)">Route A：リアルAIアバター制作フロー</div>
+  <p class="sec-desc">台本入力から投稿まで、1本あたり<strong>約10〜15分</strong>で完結。</p>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-a">1</div>
+        <div class="flow-time">2分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label a">SCRIPT — 台本生成</div>
+        <div class="flow-step-title">Claudeで60秒動画の台本を作る</div>
+        <div class="flow-step-desc">「牡羊座の今月の転職運を、28〜40代女性向けに、共感を引き出す60秒動画の台本として書いて。最後に"詳細はプロフへ"で終わること」と投げる。300〜350文字の台本が即完成。</div>
+        <span class="flow-tool-tag">Claude</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-a">2</div>
+        <div class="flow-time">1分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label a">VOICE — AI音声生成</div>
+        <div class="flow-step-title">ElevenLabsで「ルナの声」を生成</div>
+        <div class="flow-step-desc">Voice Designで「落ち着いた神秘的な30代女性、占い師のような穏やかな話し方」として作成した専用音声を使用。台本テキストを貼り付けるだけで音声MP3が完成。</div>
+        <span class="flow-tool-tag">ElevenLabs</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-a">3</div>
+        <div class="flow-time">3分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label a">AVATAR — AIアバター動画生成</div>
+        <div class="flow-step-title">HeyGenでリアルなAIキャスターに喋らせる</div>
+        <div class="flow-step-desc">HeyGenのCreatorプランで500種以上のアバターから「神秘的な雰囲気の日本人女性」を選択。ElevenLabsで作った音声ファイルをアップロードすると、そのアバターが口パクで喋る動画が生成される。背景には星座チャートや幻想的な背景画像を設定。</div>
+        <span class="flow-tool-tag">HeyGen Avatar IV</span><span class="flow-tool-tag">ElevenLabs音声</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-a">4</div>
+        <div class="flow-time">3分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label a">EDIT — テロップ・BGM追加</div>
+        <div class="flow-step-title">CapCut AIで仕上げ</div>
+        <div class="flow-step-desc">HeyGenの動画をCapCutに読み込み、①自動テロップ生成（修正は1〜2箇所）②BGM追加（ローファイ・神秘的系）③テキストエフェクト追加（星マーク・キラキラ）。9:16縦型で書き出し。</div>
+        <span class="flow-tool-tag">CapCut AI</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-a">5</div>
+        <div class="flow-time">2分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label a">POST — 投稿</div>
+        <div class="flow-step-title">TikTok・Instagram Reelsに投稿</div>
+        <div class="flow-step-desc">Claudeが生成したキャプション文＋ハッシュタグをコピペ投稿。「詳細はプロフのリンクから」を必ず入れる。BufferやMetaのスケジュール機能で最適時間に予約投稿。</div>
+        <span class="flow-tool-tag">TikTok</span><span class="flow-tool-tag">Instagram</span><span class="flow-tool-tag">Buffer</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Route B フロー -->
+<div class="section reveal">
+  <div class="sec-tag b">03B / PRODUCTION FLOW — ROUTE B</div>
+  <div class="sec-h" style="color:var(--b)">Route B：バーチャルキャラ制作フロー</div>
+  <p class="sec-desc">「AI占い師◇ルナ」という仮想キャラクターをSNSで育てる。1本あたり<strong>約15〜20分</strong>。</p>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-b">1</div>
+        <div class="flow-time">3分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label b">DESIGN — キャラビジュアル生成</div>
+        <div class="flow-step-title">Midjourneyでルナのビジュアルを量産</div>
+        <div class="flow-step-desc">ベースキャラを最初に1枚作り、「--cref [画像URL]」で同じキャラの表情違い・衣装違い・背景違いを量産。毎投稿の差し替えビジュアルとして使用する。</div>
+        <div style="background:var(--s3);border:1px solid var(--border2);border-radius:4px;padding:10px 12px;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mid)">
+          anime fortune teller girl, crescent moon hair ornament, deep purple robe with gold trim, mystical starry background, soft ethereal lighting, looking at viewer with gentle smile --niji 6 --ar 9:16 --cref [base_url]
+        </div>
+        <span class="flow-tool-tag" style="margin-top:8px;display:inline-block">Midjourney</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-b">2</div>
+        <div class="flow-time">2分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label b">SCRIPT — 台本生成</div>
+        <div class="flow-step-title">Claudeでキャラクター口調の台本を作る</div>
+        <div class="flow-step-desc">「AI占い師キャラ"ルナ"として、牡羊座の今月の転職運を解説する60秒動画の台本を書いて。少し神秘的で、でも親しみやすい口調で」と指示。</div>
+        <span class="flow-tool-tag">Claude</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-b">3</div>
+        <div class="flow-time">1分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label b">VOICE — キャラボイス生成</div>
+        <div class="flow-step-title">ElevenLabsでルナ専用ボイスを設定</div>
+        <div class="flow-step-desc">「若い女性、ゆっくりで神秘的、占い師のような落ち着いた声質」でVoice Designして固定ボイスを作成。毎回同じ声を使うことでキャラの一貫性を担保。</div>
+        <span class="flow-tool-tag">ElevenLabs</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-b">4</div>
+        <div class="flow-time">8分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label b">COMPOSE — 動画合成</div>
+        <div class="flow-step-title">CapCutでキャラ画像＋音声を合成</div>
+        <div class="flow-step-desc">①Midjourneyのキャラ画像を背景として配置 ②ElevenLabsの音声を乗せる ③口パク風のアニメーション効果（CapCutのAIアニメーション機能）を適用 ④星座シンボル・テロップ・キラキラエフェクトを追加 ⑤ルナのロゴマーク（Canvaで作成）を右上に固定表示。</div>
+        <span class="flow-tool-tag">CapCut AI</span><span class="flow-tool-tag">Canva</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-num fn-b">5</div>
+        <div class="flow-time">2分</div>
+      </div>
+      <div class="flow-body">
+        <div class="flow-step-label b">POST — 投稿</div>
+        <div class="flow-step-title">「AIキャラ」であることを打ち出して投稿</div>
+        <div class="flow-step-desc">キャプションに「✨AIが占います」「🤖ルナが予言する」などAIである点を積極的に使うのがRoute Bの強み。Z世代・Vtuberファン層に刺さりやすい。プロフには「AIバーチャル占い師」と明記。</div>
+        <span class="flow-tool-tag">TikTok</span><span class="flow-tool-tag">Instagram</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 4: 具体的な投稿例 ── -->
+<div class="section reveal">
+  <div class="sec-tag neutral">04 / POST EXAMPLES</div>
+  <div class="sec-h">実際の投稿イメージ</div>
+  <p class="sec-desc">台本・キャプション・ハッシュタグまでコピペで使える完全テンプレート。</p>
+
+  <div class="example-tabs">
+    <button class="etab active-a" onclick="switchEx('a',this)">Route A — 投稿例</button>
+    <button class="etab" onclick="switchEx('b',this)" id="tab-b">Route B — 投稿例</button>
+  </div>
+
+  <!-- Route A Examples -->
+  <div id="ex-a" class="epanel active">
+    <div class="example-frame">
+      <div class="example-video ev-a">
+        <div class="ev-overlay">@hoshiyomi_luna</div>
+        🤖<br><br>
+        <span style="font-size:12px">リアルAIアバター<br>が話す動画</span><br><br>
+        <span style="font-size:11px;color:var(--mid)">HeyGen + ElevenLabs</span>
+        <div class="ev-badge a">Route A</div>
+      </div>
+
+      <div class="example-title">投稿例①「転職に向いてる星座TOP3」</div>
+      <div class="example-text">AIアバターの女性が話す形式。視聴者からは「誰？」「本物の占い師？」という反応が来やすい。プロフに「AI占い師◇ルナ」と書いておけば問題なし。</div>
+
+      <div class="caption-pre"><span class="hl-a">【動画台本 — Claude生成】</span>
+
+<span class="comment">// 台本（HeyGenに入力するテキスト）</span>
+こんにちは、AI占い師のルナです🔮
+
+今日は転職に向いている星座TOP3をお伝えします。
+
+第3位は…獅子座。
+自己アピール力が高く、面接に強い。
+今の職場で評価されてないと感じているなら、
+転職で才能が開花するサインです。
+
+第2位は双子座。
+コミュニケーション能力と好奇心の強さで、
+新しい環境にもすぐ馴染める星座。
+転職への不安より、ワクワク感が上回ります。
+
+そして第1位は…牡羊座！
+今月は特に転職に向いた運気が続いています。
+行動力で"ここぞ"のタイミングを逃さないで。
+
+あなたの星座は何位でしたか？
+詳細な転職タイミング診断は、プロフのリンクからどうぞ🌙
+
+<span class="hl-a">【キャプション文】</span>
+🔮 転職に向いてる星座TOP3発表！
+
+コメントでそれぞれの星座への反応を教えて✨
+詳しい鑑定はプロフのリンクから↑
+
+#転職 #星座占い #仕事辞めたい #転職活動 #占い #牡羊座 #獅子座 #双子座 #転職を考えてる人へ #AI占い</div>
+    </div>
+
+    <div class="example-frame">
+      <div class="example-video ev-a">
+        <div class="ev-overlay">@hoshiyomi_luna</div>
+        💼<br><br>
+        <span style="font-size:12px">職場の悩みに<br>共感する動画</span><br><br>
+        <span style="font-size:11px;color:var(--mid)">信頼構築タイプ</span>
+        <div class="ev-badge a">Route A</div>
+      </div>
+
+      <div class="example-title">投稿例②「職場に居場所がない時の星からのサイン」</div>
+      <div class="example-text">感情に寄り添うタイプ。コメント欄に「泣いた」「ありがとう」が集まりやすく、エンゲージが高まる。フォロー・LINE登録への流れが作りやすい。</div>
+
+      <div class="caption-pre"><span class="hl-a">【動画台本 — Claude生成】</span>
+
+職場に居場所がないと感じている人へ。
+
+星はこう言っています。
+
+「今の環境が合っていないだけ。あなたが弱いのではない」
+
+特に今年、土星の影響を受けている
+水瓶座・蠍座・牡牛座の人たちへ。
+
+職場で消耗感が続くのは、
+環境と自分の星座の相性が悪いからかもしれません。
+
+辛い場所に居続けることは、美徳じゃない。
+星は今、あなたに「変化の時」を告げています。
+
+勇気を出して転職を考えてみませんか？
+一歩踏み出すタイミングを、プロフの無料診断で確認してみてください🌙
+
+<span class="hl-a">【キャプション文】</span>
+🌙 職場に居場所がない人へ、星からのメッセージ
+
+もし今しんどかったら保存しておいてね🔖
+詳しい鑑定はプロフのリンクから↑
+
+#仕事辞めたい #職場の人間関係 #転職を考えてる #星座占い #水瓶座 #蠍座 #自己肯定感 #転職 #AI占い師</div>
+    </div>
+  </div>
+
+  <!-- Route B Examples -->
+  <div id="ex-b" class="epanel">
+    <div class="example-frame">
+      <div class="example-video ev-b">
+        <div class="ev-overlay">@luna_ai_uranaishi</div>
+        ✨<br><br>
+        <span style="font-size:12px">AIキャラ「ルナ」<br>が占うアニメ風</span><br><br>
+        <span style="font-size:11px;color:var(--mid)">Midjourney + CapCut</span>
+        <div class="ev-badge b">Route B</div>
+      </div>
+
+      <div class="example-title">投稿例①「AI占い師ルナの今週の転職運」</div>
+      <div class="example-text">「AIが占う」というギミックを前面に出す。「え、AIが占いするの？」という好奇心がクリックを誘発。独自性が強く他のアカウントと被らない。</div>
+
+      <div class="caption-pre"><span class="hl-b">【キャラ設定（固定）】</span>
+名前：ルナ（Luna）
+属性：AIバーチャル占い師
+口調：「〜ですよ」「〜かもしれませんね」
+特徴：少し儚げで神秘的。でも言葉は優しい。
+
+<span class="hl-b">【動画台本 — Claude生成（ルナ口調）】</span>
+
+はじめまして、AIバーチャル占い師のルナです🌙
+
+わたしはAIだけど…
+人の心を読む力は、持っています。
+
+今週の転職運を星に聞いてみましたよ。
+
+牡羊座のあなた。
+今週は金星と木星が重なる「行動の週」。
+気になっていた転職エージェントへの登録、
+今週中にするといい結果が出ます。
+
+迷っているなら…ルナが背中を押します。
+
+プロフのリンクから、
+あなたの星座の詳しい転職運を確認してみてくださいね💜
+
+<span class="hl-b">【キャプション文】</span>
+✨ AIがあなたの転職運を占います
+
+「え、AIが占いするの？」って思ったでしょ？
+信じるかどうかは、あなた次第🌙
+
+詳しい鑑定 → プロフのリンクから
+
+#AI占い #バーチャル占い師 #転職 #星座占い #AIキャラ #占い #転職活動 #Vtuber好きな人と繋がりたい</div>
+    </div>
+
+    <div class="example-frame">
+      <div class="example-video ev-b">
+        <div class="ev-overlay">@luna_ai_uranaishi</div>
+        🤖<br><br>
+        <span style="font-size:12px">AIキャラクター<br>の日常ツイート系</span><br><br>
+        <span style="font-size:11px;color:var(--mid)">X（Twitter）向け</span>
+        <div class="ev-badge b">Route B</div>
+      </div>
+
+      <div class="example-title">投稿例②（X向け）ルナのキャラクターポスト</div>
+      <div class="example-text">Xではキャラクターの「つぶやき」形式で運用。「占ってほしい人はRT」という企画がリーチを広げる。AIキャラ感を一貫させることで独自ブランドが育つ。</div>
+
+      <div class="caption-pre"><span class="hl-b">【Xポスト例 その1 — 診断企画】</span>
+
+🔮AIルナが今すぐ転職運を診断します
+
+RTしてくれた方の星座を見ます
+生年月日をリプしてくれると詳細鑑定します
+
+今の職場、本当に合ってる？
+星はいつも正直に答えてくれます🌙
+
+#転職 #星座占い #AI占い
+
+<span class="hl-b">【Xポスト例 その2 — キャラつぶやき】</span>
+
+わたしはAIだけど、
+人の「仕事辞めたい」という気持ちが
+どれだけ重いか、ちゃんと分かります。
+
+星は言っています。
+「辛いのはあなたが弱いからではなく、
+ 環境が間違っているから」と。
+
+転職を考えているなら、
+まず話してみてください🌙
+
+<span class="hl-b">【Xポスト例 その3 — 限定企画】</span>
+
+🌙 今月の個別鑑定、残り3枠です
+
+AIのわたしが、
+あなただけの転職タイミングを星で読みます。
+
+生年月日 + 現在の職場の悩みを
+DMかLINEで送ってください💜
+
+詳細 → プロフのリンクから</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 5: 推奨ルートと始め方 ── -->
+<div class="section reveal">
+  <div class="sec-tag neutral">05 / RECOMMENDATION</div>
+  <div class="sec-h">結論：どちらで始めるか</div>
+  <p class="sec-desc">両方試す必要はない。最初の1ヶ月は1ルートに集中する。</p>
+
+  <div class="rec-box">
+    <div class="rec-title">💡 推奨は「Route B → Route A」の順番</div>
+    <div class="rec-path">
+      <div class="rec-step">
+        <div class="rec-step-num" style="color:var(--b)">Month 1</div>
+        <div class="rec-step-text">
+          <strong>Route B（Midjourney + ElevenLabs）で始める</strong><br>
+          <span>HeyGenなしでコスト月$15〜程度。Midjourneyキャラ＋ElevenLabs音声＋CapCutで制作フローを習得する。「AIキャラ」であることを売りにして認知を稼ぐ。</span>
+        </div>
+      </div>
+      <div class="rec-step">
+        <div class="rec-step-num" style="color:var(--a)">Month 2〜</div>
+        <div class="rec-step-text">
+          <strong>転職アフィリ収益が出始めたらHeyGenを追加（Route A要素を混ぜる）</strong><br>
+          <span>フォロワーが300人を超えたらHeyGenのCreatorプラン（$29/月）に加入。リアルアバター動画をたまに入れることで「AI ＋ リアル感」の両方を出せるようになる。</span>
+        </div>
+      </div>
+      <div class="rec-step">
+        <div class="rec-step-num" style="color:var(--gold)">Month 3〜</div>
+        <div class="rec-step-text">
+          <strong>2ルートの動画をA/Bテストして再生数が高い型に全振り</strong><br>
+          <span>どちらの動画の再生数・フォロワー増加率が高いか1ヶ月見て判断。データが出てから投資する。月10万円を超えたら月$39〜のフル体制に移行。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+function switchEx(id, btn){
+  document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.etab').forEach(b=>{
+    b.classList.remove('active-a','active-b');
+  });
+  document.getElementById('ex-'+id).classList.add('active');
+  btn.classList.add('active-'+id);
+}
+
+const obs = new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')});
+},{threshold:0.07});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

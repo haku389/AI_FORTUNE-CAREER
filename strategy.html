@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>転職 × 占い SNS戦略レポート</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #16161f;
+    --border: #2a2a3a;
+    --accent: #c9a84c;
+    --accent2: #7c5cbf;
+    --accent3: #3b9e8a;
+    --text: #e8e8f0;
+    --text-dim: #888899;
+    --gold: #e8c96b;
+    --purple: #9b72d0;
+    --teal: #4fcfb8;
+    --red: #e86b6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* HEADER */
+  .header {
+    position: relative;
+    padding: 80px 40px 60px;
+    background: linear-gradient(135deg, #0a0a0f 0%, #12101a 50%, #0a0f0e 100%);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .header::before {
+    content: '◈ ◈ ◈ ◈ ◈ ◈ ◈ ◈ ◈ ◈';
+    position: absolute;
+    top: 20px; left: 40px;
+    font-size: 10px;
+    letter-spacing: 12px;
+    color: var(--accent);
+    opacity: 0.3;
+  }
+  .header-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .header h1 span { color: var(--gold); }
+  .header-sub {
+    color: var(--text-dim);
+    font-size: 13px;
+    max-width: 560px;
+  }
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .badge {
+    padding: 4px 12px;
+    border-radius: 2px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+  .badge-gold { background: #c9a84c22; border: 1px solid var(--accent); color: var(--gold); }
+  .badge-purple { background: #7c5cbf22; border: 1px solid var(--accent2); color: var(--purple); }
+  .badge-teal { background: #3b9e8a22; border: 1px solid var(--accent3); color: var(--teal); }
+
+  /* LAYOUT */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 56px 40px; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 120px;
+  }
+  .section-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .section-title span { color: var(--gold); }
+  .section-desc { color: var(--text-dim); font-size: 13px; margin-bottom: 32px; max-width: 600px; }
+
+  /* DATA CALLOUT */
+  .data-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .data-cell {
+    background: var(--surface);
+    padding: 20px 24px;
+  }
+  .data-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .data-label { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+  .data-source { font-size: 10px; color: #555566; margin-top: 4px; font-family: 'Space Mono', monospace; }
+
+  /* INSIGHT BLOCK */
+  .insight {
+    background: var(--surface2);
+    border-left: 3px solid var(--gold);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border-radius: 0 4px 4px 0;
+  }
+  .insight.purple { border-left-color: var(--purple); }
+  .insight.teal { border-left-color: var(--teal); }
+  .insight.red { border-left-color: var(--red); }
+  .insight-label { font-size: 10px; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 6px; font-family: 'Space Mono', monospace; }
+  .insight-text { font-size: 14px; color: var(--text); }
+  .insight-text strong { color: var(--gold); }
+  .insight.purple .insight-text strong { color: var(--purple); }
+  .insight.teal .insight-text strong { color: var(--teal); }
+  .insight.red .insight-text strong { color: var(--red); }
+
+  /* FUNNEL */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 24px 0;
+  }
+  .funnel-step {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    border-radius: 4px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .funnel-step:hover { border-color: var(--accent); }
+  .funnel-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .funnel-content {}
+  .funnel-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+  .funnel-desc { font-size: 12px; color: var(--text-dim); }
+  .funnel-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .tag-gold { background: #c9a84c22; color: var(--gold); border: 1px solid #c9a84c44; }
+  .tag-purple { background: #7c5cbf22; color: var(--purple); border: 1px solid #7c5cbf44; }
+  .tag-teal { background: #3b9e8a22; color: var(--teal); border: 1px solid #3b9e8a44; }
+
+  /* PLATFORM GRID */
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .platform-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+  }
+  .platform-card:hover { border-color: var(--accent2); }
+  .platform-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .platform-icon { font-size: 18px; }
+  .platform-role { font-size: 11px; color: var(--gold); margin-bottom: 10px; }
+  .platform-items { list-style: none; }
+  .platform-items li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    border-bottom: 1px solid #1a1a28;
+    display: flex;
+    gap: 8px;
+  }
+  .platform-items li::before { content: '→'; color: var(--accent3); flex-shrink: 0; }
+
+  /* CONTENT TYPES */
+  .content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .content-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent2);
+    padding: 16px;
+    border-radius: 0 0 4px 4px;
+  }
+  .content-card.gold { border-top-color: var(--gold); }
+  .content-card.teal { border-top-color: var(--teal); }
+  .content-card.red { border-top-color: var(--red); }
+  .content-type { font-size: 10px; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 8px; font-family: 'Space Mono', monospace; }
+  .content-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .content-examples { font-size: 11px; color: var(--text-dim); line-height: 1.8; }
+  .content-purpose { font-size: 10px; margin-top: 8px; padding: 4px 8px; background: #1a1a28; border-radius: 2px; }
+
+  /* REVENUE TABLE */
+  .rev-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .rev-table th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+  .rev-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #1a1a28;
+    font-size: 13px;
+  }
+  .rev-table tr:hover td { background: var(--surface2); }
+  .rev-table .num { font-family: 'Space Mono', monospace; color: var(--gold); }
+  .rev-table .phase { font-family: 'Space Mono', monospace; font-size: 10px; }
+
+  /* ROADMAP */
+  .roadmap { display: flex; flex-direction: column; gap: 0; }
+  .roadmap-item {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 0;
+    position: relative;
+  }
+  .roadmap-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 49px;
+    top: 42px;
+    bottom: -4px;
+    width: 2px;
+    background: var(--border);
+  }
+  .roadmap-time {
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 22px;
+  }
+  .roadmap-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg);
+    outline: 1px solid var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+  .roadmap-dot.purple { background: var(--purple); outline-color: var(--accent2); }
+  .roadmap-dot.teal { background: var(--teal); outline-color: var(--accent3); }
+  .roadmap-label { font-size: 10px; color: var(--text-dim); font-family: 'Space Mono', monospace; text-align: center; }
+  .roadmap-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 8px 0 16px 16px;
+  }
+  .roadmap-phase { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--gold); margin-bottom: 6px; letter-spacing: 2px; }
+  .roadmap-phase.purple { color: var(--purple); }
+  .roadmap-phase.teal { color: var(--teal); }
+  .roadmap-heading { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .roadmap-tasks { list-style: none; }
+  .roadmap-tasks li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .roadmap-tasks li::before { content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+  .roadmap-goal {
+    margin-top: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  /* CTA BLOCK */
+  .cta-block {
+    background: linear-gradient(135deg, #16101f, #0f1a16);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-top: 16px;
+  }
+  .cta-title { font-family: 'Noto Serif JP', serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .action-list { display: flex; flex-direction: column; gap: 10px; }
+  .action-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: #ffffff08;
+    padding: 12px 16px;
+    border-radius: 3px;
+    border-left: 2px solid var(--gold);
+  }
+  .action-num { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--gold); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .action-text { font-size: 13px; }
+  .action-text strong { color: var(--text); }
+  .action-text span { color: var(--text-dim); font-size: 12px; }
+
+  /* WARNING */
+  .warning {
+    background: #1f1010;
+    border: 1px solid #e86b6b33;
+    border-left: 3px solid var(--red);
+    padding: 12px 16px;
+    border-radius: 0 4px 4px 0;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .warning strong { color: var(--red); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* FOOTER */
+  .footer {
+    padding: 32px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+  .footer-label { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: 3px; }
+
+  @media (max-width: 640px) {
+    .section { padding: 40px 20px; }
+    .header { padding: 60px 20px 40px; }
+    .roadmap-item { grid-template-columns: 70px 1fr; }
+    .data-row { grid-template-columns: 1fr 1fr; }
+    .footer { flex-direction: column; gap: 8px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eyebrow">STRATEGY REPORT / 2026.03</div>
+  <h1>転職アフィリ × 占い<br><span>SNSマネタイズ戦略</span></h1>
+  <p class="header-sub">トレンドデータを元に設計した、SNS集客からアフィリエイト収益化までの完全ロードマップ</p>
+  <div class="header-badges">
+    <span class="badge badge-gold">TARGET：月10〜30万円</span>
+    <span class="badge badge-purple">TIMELINE：3ヶ月</span>
+    <span class="badge badge-teal">CHANNEL：TikTok / Instagram / X / LINE</span>
+  </div>
+</div>
+
+<!-- SECTION 1: DATA FOUNDATION -->
+<div class="section">
+  <div class="section-label">01 / MARKET DATA</div>
+  <div class="section-title">戦略の根拠となる<span>市場データ</span></div>
+  <p class="section-desc">この戦略はデータに基づいて設計されている。以下の数字が「なぜこの組み合わせなのか」を証明する。</p>
+
+  <div class="data-row">
+    <div class="data-cell">
+      <div class="data-num">7.6%</div>
+      <div class="data-label">2025年の転職率<br>2018年以降の最高値</div>
+      <div class="data-source">SRC: マイナビ転職動向調査2026</div>
+    </div>
+    <div class="data-cell">
+      <div class="data-num">997億円</div>
+      <div class="data-label">占いサービス市場規模<br>5市場中5市場が成長中</div>
+      <div class="data-source">SRC: 矢野経済研究所 2023</div>
+    </div>
+    <div class="data-cell">
+      <div class="data-num">90%</div>
+      <div class="data-label">占い利用者に占める<br>30〜50代女性の比率</div>
+      <div class="data-source">SRC: SABRE note調査</div>
+    </div>
+    <div class="data-cell">
+      <div class="data-num">490万</div>
+      <div class="data-label">TikTok #astrology<br>の投稿数（2025年5月）</div>
+      <div class="data-source">SRC: manamina / Values</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-label">KEY INSIGHT #1</div>
+    <div class="insight-text">転職率が過去最高水準（7.6%）＝<strong>アフィリエイトの母数が今が最大</strong>。かつ占い利用者の中心層（30〜50代女性）とミドル転職需要層が完全に重なる。</div>
+  </div>
+  <div class="insight purple">
+    <div class="insight-label">KEY INSIGHT #2</div>
+    <div class="insight-text">占い相談の内訳は恋愛85%・職場14.5%。一見少ないが、<strong>「仕事×占い」は競合が少ない上に転職アフィリと直結できる唯一のニッチ</strong>。</div>
+  </div>
+  <div class="insight teal">
+    <div class="insight-label">KEY INSIGHT #3</div>
+    <div class="insight-text">チャット・メール占いは「AIより生身の人間」への需要で急成長中。<strong>個別鑑定への誘導が最も高単価化できる</strong>。月10件×5,000円=5万円の副収益が現実的。</div>
+  </div>
+</div>
+
+<!-- SECTION 2: CONCEPT -->
+<div class="section">
+  <div class="section-label">02 / CONCEPT</div>
+  <div class="section-title">ターゲット設計と<span>ポジショニング</span></div>
+  <p class="section-desc">「誰に・何を・どう届けるか」を明確にすることが全ての出発点。</p>
+
+  <div class="data-row" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div class="data-cell">
+      <div class="data-label" style="font-size:10px;letter-spacing:2px;margin-bottom:8px;">WHO（ターゲット）</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);">仕事に迷う<br>28〜40代女性</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">転職を考えている or 職場に不満がある。占いが好きで自己分析に前向き。</div>
+    </div>
+    <div class="data-cell">
+      <div class="data-label" style="font-size:10px;letter-spacing:2px;margin-bottom:8px;">WHAT（提供価値）</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);">運勢で背中を<br>押す転職ガイド</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">占いという感情的入口から入り、転職という行動的出口へ繋げる。</div>
+    </div>
+    <div class="data-cell">
+      <div class="data-label" style="font-size:10px;letter-spacing:2px;margin-bottom:8px;">HOW（差別化）</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);">星座×キャリア<br>の専門ポジション</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">「転職占い師」というポジションは競合が少なく、検索需要と占いニーズが重なる。</div>
+    </div>
+  </div>
+
+  <div class="insight red">
+    <div class="insight-label">POSITIONING POINT</div>
+    <div class="insight-text"><strong>「転職 × 占い」の専門家</strong>として打ち出す。一般的な占いアカウントにも、転職アドバイザーにもなれない、唯一のポジション。プロフィール文は「仕事に迷う人の運勢×キャリアを読みます」に統一。</div>
+  </div>
+</div>
+
+<!-- SECTION 3: SNS STRATEGY -->
+<div class="section">
+  <div class="section-label">03 / SNS STRATEGY</div>
+  <div class="section-title">プラットフォーム別<span>運用方針</span></div>
+  <p class="section-desc">TikTokで認知を作り、Instagramで関係を深め、Xでエンゲージし、LINEで収益化する。4つの役割分担。</p>
+
+  <div class="platform-grid">
+    <div class="platform-card">
+      <div class="platform-name"><span class="platform-icon">📱</span>TikTok</div>
+      <div class="platform-role">▶ 役割：認知獲得・バズ狙い</div>
+      <ul class="platform-items">
+        <li>フォロワー0でも非フォロワーに拡散される唯一のSNS</li>
+        <li>国内3,300万ユーザー・#astrology 490万投稿</li>
+        <li>週5〜7本の短尺動画（15〜60秒）</li>
+        <li>「星座別転職ランキング」系でバズを狙う</li>
+        <li>プロフにLINEorリンクツリーのURL設置</li>
+      </ul>
+    </div>
+    <div class="platform-card">
+      <div class="platform-name"><span class="platform-icon">📸</span>Instagram</div>
+      <div class="platform-role">▶ 役割：信頼構築・保存数UP</div>
+      <ul class="platform-items">
+        <li>Reelsでバズ・フィードで保存を稼ぐ二刀流</li>
+        <li>「保存してね」系の有益スライドが効果的</li>
+        <li>週3〜4本（Reels2本＋スライド投稿1〜2本）</li>
+        <li>ストーリーでアフィリURLを直リンク</li>
+        <li>ハイライトに「無料診断はこちら」を固定</li>
+      </ul>
+    </div>
+    <div class="platform-card">
+      <div class="platform-name"><span class="platform-icon">𝕏</span>X（Twitter）</div>
+      <div class="platform-role">▶ 役割：エンゲージ・リプ集客</div>
+      <ul class="platform-items">
+        <li>「転職迷ってる人RT→鑑定します」企画が有効</li>
+        <li>占い診断ポスト（リプで個別回答）で信頼獲得</li>
+        <li>週5〜7ポスト。引用RT・議論参加で露出増加</li>
+        <li>noteへの誘導口として機能させる</li>
+      </ul>
+    </div>
+    <div class="platform-card">
+      <div class="platform-name"><span class="platform-icon">💬</span>LINE公式</div>
+      <div class="platform-role">▶ 役割：収益化の最終地点</div>
+      <ul class="platform-items">
+        <li>SNSフォロワーをLINEに移行して"囲い込む"</li>
+        <li>週1〜2回配信：占い＋転職アフィリリンク</li>
+        <li>1:1トークで個別鑑定受付 → 高単価化</li>
+        <li>ステップ配信で自動的に転職サービスを紹介</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="warning">
+    <strong>TikTokの注意点：</strong>リンクを投稿本文に設置できない仕様。動画内でプロフに誘導するCTAを必ず入れること（「プロフのリンクから無料診断↑」など）。
+  </div>
+</div>
+
+<!-- SECTION 4: CONTENT STRATEGY -->
+<div class="section">
+  <div class="section-label">04 / CONTENT</div>
+  <div class="section-title">バズる×売れる<span>コンテンツ設計</span></div>
+  <p class="section-desc">すべての投稿は「認知→信頼→行動」の3ゴールのどれかに機能させる。</p>
+
+  <div class="content-grid">
+    <div class="content-card gold">
+      <div class="content-type">TYPE A / 認知獲得</div>
+      <div class="content-title">⚡ バズ狙い型</div>
+      <div class="content-examples">
+        「転職に向いてる星座TOP3」<br>
+        「仕事を辞めるべき運勢サイン」<br>
+        「2026年転職大吉の星座」<br>
+        「今の職場を離れるタイミング」
+      </div>
+      <div class="content-purpose" style="color:var(--gold)">→ 再生数・フォロワー増加が目的</div>
+    </div>
+    <div class="content-card">
+      <div class="content-type">TYPE B / 信頼構築</div>
+      <div class="content-title">🤝 共感・有益型</div>
+      <div class="content-examples">
+        「仕事が辛い時の運勢的意味」<br>
+        「転職を迷う人への星座別アドバイス」<br>
+        「職場の人間関係の運勢読み方」<br>
+        「転職エージェントを星座別解説」
+      </div>
+      <div class="content-purpose" style="color:var(--purple)">→ 保存・コメント・フォローが目的</div>
+    </div>
+    <div class="content-card teal">
+      <div class="content-type">TYPE C / 収益化</div>
+      <div class="content-title">💰 CTA誘導型</div>
+      <div class="content-examples">
+        「無料転職診断やってみた結果」<br>
+        「私が使ってる転職サービス紹介」<br>
+        「星座別オススメ転職サービス」<br>
+        「LINE登録で無料鑑定プレゼント」
+      </div>
+      <div class="content-purpose" style="color:var(--teal)">→ アフィリCVとLINE登録が目的</div>
+    </div>
+    <div class="content-card red">
+      <div class="content-type">TYPE D / 高単価化</div>
+      <div class="content-title">🔮 個別鑑定誘導</div>
+      <div class="content-examples">
+        「実際の鑑定事例をシェア」<br>
+        「お客様の転職成功エピソード」<br>
+        「鑑定募集（枠限定）の告知」<br>
+        「有料noteの中身チラ見せ」
+      </div>
+      <div class="content-purpose" style="color:var(--red)">→ 個別鑑定・note販売が目的</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-label">CONTENT RATIO（推奨配分）</div>
+    <div class="insight-text">A（バズ型）<strong>40%</strong> ＋ B（信頼型）<strong>35%</strong> ＋ C（CTA型）<strong>15%</strong> ＋ D（高単価型）<strong>10%</strong><br>最初の1ヶ月はA+Bのみに集中。フォロワー300人を超えてからC+Dを混ぜ始める。</div>
+  </div>
+</div>
+
+<!-- SECTION 5: FUNNEL -->
+<div class="section">
+  <div class="section-label">05 / CONVERSION FUNNEL</div>
+  <div class="section-title">SNSから収益まで<span>5ステップ導線</span></div>
+  <p class="section-desc">視聴者が「知らない人」→「お金を払う人」になるまでの全経路を設計する。</p>
+
+  <div class="funnel">
+    <div class="funnel-step">
+      <div class="funnel-num">01</div>
+      <div class="funnel-content">
+        <div class="funnel-title">TikTok / Reels で認知獲得</div>
+        <div class="funnel-desc">「転職×星座」のバズ動画で初見ユーザーにリーチ。週5〜7本で母数を作る。</div>
+      </div>
+      <span class="funnel-tag tag-gold">AWARENESS</span>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-num">02</div>
+      <div class="funnel-content">
+        <div class="funnel-title">プロフィール → リンクツリーへ誘導</div>
+        <div class="funnel-desc">動画内で「詳細はプロフのリンクへ」と必ず誘導。リンクツリーには①無料鑑定LINE②note③転職アフィリを並べる。</div>
+      </div>
+      <span class="funnel-tag tag-purple">CLICK</span>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-num">03</div>
+      <div class="funnel-content">
+        <div class="funnel-title">LINE公式に登録（無料特典で引き込む）</div>
+        <div class="funnel-desc">「LINE登録で無料星座鑑定プレゼント」で登録率UP。ここで見込み客リストを獲得する。登録直後にステップ配信で転職サービスの紹介が自動で流れる設計に。</div>
+      </div>
+      <span class="funnel-tag tag-teal">REGISTER</span>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-num">04</div>
+      <div class="funnel-content">
+        <div class="funnel-title">転職アフィリへの誘導（LINE配信）</div>
+        <div class="funnel-desc">週1〜2回の配信で「あなたの星座に合う転職サービスはこれ」と個人化して紹介。A8.net・バリューコマース経由の登録報酬型リンクを掲載。1件2,000〜8,000円。</div>
+      </div>
+      <span class="funnel-tag tag-gold">AFFILIATE CV</span>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-num">05</div>
+      <div class="funnel-content">
+        <div class="funnel-title">有料note・個別鑑定で高単価化</div>
+        <div class="funnel-desc">信頼が積み上がったユーザーにnote（500〜2,000円）と個別鑑定（3,000〜8,000円）を販売。coconala・BASE・LINE直接受付で展開。</div>
+      </div>
+      <span class="funnel-tag tag-purple">HIGH VALUE</span>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: REVENUE MODEL -->
+<div class="section">
+  <div class="section-label">06 / REVENUE MODEL</div>
+  <div class="section-title">月別<span>収益シミュレーション</span></div>
+  <p class="section-desc">フェーズごとに収益源を積み上げていく。最初は転職アフィリに集中し、信頼が積み上がったら高単価商品を追加する。</p>
+
+  <table class="rev-table">
+    <thead>
+      <tr>
+        <th>PHASE</th>
+        <th>収益源</th>
+        <th>単価</th>
+        <th>目標件数</th>
+        <th>月収目標</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="phase">MONTH 1</span></td>
+        <td>転職アフィリ（登録報酬型）</td>
+        <td class="num">3,000〜8,000円</td>
+        <td>10〜15件</td>
+        <td class="num">3〜10万円</td>
+      </tr>
+      <tr>
+        <td><span class="phase">MONTH 2</span></td>
+        <td>転職アフィリ ＋ note販売</td>
+        <td class="num">アフィリ＋note500〜2,000円</td>
+        <td>転職10件＋note30〜50部</td>
+        <td class="num">8〜15万円</td>
+      </tr>
+      <tr>
+        <td><span class="phase">MONTH 3</span></td>
+        <td>転職アフィリ ＋ 個別鑑定</td>
+        <td class="num">鑑定3,000〜8,000円</td>
+        <td>転職10件＋鑑定5〜10件</td>
+        <td class="num">15〜25万円</td>
+      </tr>
+      <tr>
+        <td><span class="phase">MONTH 4〜</span></td>
+        <td>全収益源の最大化</td>
+        <td class="num">—</td>
+        <td>ストック収益化開始</td>
+        <td class="num">30万円〜</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight teal">
+    <div class="insight-label">AFFILIATE ASP 優先順位</div>
+    <div class="insight-text">
+      <strong>① A8.net</strong>：審査なし・すぐ始められる。doda・マイナビ転職（1件2,000〜5,000円）<br>
+      <strong>② バリューコマース</strong>：リクルートエージェント・ハタラクティブ（1件2,000〜5,000円）<br>
+      <strong>③ アクセストレード</strong>：BIZREACH・type転職（高単価5,000〜50,000円）
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: ROADMAP -->
+<div class="section">
+  <div class="section-label">07 / ROADMAP</div>
+  <div class="section-title">週単位<span>実行ロードマップ</span></div>
+  <p class="section-desc">迷わずに動くための具体的タスク一覧。</p>
+
+  <div class="roadmap">
+    <div class="roadmap-item">
+      <div class="roadmap-time">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-label">Week<br>1〜2</div>
+      </div>
+      <div class="roadmap-body">
+        <div class="roadmap-phase">PHASE 1 — SETUP</div>
+        <div class="roadmap-heading">ベース構築：全部「仕掛ける」週</div>
+        <ul class="roadmap-tasks">
+          <li>TikTok・Instagram・Xアカウント作成（コンセプト統一）</li>
+          <li>A8.net・バリューコマース登録 → 転職アフィリリンク取得</li>
+          <li>リンクツリー設計：①LINE②note③転職リンク の3択に絞る</li>
+          <li>LINE公式アカウント開設・ステップ配信1通目を作成</li>
+          <li>プロフィール文統一：「転職×運勢で迷いをなくす◯◯」</li>
+          <li>無料鑑定の特典PDF（簡易版）をCanvaで作成</li>
+        </ul>
+        <div class="roadmap-goal">🎯 GOAL：全アカウント開設・ASP登録・LINE稼働</div>
+      </div>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="roadmap-time">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-label">Week<br>3〜4</div>
+      </div>
+      <div class="roadmap-body">
+        <div class="roadmap-phase">PHASE 2 — CONTENT LAUNCH</div>
+        <div class="roadmap-heading">コンテンツ量産：最初の投稿20本を量産</div>
+        <ul class="roadmap-tasks">
+          <li>TikTok・Reels：週5〜6本（バズ型A・信頼型Bのみ）</li>
+          <li>X：毎日1ポスト＋占い診断ツイート週2回（リプ返しで信頼獲得）</li>
+          <li>Claudeで台本生成 → CapCut AIで動画化（1本15〜20分のルーティン化）</li>
+          <li>毎日「いいね周り＋フォロー返し」100件（TikTok・Instagram）</li>
+          <li>X「転職迷ってる人RT企画」を1回実施</li>
+        </ul>
+        <div class="roadmap-goal">🎯 GOAL：フォロワー100〜300人・LINE登録者30〜50人</div>
+      </div>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="roadmap-time">
+        <div class="roadmap-dot purple"></div>
+        <div class="roadmap-label">Week<br>5〜8</div>
+      </div>
+      <div class="roadmap-body">
+        <div class="roadmap-phase purple">PHASE 3 — MONETIZE</div>
+        <div class="roadmap-heading">収益化開始：アフィリ＋note販売を追加</div>
+        <ul class="roadmap-tasks">
+          <li>LINE配信（週1〜2回）：「星座別おすすめ転職サービス」でアフィリリンク配信</li>
+          <li>Instagramストーリーにアフィリスワイプアップを設置</li>
+          <li>有料note初稿を公開：「星座別2026年転職成功タイミング」（500〜1,000円）</li>
+          <li>X・TikTokでnoteの無料チラ見せ投稿を2〜3本作成</li>
+          <li>コンテンツにCTA型（Type C）を20%混ぜ始める</li>
+        </ul>
+        <div class="roadmap-goal">🎯 GOAL：転職アフィリ月3〜8万円・note初月数万円</div>
+      </div>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="roadmap-time">
+        <div class="roadmap-dot teal"></div>
+        <div class="roadmap-label">Month<br>3〜</div>
+      </div>
+      <div class="roadmap-body">
+        <div class="roadmap-phase teal">PHASE 4 — SCALE UP</div>
+        <div class="roadmap-heading">高単価化：個別鑑定・ストック収益へ</div>
+        <ul class="roadmap-tasks">
+          <li>coconala / BASEに個別鑑定メニューを出品（3,000〜8,000円）</li>
+          <li>「AI補助×手作業」で鑑定を効率化（生年月日→Claude→確認・味付け→納品）</li>
+          <li>LINE限定「鑑定枠5名募集」を月1回実施</li>
+          <li>月3〜5本のnoteを積み上げてストック型収益に</li>
+          <li>高単価アクセストレード（BIZREACH等）に切り替えて単価UP</li>
+        </ul>
+        <div class="roadmap-goal">🎯 GOAL：月15〜30万円（アフィリ＋鑑定＋note）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8: ACTION -->
+<div class="section">
+  <div class="section-label">08 / FIRST ACTIONS</div>
+  <div class="section-title">明日から動く<span>最初の5アクション</span></div>
+  <p class="section-desc">すべてを一度にやろうとしない。この5つだけを今週中に完了させること。</p>
+
+  <div class="cta-block">
+    <div class="cta-title">✅ 今週中にやること</div>
+    <div class="action-list">
+      <div class="action-item">
+        <div class="action-num">01</div>
+        <div class="action-text"><strong>A8.net に登録してdodaのアフィリリンクを取得</strong><br><span>審査なし・5分で完了。今すぐ収益の起点を作る</span></div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">02</div>
+        <div class="action-text"><strong>TikTokアカウントを「転職×占い」コンセプトで開設</strong><br><span>プロフ文：「仕事の迷いを星座で読みます ＋ 転職アドバイス」</span></div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">03</div>
+        <div class="action-text"><strong>LINE公式アカウントを開設し「無料鑑定特典」を設定</strong><br><span>登録したら自動で簡易鑑定PDFが届く仕組みを作る</span></div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">04</div>
+        <div class="action-text"><strong>リンクツリーを作成してTikTokプロフに設置</strong><br><span>① LINE登録（無料鑑定）② note ③ 転職アフィリリンク の3択</span></div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">05</div>
+        <div class="action-text"><strong>最初の投稿1本を制作・投稿</strong><br><span>テーマ例：「転職に向いてる星座TOP3」→ バズ型で認知から始める</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer" style="padding:32px 40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+  <div class="footer-label">STRATEGY REPORT — 転職 × 占い SNSマネタイズ</div>
+  <div class="footer-label">GENERATED 2026.03.22</div>
+</div>
+
+</body>
+</html>

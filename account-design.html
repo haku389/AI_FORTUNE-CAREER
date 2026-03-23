@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アカウント設計書</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #08070f;
+  --paper: #0e0c18;
+  --card: #13101e;
+  --card2: #181426;
+  --rim: #2e2846;
+  --gold: #d4a843;
+  --gold-dim: #8a6a20;
+  --gold-glow: #f0cc70;
+  --rose: #c45c7a;
+  --teal: #3dbfa8;
+  --sky: #5c9fd4;
+  --text: #e4dff5;
+  --text-mid: #9990b8;
+  --text-dim: #5c5578;
+  --star: #f5f0ff;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── STARFIELD ── */
+.starfield {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--star);
+  animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+}
+@keyframes twinkle {
+  0%,100% { opacity: var(--min, 0.1); }
+  50% { opacity: var(--max, 0.6); }
+}
+
+/* ── LAYOUT ── */
+.wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  padding: 72px 0 56px;
+  text-align: center;
+}
+.header-orb {
+  width: 120px; height: 120px;
+  margin: 0 auto 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #f0cc70 0%, #c89020 30%, #7a5010 60%, #1a1030 100%);
+  box-shadow: 0 0 60px #d4a84360, 0 0 120px #d4a84320;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px;
+  animation: orb-pulse 4s ease-in-out infinite;
+}
+@keyframes orb-pulse {
+  0%,100% { box-shadow: 0 0 60px #d4a84360, 0 0 120px #d4a84320; }
+  50% { box-shadow: 0 0 80px #d4a84380, 0 0 160px #d4a84340; }
+}
+.eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 5px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  opacity: 0.8;
+}
+header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+header h1 em { color: var(--gold-glow); font-style: italic; }
+header p {
+  color: var(--text-mid);
+  font-size: 13px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.divider-stars {
+  display: flex; align-items: center; gap: 16px;
+  margin: 40px 0 0;
+  color: var(--gold-dim);
+  font-size: 10px;
+  letter-spacing: 8px;
+}
+.divider-stars::before, .divider-stars::after {
+  content: ''; flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rim), transparent);
+}
+
+/* ── SECTION ── */
+.section { margin-bottom: 64px; }
+.section-head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rim);
+}
+.section-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 2px;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.section-title span { color: var(--gold-glow); }
+
+/* ── NAME CARDS ── */
+.name-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.name-card {
+  background: var(--card);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 22px 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.name-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #d4a84308 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.name-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 32px #d4a84320; }
+.name-card:hover::before { opacity: 1; }
+.name-card.recommended {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, #1e1830, #13101e);
+}
+.name-card.recommended::after {
+  content: '★ おすすめ';
+  position: absolute; top: 12px; right: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  background: #d4a84322;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--gold-dim);
+}
+.name-main {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.name-main em { color: var(--gold-glow); font-style: normal; }
+.name-handle {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.name-desc { font-size: 12px; color: var(--text-mid); line-height: 1.7; }
+.name-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+.tag-g { color: var(--gold); border-color: var(--gold-dim); background: #d4a84310; }
+.tag-r { color: var(--rose); border-color: #c45c7a55; background: #c45c7a10; }
+.tag-t { color: var(--teal); border-color: #3dbfa855; background: #3dbfa810; }
+.tag-s { color: var(--sky); border-color: #5c9fd455; background: #5c9fd410; }
+
+/* ── ICON SECTION ── */
+.icon-concept {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media(max-width:600px){ .icon-concept{ grid-template-columns:1fr; } }
+
+.icon-preview {
+  background: var(--card);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.icon-circle {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ic-a {
+  background: radial-gradient(circle at 35% 35%, #2a1a40, #0d0820);
+  border: 2px solid var(--gold-dim);
+  box-shadow: 0 0 24px #d4a84330;
+}
+.ic-b {
+  background: radial-gradient(circle at 35% 35%, #1a2a40, #080d20);
+  border: 2px solid #5c9fd4aa;
+  box-shadow: 0 0 24px #5c9fd430;
+}
+.icon-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-align: center;
+}
+.icon-notes { font-size: 12px; color: var(--text-mid); text-align: center; line-height: 1.7; }
+
+.icon-spec {
+  background: var(--card2);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 22px 24px;
+}
+.spec-row {
+  display: flex; gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #1e1c30;
+  align-items: flex-start;
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  min-width: 80px;
+  padding-top: 1px;
+  flex-shrink: 0;
+}
+.spec-val { font-size: 12px; color: var(--text-mid); }
+.spec-val strong { color: var(--text); }
+
+/* ── PROFILE TABS ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rim);
+  margin-bottom: 0;
+}
+.tab-btn {
+  padding: 10px 22px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.tab-btn:hover { color: var(--text-mid); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.profile-box {
+  background: var(--card);
+  border: 1px solid var(--rim);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 28px;
+}
+.profile-mockup {
+  display: flex; gap: 20px; align-items: flex-start;
+  margin-bottom: 24px;
+}
+.mock-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2a1a40, #0d0820);
+  border: 2px solid var(--gold-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px #d4a84330;
+}
+.mock-info { flex: 1; }
+.mock-name {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 17px;
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+.mock-handle {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.mock-bio {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  background: var(--card2);
+  border-left: 2px solid var(--gold);
+  padding: 14px 16px;
+  border-radius: 0 6px 6px 0;
+  white-space: pre-line;
+  margin-bottom: 16px;
+}
+.mock-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--sky);
+  text-decoration: none;
+  border: 1px solid #5c9fd444;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #5c9fd410;
+}
+
+.bio-note {
+  background: var(--card2);
+  border: 1px solid var(--rim);
+  border-radius: 6px;
+  padding: 16px 20px;
+}
+.bio-note-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.bio-note-items { list-style: none; }
+.bio-note-items li {
+  font-size: 12px;
+  color: var(--text-mid);
+  padding: 4px 0;
+  border-bottom: 1px solid #1a1830;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.bio-note-items li:last-child { border-bottom: none; }
+.bio-note-items li::before { content: '◈'; color: var(--gold); font-size: 8px; margin-top: 4px; flex-shrink: 0; }
+
+/* ── POST PATTERNS ── */
+.post-pattern-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.ppt-btn {
+  padding: 7px 16px;
+  background: var(--card);
+  border: 1px solid var(--rim);
+  border-radius: 20px;
+  color: var(--text-mid);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ppt-btn:hover, .ppt-btn.active {
+  background: #d4a84318;
+  border-color: var(--gold);
+  color: var(--gold-glow);
+}
+
+.post-panel { display: none; }
+.post-panel.active { display: block; }
+
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.post-card {
+  background: var(--card);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.post-card:hover { border-color: var(--gold-dim); transform: translateY(-1px); }
+
+.post-thumb {
+  height: 120px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  padding: 16px;
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+.pt-buzz {
+  background: linear-gradient(135deg, #1a0e2a, #0e1a2a);
+  color: var(--gold-glow);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 15px;
+}
+.pt-trust {
+  background: linear-gradient(135deg, #0e1a18, #0e0e2a);
+  color: var(--teal);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 14px;
+}
+.pt-cta {
+  background: linear-gradient(135deg, #1a0e18, #1a1008);
+  color: var(--rose);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 14px;
+}
+.pt-premium {
+  background: linear-gradient(135deg, #1a1408, #0e0e1a);
+  color: var(--gold-glow);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 14px;
+}
+
+.thumb-deco {
+  position: absolute; font-size: 48px; opacity: 0.06;
+  bottom: -8px; right: -4px;
+}
+
+.post-body { padding: 14px 16px; }
+.post-type-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  padding: 2px 0;
+}
+.ptb-buzz { color: var(--gold); }
+.ptb-trust { color: var(--teal); }
+.ptb-cta { color: var(--rose); }
+.ptb-premium { color: #c8a060; }
+
+.post-script {
+  font-size: 12px;
+  color: var(--text-mid);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.post-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.post-hashtag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--sky);
+  background: #5c9fd410;
+  border: 1px solid #5c9fd430;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.post-hook {
+  background: var(--card2);
+  border: 1px solid var(--rim);
+  border-left: 2px solid var(--gold);
+  border-radius: 0 6px 6px 0;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.post-hook-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+/* ── CAPTION TEMPLATE ── */
+.caption-box {
+  background: #0a0816;
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 20px 22px;
+  margin-top: 14px;
+}
+.caption-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.caption-text {
+  font-size: 13px;
+  line-height: 2;
+  color: var(--text);
+  white-space: pre-line;
+}
+.caption-text .hl { color: var(--gold-glow); }
+.caption-text .dim { color: var(--text-dim); }
+
+/* ── TONE GUIDE ── */
+.tone-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+@media(max-width:520px){ .tone-grid{ grid-template-columns:1fr; } }
+.tone-card {
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-size: 12px;
+}
+.tone-good {
+  background: #0e1e14;
+  border: 1px solid #3dbfa844;
+  color: var(--teal);
+}
+.tone-bad {
+  background: #1e0e0e;
+  border: 1px solid #c45c7a44;
+  color: var(--rose);
+}
+.tone-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+.tone-items { list-style: none; }
+.tone-items li {
+  padding: 3px 0;
+  display: flex; gap: 8px;
+  color: var(--text-mid);
+  border-bottom: 1px solid #ffffff08;
+}
+.tone-items li:last-child { border-bottom: none; }
+.tone-items li .mark { flex-shrink: 0; }
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media(max-width:640px){
+  .wrap { padding: 0 16px 60px; }
+  header { padding: 48px 0 40px; }
+  .name-grid { grid-template-columns: 1fr; }
+  .tabs { overflow-x: auto; }
+  .tab-btn { padding: 10px 14px; font-size: 10px; white-space: nowrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<div class="starfield" id="starfield"></div>
+
+<div class="wrap">
+
+<!-- HEADER -->
+<header class="reveal">
+  <div class="eyebrow">ACCOUNT DESIGN DOCUMENT</div>
+  <div class="header-orb">🔮</div>
+  <h1>転職 × 占い<br><em>アカウント設計書</em></h1>
+  <p>SNSで「選ばれる存在」になるための、名前・顔・言葉・投稿の完全設計</p>
+  <div class="divider-stars">✦ ✦ ✦</div>
+</header>
+
+
+<!-- ─────────────────────────────────── -->
+<!-- SECTION 1: アカウント名 -->
+<!-- ─────────────────────────────────── -->
+<div class="section reveal">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">アカウント名 <span>候補</span></span>
+  </div>
+
+  <div class="name-grid">
+
+    <div class="name-card recommended">
+      <div class="name-main">星よみ転職師<em>◇ルナ</em></div>
+      <div class="name-handle">@hoshiyomi_luna</div>
+      <div class="name-desc">「星よみ」で占い感、「転職師」で仕事特化を同時に伝える。覚えやすくユニークで検索に引っかかりやすい。ルナ（月）は占いの象徴で親しみやすい。</div>
+      <div class="name-tags">
+        <span class="tag tag-g">記憶に残る</span>
+        <span class="tag tag-t">検索しやすい</span>
+        <span class="tag tag-r">専門性が伝わる</span>
+      </div>
+    </div>
+
+    <div class="name-card">
+      <div class="name-main">運勢で転職を<em>◇解く人</em></div>
+      <div class="name-handle">@unsei_tenshoku</div>
+      <div class="name-desc">「転職を解く」という動詞型で問題解決者のイメージ。SEO的に「運勢 転職」で強い。ただしやや長いので短縮が必要。</div>
+      <div class="name-tags">
+        <span class="tag tag-s">SEO強い</span>
+        <span class="tag tag-g">ベネフィット明確</span>
+      </div>
+    </div>
+
+    <div class="name-card">
+      <div class="name-main"><em>天星</em>キャリア占師</div>
+      <div class="name-handle">@tensei_career</div>
+      <div class="name-desc">「天星」が造語でブランド感あり。キャリア×占師の組み合わせでビジネス系にも響く。少し堅め・高単価路線に向いている。</div>
+      <div class="name-tags">
+        <span class="tag tag-g">ブランド感</span>
+        <span class="tag tag-r">高単価向き</span>
+      </div>
+    </div>
+
+    <div class="name-card">
+      <div class="name-main">仕事占い師<em>◇みずき</em></div>
+      <div class="name-handle">@shigoto_uranai</div>
+      <div class="name-desc">最もシンプルで直感的。「仕事占い師」でニッチ検索に強い。一方で差別化が弱く埋もれやすい面もある。</div>
+      <div class="name-tags">
+        <span class="tag tag-s">わかりやすい</span>
+        <span class="tag tag-t">初心者向き</span>
+      </div>
+    </div>
+
+    <div class="name-card">
+      <div class="name-main"><em>◎</em>転職の星を読む人</div>
+      <div class="name-handle">@tenshoku_hoshi</div>
+      <div class="name-desc">詩的でストーリー性がある。TikTokのテロップ映えが良く、エモーショナルな訴求が得意な層に刺さる。20代後半〜30代向け。</div>
+      <div class="name-tags">
+        <span class="tag tag-r">エモ系</span>
+        <span class="tag tag-g">TikTok向き</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:var(--card2);border:1px solid var(--rim);border-left:2px solid var(--gold);border-radius:0 6px 6px 0;padding:14px 18px;font-size:13px;color:var(--text-mid);">
+    <span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;display:block;margin-bottom:6px;">★ RECOMMENDATION</span>
+    <strong style="color:var(--text);">「星よみ転職師◇ルナ」</strong>を最優先推奨。「転職師」は造語で検索0件＝競合なし。ルナを名前にしておくと将来的にキャラクター化・ブランド化がしやすい。
+  </div>
+</div>
+
+
+<!-- ─────────────────────────────────── -->
+<!-- SECTION 2: プロフィールアイコン -->
+<!-- ─────────────────────────────────── -->
+<div class="section reveal">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">プロフィール<span>アイコン設計</span></span>
+  </div>
+
+  <div class="icon-concept">
+    <div class="icon-preview">
+      <div class="icon-circle ic-a">🌙</div>
+      <div class="icon-label">PATTERN A — 推奨</div>
+      <div class="icon-notes">
+        星座・月モチーフのイラストキャラ<br>
+        深紫〜紺グラデーション背景<br>
+        金色の縁取り・星のエフェクト<br>
+        顔は見せずシルエット or アニメ風
+      </div>
+    </div>
+    <div class="icon-preview">
+      <div class="icon-circle ic-b">💼</div>
+      <div class="icon-label">PATTERN B — サブ案</div>
+      <div class="icon-notes">
+        本人の顔写真（信頼感が上がる）<br>
+        ただし顔出しに抵抗がある場合はA<br>
+        背景は星座チャート柄を合成<br>
+        プロのカメラマン不要・自撮りでOK
+      </div>
+    </div>
+  </div>
+
+  <div class="icon-spec">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:14px;">ICON SPECIFICATION</div>
+    <div class="spec-row">
+      <span class="spec-key">制作方法</span>
+      <span class="spec-val"><strong>Midjourney</strong> または <strong>Canva AI</strong> でキャラ生成。「anime style fortune teller woman, crescent moon, deep purple background, gold accents --niji 6 --ar 1:1」</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-key">カラー</span>
+      <span class="spec-val"><strong>深紫（#1a1040）＋金（#d4a843）</strong>を基調に。黒より「神秘的」、白より「高級感」が出る。</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-key">サイズ</span>
+      <span class="spec-val">最低 <strong>400×400px</strong>。TikTok/Instagram共通で使えるよう正方形で制作。</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-key">絶対NG</span>
+      <span class="spec-val">フリー素材の流用・文字入れ過多・背景が白だけ・全身写真の縮小。プロフ欄で潰れる。</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-key">統一</span>
+      <span class="spec-val">TikTok・Instagram・X・LINE<strong>すべて同じアイコン</strong>を使う。迷子ユーザーが同一人物と気づけるように。</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─────────────────────────────────── -->
+<!-- SECTION 3: プロフィール文 -->
+<!-- ─────────────────────────────────── -->
+<div class="section reveal">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">プラットフォーム別<span>プロフィール文</span></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tiktok',this)">TikTok</button>
+    <button class="tab-btn" onclick="switchTab('instagram',this)">Instagram</button>
+    <button class="tab-btn" onclick="switchTab('x',this)">X (Twitter)</button>
+    <button class="tab-btn" onclick="switchTab('line',this)">LINE</button>
+  </div>
+
+  <!-- TikTok -->
+  <div id="tab-tiktok" class="tab-content active">
+    <div class="profile-box">
+      <div class="profile-mockup">
+        <div class="mock-icon">🌙</div>
+        <div class="mock-info">
+          <div class="mock-name">星よみ転職師◇ルナ</div>
+          <div class="mock-handle">@hoshiyomi_luna</div>
+        </div>
+      </div>
+      <div class="mock-bio">🔮 仕事の迷いを星座で読みます
+━━━━━━━━━
+✦ 転職タイミングを星で診断
+✦ 職場の人間関係を運勢で分析
+✦ 28〜40代の働く女性を応援
+━━━━━━━━━
+📩 無料星座鑑定 → プロフのリンクから
+💼 転職サービスの紹介もしてます</div>
+      <a href="#" class="mock-link">🔗 lit.link/hoshiyomi_luna</a>
+      <div class="bio-note" style="margin-top:16px;">
+        <div class="bio-note-title">WRITING POINT</div>
+        <ul class="bio-note-items">
+          <li>TikTokは<strong>150文字制限</strong>。絵文字と区切り線で視覚的に整理する</li>
+          <li>「誰のため」「何ができる」を最初の1行で伝える</li>
+          <li>CTAは<strong>必ず1つだけ</strong>。「プロフのリンクから」で誘導先を明確に</li>
+          <li>ハッシュタグはプロフには不要（TikTokは投稿側につける）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instagram -->
+  <div id="tab-instagram" class="tab-content">
+    <div class="profile-box">
+      <div class="profile-mockup">
+        <div class="mock-icon">🌙</div>
+        <div class="mock-info">
+          <div class="mock-name">星よみ転職師◇ルナ</div>
+          <div class="mock-handle">@hoshiyomi_luna</div>
+        </div>
+      </div>
+      <div class="mock-bio">🔮 仕事の迷いを星座で読む占師
+✦ 転職タイミング・職場の人間関係
+✦ 星座×キャリアの専門アカウント
+✦ 28〜40代 働く女性へ
+─────────────
+🎁 LINE登録で無料鑑定プレゼント中
+👇 詳細はリンクから</div>
+      <a href="#" class="mock-link">🔗 lit.link/hoshiyomi_luna</a>
+      <div class="bio-note" style="margin-top:16px;">
+        <div class="bio-note-title">WRITING POINT</div>
+        <ul class="bio-note-items">
+          <li>Instagramは<strong>150文字</strong>。プロフ文の下にウェブサイト欄が別途ある</li>
+          <li>「LINE登録で無料〇〇」を入れることでフォローよりLINE誘導を優先できる</li>
+          <li>強調したいキーワードを行頭に出す（折り畳まれても見えるよう上に集約）</li>
+          <li>ハイライトに「無料鑑定」「転職Q&A」「お客様の声」を固定する</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- X -->
+  <div id="tab-x" class="tab-content">
+    <div class="profile-box">
+      <div class="profile-mockup">
+        <div class="mock-icon">🌙</div>
+        <div class="mock-info">
+          <div class="mock-name">星よみ転職師◇ルナ🔮</div>
+          <div class="mock-handle">@hoshiyomi_luna</div>
+        </div>
+      </div>
+      <div class="mock-bio">🔮 仕事の迷いを星座で読む占師｜転職タイミング・職場の人間関係を運勢で分析｜28〜40代の働く女性向け｜無料鑑定→固定ポストへ｜仕事に悩んでいる人は気軽にリプください🌙</div>
+      <a href="#" class="mock-link">🔗 lit.link/hoshiyomi_luna</a>
+      <div class="bio-note" style="margin-top:16px;">
+        <div class="bio-note-title">WRITING POINT</div>
+        <ul class="bio-note-items">
+          <li>Xは<strong>160文字</strong>で横一列表示。「｜」区切りで情報を圧縮する</li>
+          <li>「気軽にリプください」でエンゲージを促す。Xはリプ文化が強い</li>
+          <li><strong>固定ポスト</strong>に「無料鑑定企画」または人気ツイートを必ず設定する</li>
+          <li>名前欄に絵文字1〜2個入れるとTL上での視認性が上がる</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINE -->
+  <div id="tab-line" class="tab-content">
+    <div class="profile-box">
+      <div class="profile-mockup">
+        <div class="mock-icon">🌙</div>
+        <div class="mock-info">
+          <div class="mock-name">星よみ転職師◇ルナ【公式LINE】</div>
+          <div class="mock-handle">@hoshiyomi_luna</div>
+        </div>
+      </div>
+      <div class="mock-bio">🔮 登録特典：あなたの星座×転職運を無料鑑定中！
+
+仕事を辞めたい、転職すべきか迷っている……
+そんな気持ち、星座が教えてくれます。
+
+✦ 生年月日を送ってくれたら星座診断します
+✦ 週1〜2回お役立ち情報を配信
+✦ 個別相談も受付中（有料）</div>
+      <div class="bio-note" style="margin-top:16px;">
+        <div class="bio-note-title">WRITING POINT</div>
+        <ul class="bio-note-items">
+          <li>LINEは<strong>登録直後のあいさつメッセージ</strong>が最重要。特典を明記してすぐ行動させる</li>
+          <li>「生年月日を送って」と具体的アクションを入れるとエンゲージが高まる</li>
+          <li>ステップ配信1通目：無料鑑定PDF送付 → 2通目：転職アフィリ紹介 の流れを設計</li>
+          <li>応答メッセージに「転職」「辞めたい」「迷ってる」などのキーワードを設定して自動返信</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─────────────────────────────────── -->
+<!-- SECTION 4: 投稿方向性と例 -->
+<!-- ─────────────────────────────────── -->
+<div class="section reveal">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">投稿の方向性と<span>具体例</span></span>
+  </div>
+
+  <div class="post-pattern-tabs">
+    <button class="ppt-btn active" onclick="switchPost('buzz',this)">⚡ バズ狙い型</button>
+    <button class="ppt-btn" onclick="switchPost('trust',this)">🤝 信頼構築型</button>
+    <button class="ppt-btn" onclick="switchPost('cta',this)">💰 CTA誘導型</button>
+    <button class="ppt-btn" onclick="switchPost('premium',this)">🔮 高単価誘導型</button>
+  </div>
+
+  <!-- バズ狙い型 -->
+  <div id="post-buzz" class="post-panel active">
+    <div class="post-hook">
+      <div class="post-hook-label">PURPOSE</div>
+      フォロワー0の状態から認知を獲得する。「拡散されること」が唯一の目的。アフィリや商品への誘導はしない。全投稿の<strong style="color:var(--gold)">40%</strong>をこのタイプにする。
+    </div>
+    <div class="post-grid">
+      <div class="post-card">
+        <div class="post-thumb pt-buzz">転職に向いてる星座<br>TOP3発表🌟<div class="thumb-deco">♈</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-buzz">TYPE A — BUZZ</div>
+          <div class="post-script">ランキング形式は「自分の星座は？」と最後まで見させやすい。コメント欄に「私は何位でしたか？」という反応が来やすく、アルゴリズム評価が上がる。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#転職</span><span class="post-hashtag">#星座</span><span class="post-hashtag">#占い</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-buzz">今すぐ職場を<br>離れるべきサイン3選⚠️<div class="thumb-deco">⚡</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-buzz">TYPE A — BUZZ</div>
+          <div class="post-script">「転職を考えてる人」にダイレクトに刺さるテーマ。「3選」という数字で最後まで見てもらえる。保存率が高く、Instagramのリールにも転用しやすい。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#転職活動</span><span class="post-hashtag">#仕事辞めたい</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-buzz">2026年<br>転職大吉の星座は…🎯<div class="thumb-deco">✨</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-buzz">TYPE A — BUZZ</div>
+          <div class="post-script">年・月の区切りで「今年の運勢」系は定番バズ。「…」の引きで最後まで見させる。年初・月初に定期的に出せるストック型コンテンツ。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#2026年運勢</span><span class="post-hashtag">#星座占い</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">CAPTION TEMPLATE — バズ型</div>
+      <div class="caption-text"><span class="hl">【転職に向いてる星座TOP3🌟】</span>
+
+✦ 第3位：獅子座
+自己アピール力が高く面接に強い🦁
+
+✦ 第2位：双子座  
+コミュ力×好奇心で新環境にすぐ馴染める
+
+✦ 第1位：牡羊座
+行動力で「ここぞ」のタイミングを逃さない🔥
+
+<span class="dim">あなたの星座は何位でしたか？
+コメントで教えてください👇</span>
+
+<span class="hl">転職のタイミングを詳しく知りたい方は
+プロフのリンクから無料診断どうぞ🔮</span>
+
+#転職 #星座占い #仕事 #転職活動 #占い好きな人と繋がりたい</div>
+    </div>
+  </div>
+
+  <!-- 信頼構築型 -->
+  <div id="post-trust" class="post-panel">
+    <div class="post-hook">
+      <div class="post-hook-label">PURPOSE</div>
+      「この人は信頼できる」と思わせる。保存・シェアが目標。フォロワーとの関係を深め、後のCTA投稿への反応率を上げる。全投稿の<strong style="color:var(--teal)">35%</strong>をこのタイプにする。
+    </div>
+    <div class="post-grid">
+      <div class="post-card">
+        <div class="post-thumb pt-trust">職場の人間関係が<br>辛い時の運勢的理由🌿<div class="thumb-deco">🌙</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-trust">TYPE B — TRUST</div>
+          <div class="post-script">「辛い気持ちに寄り添う」コンテンツ。共感コメントが多くついてエンゲージが高まる。TikTokでのファン化に最も効くタイプ。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#職場の人間関係</span><span class="post-hashtag">#仕事の悩み</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-trust">転職エージェントを<br>星座別に使い分ける方法📋<div class="thumb-deco">💼</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-trust">TYPE B — TRUST</div>
+          <div class="post-script">有益情報としての価値が高く保存されやすい。転職アフィリへの自然な橋渡しになる重要コンテンツ。「占い＋実用情報」の融合型。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#転職エージェント</span><span class="post-hashtag">#転職準備</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-trust">「仕事に向いてない」と<br>感じた時の星からのメッセージ<div class="thumb-deco">🌟</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-trust">TYPE B — TRUST</div>
+          <div class="post-script">自己肯定感の低い人に刺さる。「保存した」「泣いた」「ありがとう」系のコメントが来やすく、フォロワーの熱量が高まる。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#仕事向いてない</span><span class="post-hashtag">#自己肯定感</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">CAPTION TEMPLATE — 信頼型</div>
+      <div class="caption-text"><span class="hl">【職場の人間関係が辛い時、星は何を言っている？🌙】</span>
+
+実はこれ、運勢的には「環境が合っていないサイン」のことが多いんです。
+
+特に今年は土星の影響で
+→ 水瓶座・蠍座・牡牛座に変化の波が来ています
+
+辛い環境にいる理由、
+「自分がダメだから」じゃないかもしれない。
+
+<span class="dim">転職を考えている人は
+一度、星の声に耳を傾けてみてください🔮</span>
+
+<span class="hl">気になる人はプロフから無料診断どうぞ👆</span>
+
+#仕事の悩み #職場の人間関係 #転職を考えてる #星座占い #占いTikTok</div>
+    </div>
+  </div>
+
+  <!-- CTA誘導型 -->
+  <div id="post-cta" class="post-panel">
+    <div class="post-hook">
+      <div class="post-hook-label">PURPOSE</div>
+      アフィリリンクのクリック＆LINE登録を直接促す。バズは狙わなくてよい。フォロワーが増えてから（300人目安）で投入開始。全投稿の<strong style="color:var(--rose)">15%</strong>をこのタイプにする。
+    </div>
+    <div class="post-grid">
+      <div class="post-card">
+        <div class="post-thumb pt-cta">私が実際に使った<br>転職サービス正直レビュー💬<div class="thumb-deco">💼</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-cta">TYPE C — CTA</div>
+          <div class="post-script">体験談形式は信頼が高く購買意欲に繋がりやすい。「星座的に合う転職サービス」という切り口でアフィリを自然に紹介できる。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#転職サービス</span><span class="post-hashtag">#doda</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-cta">LINE登録で<br>無料星座鑑定プレゼント🎁<div class="thumb-deco">✨</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-cta">TYPE C — CTA</div>
+          <div class="post-script">特典訴求でLINE登録者を獲得。「無料」×「限定感」が登録の後押しになる。週1回程度の告知でOK。しつこい告知は逆効果。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#無料鑑定</span><span class="post-hashtag">#LINE</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-cta">星座別<br>おすすめ転職エージェント<br>完全まとめ📊<div class="thumb-deco">⭐</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-cta">TYPE C — CTA</div>
+          <div class="post-script">有益情報に見せつつアフィリリンクに誘導する最強の型。「保存してね」でストック効果もある。概要欄にアフィリリンクを張っておく。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#転職エージェント比較</span><span class="post-hashtag">#転職</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">CAPTION TEMPLATE — CTA型</div>
+      <div class="caption-text"><span class="hl">【星座別 転職エージェントの選び方🔮】</span>
+
+同じ転職エージェントでも
+「星座との相性」があるって知ってましたか？
+
+✦ 火の星座（牡羊・獅子・射手）
+→ スピード重視のリクルートエージェント向き🔥
+
+✦ 土の星座（牡牛・乙女・山羊）
+→ 丁寧なサポートのdodaがベスト🌿
+
+✦ 風の星座（双子・天秤・水瓶）
+→ 幅広い選択肢のマイナビ転職が合う💨
+
+✦ 水の星座（蟹・蠍・魚）
+→ 相談重視のハタラクティブが向いてる💧
+
+<span class="dim">気になるサービスは
+プロフのリンクから無料登録できます👆</span>
+<span class="hl">（完全無料・5分で登録完了）</span>
+
+#転職エージェント #転職活動 #星座占い #仕事 #転職</div>
+    </div>
+  </div>
+
+  <!-- 高単価誘導型 -->
+  <div id="post-premium" class="post-panel">
+    <div class="post-hook">
+      <div class="post-hook-label">PURPOSE</div>
+      個別鑑定・有料note・有料講座への誘導。信頼がある程度積み上がった2ヶ月目以降に解禁。全投稿の<strong style="color:#c8a060">10%</strong>をこのタイプにする。
+    </div>
+    <div class="post-grid">
+      <div class="post-card">
+        <div class="post-thumb pt-premium">【実例】鑑定後<br>3ヶ月で転職成功した話🌟<div class="thumb-deco">🏆</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-premium">TYPE D — PREMIUM</div>
+          <div class="post-script">お客様の声・実績をコンテンツ化。「成功事例」は購買決断の最後の後押しになる。実名不要・ニックネームでOK。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#転職成功</span><span class="post-hashtag">#占い鑑定</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-premium">有料note公開しました📖<br>星座別転職タイミング完全版<div class="thumb-deco">📚</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-premium">TYPE D — PREMIUM</div>
+          <div class="post-script">noteの中身チラ見せ投稿。無料部分を動画で見せて「続きはnoteで」と誘導。1本500〜2,000円の有料コンテンツへの橋渡し。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#note</span><span class="post-hashtag">#有料コンテンツ</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-card">
+        <div class="post-thumb pt-premium">🔮 今月の個別鑑定<br>残り3枠です<div class="thumb-deco">💫</div></div>
+        <div class="post-body">
+          <div class="post-type-badge ptb-premium">TYPE D — PREMIUM</div>
+          <div class="post-script">「限定枠」で希少性を演出。月1〜2回の告知で十分。毎回「残り〇枠」という枯渇感がCVRを上げる。LINE誘導で成約率UP。</div>
+          <div class="post-tags">
+            <span class="post-hashtag">#占い鑑定</span><span class="post-hashtag">#個別鑑定</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─────────────────────────────────── -->
+<!-- SECTION 5: トーンガイド -->
+<!-- ─────────────────────────────────── -->
+<div class="section reveal">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <span class="section-title">言葉の<span>トーン&スタイル</span></span>
+  </div>
+
+  <div style="font-size:13px;color:var(--text-mid);margin-bottom:16px;">このアカウントは「神秘的だけど親しみやすい」が基本スタンス。占い師らしい権威感と、友達感覚の話しやすさを両立させる。</div>
+
+  <div class="tone-grid">
+    <div class="tone-card tone-good">
+      <div class="tone-title">✓ GOOD — 使っていい言葉・スタンス</div>
+      <ul class="tone-items">
+        <li><span class="mark">✓</span>「〜かもしれません」「〜のサインです」（断言しすぎない）</li>
+        <li><span class="mark">✓</span>「星があなたに伝えていること」（主語を星にする）</li>
+        <li><span class="mark">✓</span>「無理しなくていいよ」系の共感ワード</li>
+        <li><span class="mark">✓</span>「転職してよかった！」より「タイミングを読もう」</li>
+        <li><span class="mark">✓</span>絵文字は🔮🌙✦⭐💫を主軸に統一する</li>
+        <li><span class="mark">✓</span>コメントへの返信は必ず丁寧に・早く</li>
+      </ul>
+    </div>
+    <div class="tone-card tone-bad">
+      <div class="tone-title">✕ BAD — やってはいけないこと</div>
+      <ul class="tone-items">
+        <li><span class="mark">✕</span>「絶対に転職すべき」「100%うまくいく」（断言・保証）</li>
+        <li><span class="mark">✕</span>「今すぐ登録して」を何度も繰り返す（押し売り感）</li>
+        <li><span class="mark">✕</span>他のアカウントや転職サービスを批判する</li>
+        <li><span class="mark">✕</span>医療・法律・財務に踏み込む鑑定内容</li>
+        <li><span class="mark">✕</span>毎回違う絵文字・フォント→ブランドが崩れる</li>
+        <li><span class="mark">✕</span>1日10投稿のような過投稿（質が落ち離脱が増える）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// Starfield
+const sf = document.getElementById('starfield');
+for(let i=0;i<80;i++){
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random()*2+0.5;
+  s.style.cssText = `
+    width:${size}px;height:${size}px;
+    left:${Math.random()*100}%;top:${Math.random()*100}%;
+    --d:${2+Math.random()*4}s;
+    --delay:-${Math.random()*4}s;
+    --min:${0.05+Math.random()*0.1};
+    --max:${0.3+Math.random()*0.5};
+  `;
+  sf.appendChild(s);
+}
+
+// Tabs
+function switchTab(id, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Post panels
+function switchPost(id, btn){
+  document.querySelectorAll('.post-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ppt-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('post-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
