@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Colors ── */
+  --color-bg: #060914;
+  --color-bg2: #0a0f1e;
+  --color-card: #0d1428;
+  --color-card2: #111c36;
+  --color-rim: #1e2d52;
+  --color-rim2: #2a3f72;
+  --color-gold: #c8952a;
+  --color-gold-light: #f0c060;
+  --color-gold-pale: #f5e0a0;
+  --color-violet: #7c6bdc;
+  --color-violet-light: #a898f8;
+  --color-rose: #d4607a;
+  --color-teal: #3cc4a8;
+  --color-luna: #dde4f8;
+  --color-mid: #7888b8;
+  --color-dim: #3a4870;
+  --color-soft: #f0f4ff;
+
+  /* ── Fonts ── */
+  --font-sans: var(--font-noto), 'Noto Sans JP', sans-serif;
+  --font-serif: var(--font-shippori), 'Shippori Mincho', serif;
+  --font-mincho: var(--font-zen), 'Zen Old Mincho', serif;
+}
+
+/* ── Animations ── */
+@keyframes tw {
+  0%, 100% { opacity: var(--mn, 0.2); transform: scale(1); }
+  50%       { opacity: var(--mx, 0.8); transform: scale(1.4); }
+}
+@keyframes moon-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(-40px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin-fwd {
+  to { transform: rotate(360deg); }
+}
+@keyframes spin-rev {
+  to { transform: rotate(-360deg); }
+}
+@keyframes q-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: #060914;
+  color: #dde4f8;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.75;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+select { -webkit-appearance: none; appearance: none; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #060914; }
+::-webkit-scrollbar-thumb { background: #1e2d52; border-radius: 2px; }

@@ -1,0 +1,1051 @@
+'use client'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { loadStripe } from '@stripe/stripe-js'
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js'
+import Stars from '@/components/Stars'
+import MoonImage from '@/components/MoonImage'
+import Image from 'next/image'
+import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
+import { getMoonSign, getMoonSignKeyword } from '@/lib/moonSign'
+import { getHonmeiStar, getHonmeiStarKeyword, HonmeiStar } from '@/lib/honmeiStar'
+import { QUESTIONS, BLOCKS } from '@/lib/precise-questions'
+import { calcPreciseScore, TIMINGS, PreciseScoreResult } from '@/lib/precise-scoring'
+import { calcJobMatch, JobMatch, IndustryMatch, AgentMatch } from '@/lib/jobMatch'
+import { calcMonthlyAdvice, MonthAdvice } from '@/lib/monthlyAdvice'
+import { getPreciseKansen } from '@/lib/precise-kansen'
+
+/* ─── Stripe ─── */
+const STRIPE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
+const IS_DEV_MODE = !STRIPE_KEY || STRIPE_KEY.includes('your_key')
+const stripePromise = IS_DEV_MODE ? null : loadStripe(STRIPE_KEY)
+
+/* ─── Types ─── */
+type Step = 'input' | 'questions' | 'payment' | 'loading' | 'result'
+
+type UserData = {
+  nickname: string
+  year: number
+  month: number
+  day: number
+  birthtime: string
+  sunSign: ZodiacInfo
+  moonSign: string
+  moonKeyword: string
+  honmeiStar: HonmeiStar
+  honmeiKeyword: string
+}
+
+type PreciseResult = {
+  userData: UserData
+  scoreResult: PreciseScoreResult
+  topJobs: JobMatch[]
+  topIndustries: IndustryMatch[]
+  agents: AgentMatch[]
+  monthlyAdvice: MonthAdvice[]
+  kansenText: string
+  paymentIntentId: string
+}
+
+/* ─── Helpers ─── */
+const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '鑑定文を生成']
+
+function pad2(n: number) {
+  return String(n).padStart(2, '0')
+}
+
+/* ─── Stripe Payment Form Component ─── */
+function PaymentForm({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: (paymentIntentId: string) => void
+  onError: (msg: string) => void
+}) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [processing, setProcessing] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!stripe || !elements) return
+
+    setProcessing(true)
+
+    const result = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/premium?payment_success=true`,
+      },
+      redirect: 'if_required',
+    })
+
+    if (result.error) {
+      onError(result.error.message ?? '決済に失敗しました')
+      setProcessing(false)
+    } else if (result.paymentIntent?.status === 'succeeded') {
+      onSuccess(result.paymentIntent.id)
+    } else {
+      onError('予期しないエラーが発生しました。もう一度お試しください。')
+      setProcessing(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement
+        options={{
+          layout: 'tabs',
+          fields: { billingDetails: { name: 'never', email: 'never' } },
+        }}
+      />
+      <button
+        type="submit"
+        disabled={!stripe || processing}
+        style={{
+          marginTop: 24,
+          width: '100%',
+          padding: 16,
+          background: processing
+            ? '#3a4870'
+            : 'linear-gradient(135deg, #c8952a, #e0a830)',
+          border: 'none',
+          borderRadius: 12,
+          color: processing ? '#7888b8' : '#1a0c00',
+          fontSize: 15,
+          fontWeight: 700,
+          cursor: processing ? 'not-allowed' : 'pointer',
+          fontFamily: 'var(--font-sans)',
+          letterSpacing: 1,
+          transition: 'all .2s',
+        }}
+      >
+        {processing ? '処理中…' : '¥480 で精密鑑定を受ける ✨'}
+      </button>
+    </form>
+  )
+}
+
+/* ─── Main Component ─── */
+export default function PrecisePage() {
+  const [step, setStep] = useState<Step>('input')
+
+  // input state
+  const [nickname, setNickname] = useState('')
+  const [year, setYear] = useState(0)
+  const [month, setMonth] = useState(0)
+  const [day, setDay] = useState(0)
+  const [birthtime, setBirthtime] = useState('')
+  const [sunSign, setSunSign] = useState<ZodiacInfo | null>(null)
+
+  // questions state
+  const [curQ, setCurQ] = useState(0)
+  const [answers, setAnswers] = useState<(number | number[])[]>([])
+
+  // payment state
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [paymentLoading, setPaymentLoading] = useState(false)
+
+  // loading state
+  const [loadActiveStep, setLoadActiveStep] = useState(-1)
+  const [loadText, setLoadText] = useState('星の声を聞いています')
+
+  // result state
+  const [result, setResult] = useState<PreciseResult | null>(null)
+
+  /* ── Zodiac update when birthday changes ── */
+  useEffect(() => {
+    if (month && day) setSunSign(getZodiac(month, day))
+    else setSunSign(null)
+  }, [month, day])
+
+  /* ── Input: start quiz ── */
+  const handleStartQuiz = () => {
+    if (!nickname || !year || !month || !day) return
+    setCurQ(0)
+    setAnswers([])
+    setStep('questions')
+  }
+
+  /* ── Questions ── */
+  const currentQ = QUESTIONS[curQ]
+  const isMulti = currentQ?.multi ?? false
+
+  const pickSingle = (optIdx: number) => {
+    setAnswers(prev => {
+      const next = [...prev]
+      next[curQ] = optIdx
+      return next
+    })
+  }
+
+  const toggleMulti = (optIdx: number) => {
+    setAnswers(prev => {
+      const next = [...prev]
+      const current = Array.isArray(next[curQ]) ? (next[curQ] as number[]) : []
+      if (current.includes(optIdx)) {
+        next[curQ] = current.filter(i => i !== optIdx)
+      } else {
+        next[curQ] = [...current, optIdx]
+      }
+      return next
+    })
+  }
+
+  const isAnswered = (i: number): boolean => {
+    const ans = answers[i]
+    if (ans === undefined || ans === null) return false
+    if (Array.isArray(ans)) return ans.length > 0
+    return true
+  }
+
+  const nextQ = () => {
+    if (!isAnswered(curQ)) return
+    if (curQ < QUESTIONS.length - 1) {
+      setCurQ(q => q + 1)
+    } else {
+      startLoading('dev_skip_' + Date.now())
+    }
+  }
+
+  const prevQ = () => {
+    if (curQ > 0) setCurQ(q => q - 1)
+  }
+
+  /* ── Payment ── */
+  const enterPayment = async () => {
+    setPaymentLoading(true)
+    setPaymentError(null)
+    setStep('payment')
+
+    try {
+      const res = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname }),
+      })
+      const data = await res.json()
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret)
+      } else {
+        setPaymentError('決済の初期化に失敗しました。もう一度お試しください。')
+      }
+    } catch {
+      setPaymentError('ネットワークエラーが発生しました。')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  const handlePaymentSuccess = useCallback(
+    (paymentIntentId: string) => {
+      startLoading(paymentIntentId)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [answers, nickname, year, month, day, birthtime, sunSign],
+  )
+
+  /* ── Loading ── */
+  const startLoading = (paymentIntentId: string) => {
+    if (!sunSign) return
+    setLoadActiveStep(-1)
+    setLoadText('星の声を聞いています')
+    setStep('loading')
+
+    // 星データ計算
+    const moonSignVal = getMoonSign(year, month, day, birthtime || undefined)
+    const moonKeywordVal = getMoonSignKeyword(moonSignVal)
+    const honmeiStarVal = getHonmeiStar(year, month, day)
+    const honmeiKeywordVal = getHonmeiStarKeyword(honmeiStarVal)
+
+    const userData: UserData = {
+      nickname,
+      year, month, day, birthtime,
+      sunSign,
+      moonSign: moonSignVal,
+      moonKeyword: moonKeywordVal,
+      honmeiStar: honmeiStarVal,
+      honmeiKeyword: honmeiKeywordVal,
+    }
+
+    // スコア計算
+    const scoreResult = calcPreciseScore(answers)
+
+    // MBTI・motivation・roles・industriesを回答から抽出
+    const mbti = (typeof answers[4] === 'number' ? QUESTIONS[4].opts[answers[4]]?.s?.mbti : null) ?? 'unknown'
+    const motivation = (typeof answers[5] === 'number' ? QUESTIONS[5].opts[answers[5]]?.s?.motivation : null) ?? 'achievement'
+    const roles = Array.isArray(answers[12]) ? (answers[12] as number[]).map(i => QUESTIONS[12].opts[i]?.s?.role ?? '') : typeof answers[12] === 'number' ? [QUESTIONS[12].opts[answers[12]]?.s?.role ?? ''] : []
+    const industries = Array.isArray(answers[11]) ? (answers[11] as number[]).map(i => QUESTIONS[11].opts[i]?.s?.industry ?? '') : typeof answers[11] === 'number' ? [QUESTIONS[11].opts[answers[11]]?.s?.industry ?? ''] : []
+
+    const { topJobs, topIndustries, agents } = calcJobMatch(mbti, motivation, roles, industries)
+    const monthlyAdvice = calcMonthlyAdvice(scoreResult.timing)
+
+    // AI鑑定文をバックグラウンドで取得
+    const kansenPromise = fetch('/api/precise-kansen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nickname,
+        sunSign: sunSign.name,
+        sunKeyword: sunSign.keyword,
+        moonSign: moonSignVal,
+        moonKeyword: moonKeywordVal,
+        honmeiStar: honmeiStarVal,
+        honmeiKeyword: honmeiKeywordVal,
+        mbti,
+        score: scoreResult.score_total,
+        timing: scoreResult.timing,
+        topJob: topJobs[0]?.job ?? '',
+      }),
+    })
+      .then(r => r.json())
+      .then(d => (d.text as string) || null)
+      .catch(() => null)
+
+    let i = 0
+    const interval = setInterval(() => {
+      setLoadActiveStep(i)
+      i++
+      if (i >= LOAD_STEPS.length) {
+        clearInterval(interval)
+        setTimeout(() => {
+          setLoadText('鑑定結果を確認しています…')
+          setTimeout(async () => {
+            const aiText = await kansenPromise
+            const kansenText = aiText ?? getPreciseKansen(sunSign, nickname)
+
+            const full: PreciseResult = {
+              userData,
+              scoreResult,
+              topJobs,
+              topIndustries,
+              agents,
+              monthlyAdvice,
+              kansenText,
+              paymentIntentId,
+            }
+
+            setResult(full)
+            setStep('result')
+
+            // Supabase保存（fire-and-forget）
+            fetch('/api/precise-diagnose', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                nickname,
+                birthday: `${year}-${pad2(month)}-${pad2(day)}`,
+                birthtime: birthtime || null,
+                zodiac_sun: sunSign.name,
+                zodiac_moon: moonSignVal,
+                honmei_star: honmeiStarVal,
+                mbti_type: mbti,
+                answers: answers.reduce<Record<string, unknown>>((acc, ans, idx) => {
+                  acc[`q${idx}`] = ans
+                  return acc
+                }, {}),
+                score_total: scoreResult.score_total,
+                score_timing: scoreResult.score_timing,
+                score_readiness: scoreResult.score_readiness,
+                score_market: scoreResult.score_market,
+                top_jobs: topJobs,
+                top_industries: topIndustries,
+                monthly_advice: monthlyAdvice,
+                kansen_text: kansenText,
+                recommended_agents: agents,
+                payment_id: paymentIntentId,
+                amount: 480,
+              }),
+            }).catch(() => {})
+          }, 1500)
+        }, 500)
+      }
+    }, 800)
+  }
+
+  /* ─── Shared Styles ─── */
+  const pageStyle: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 1,
+    minHeight: '100dvh',
+    maxWidth: 430,
+    margin: '0 auto',
+    padding: '28px 18px 52px',
+    display: 'flex',
+    flexDirection: 'column',
+  }
+
+  const cardStyle: React.CSSProperties = {
+    background: '#0d1428',
+    border: '1px solid #2a3f72',
+    borderRadius: 16,
+    padding: '20px 18px',
+    marginBottom: 12,
+  }
+
+  const years: number[] = []
+  const cur = new Date().getFullYear()
+  for (let y = cur; y >= 1960; y--) years.push(y)
+
+  /* ══════════════════════════════════════
+     INPUT
+  ══════════════════════════════════════ */
+  if (step === 'input') return (
+    <div style={{ background: '#060914', minHeight: '100dvh' }}>
+      <Stars />
+      <div style={{ ...pageStyle, justifyContent: 'center' }}>
+        <div style={cardStyle}>
+          <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 20, fontWeight: 700, textAlign: 'center', marginBottom: 6, color: '#f0f4ff' }}>
+            あなたの星を深く読む
+          </h2>
+          <p style={{ fontSize: 12, color: '#7888b8', textAlign: 'center', marginBottom: 24 }}>
+            誕生日・ニックネームを入力してください
+          </p>
+
+          {/* ニックネーム */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+              ニックネーム
+            </label>
+            <input
+              type="text"
+              value={nickname}
+              onChange={e => setNickname(e.target.value)}
+              placeholder="普段呼ばれているお名前"
+              maxLength={10}
+              style={{
+                width: '100%',
+                background: '#111c36',
+                border: `1px solid ${nickname ? '#c8952a' : '#2a3f72'}`,
+                borderRadius: 8,
+                padding: '14px 16px',
+                color: '#f0f4ff',
+                fontSize: 16,
+                fontFamily: 'var(--font-sans)',
+                outline: 'none',
+                transition: 'border-color .2s',
+              }}
+            />
+          </div>
+
+          {/* 生年月日 */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+              誕生日
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <select
+                value={year || ''}
+                onChange={e => setYear(Number(e.target.value))}
+                style={{ width: '100%', background: '#111c36', border: `1px solid ${year ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: year ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
+              >
+                <option value="">年</option>
+                {years.map(y => <option key={y} value={y}>{y}年</option>)}
+              </select>
+              <select
+                value={month || ''}
+                onChange={e => setMonth(Number(e.target.value))}
+                style={{ width: '100%', background: '#111c36', border: `1px solid ${month ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: month ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
+              >
+                <option value="">月</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{m}月</option>)}
+              </select>
+              <select
+                value={day || ''}
+                onChange={e => setDay(Number(e.target.value))}
+                style={{ width: '100%', background: '#111c36', border: `1px solid ${day ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: day ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
+              >
+                <option value="">日</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}日</option>)}
+              </select>
+            </div>
+
+            {/* 星座表示 */}
+            {sunSign && (
+              <div style={{ marginTop: 12, padding: '14px', background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 16, animation: 'fade-in .4s ease' }}>
+                <Image src={`/assets/img/${sunSign.en}.png`} alt={sunSign.name} width={52} height={52} style={{ objectFit: 'contain', flexShrink: 0 }} priority />
+                <div>
+                  <strong style={{ color: '#a898f8', display: 'block', fontSize: 14 }}>{sunSign.name}</strong>
+                  <span style={{ fontSize: 11, color: '#7888b8' }}>{sunSign.keyword}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 出生時間（任意） */}
+          <div style={{ marginBottom: 28 }}>
+            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+              出生時間（任意）
+              <span style={{ fontSize: 10, color: '#3a4870', marginLeft: 8, letterSpacing: 0 }}>月星座の精度UP</span>
+            </label>
+            <input
+              type="time"
+              value={birthtime}
+              onChange={e => setBirthtime(e.target.value)}
+              style={{ width: '100%', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 8, padding: '13px 16px', color: birthtime ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none' }}
+            />
+          </div>
+
+          <button
+            onClick={handleStartQuiz}
+            disabled={!nickname || !year || !month || !day}
+            style={{
+              width: '100%', padding: 16,
+              background: 'linear-gradient(135deg, #c8952a, #e0a830)',
+              border: 'none', borderRadius: 12,
+              color: '#1a0c00', fontSize: 15, fontWeight: 700,
+              cursor: (!nickname || !year || !month || !day) ? 'not-allowed' : 'pointer',
+              opacity: (!nickname || !year || !month || !day) ? 0.4 : 1,
+              transition: 'opacity .2s', fontFamily: 'var(--font-sans)', letterSpacing: 1,
+            }}
+          >
+            24問の精密診断を始める →
+          </button>
+          <p style={{ fontSize: 10, color: '#3a4870', textAlign: 'center', marginTop: 10 }}>
+            ※ 診断後に¥480の決済があります
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+
+  /* ══════════════════════════════════════
+     QUESTIONS
+  ══════════════════════════════════════ */
+  if (step === 'questions') {
+    const q = QUESTIONS[curQ]
+    const currentBlock = BLOCKS.find(b => b.num === q.block) ?? BLOCKS[0]
+    const blockStart = QUESTIONS.findIndex(qq => qq.block === q.block)
+    const blockQ = curQ - blockStart + 1
+    const totalInBlock = currentBlock.questionCount
+    const pct = ((curQ + 1) / QUESTIONS.length) * 100
+    const curAnswerIsArray = Array.isArray(answers[curQ])
+    const selectedMulti = curAnswerIsArray ? (answers[curQ] as number[]) : []
+
+    return (
+      <div style={{ background: '#060914', minHeight: '100dvh' }}>
+        <Stars />
+        <div style={{ ...pageStyle, justifyContent: 'flex-start', paddingTop: 24 }}>
+          {/* プログレスヘッダー */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)', boxShadow: '0 0 14px #c8952a44', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>
+              {currentBlock.icon}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, letterSpacing: 2, color: '#c8952a', marginBottom: 2 }}>
+                BLOCK {q.block} — {currentBlock.title}
+              </div>
+              <div style={{ height: 3, background: '#1e2d52', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #c8952a, #a898f8)', borderRadius: 2, transition: 'width .5s cubic-bezier(.4,0,.2,1)' }} />
+              </div>
+            </div>
+            <div style={{ fontSize: 11, color: '#7888b8', whiteSpace: 'nowrap' }}>
+              {curQ + 1} / {QUESTIONS.length}
+            </div>
+          </div>
+
+          {/* ブロック内進捗 */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 18 }}>
+            {Array.from({ length: totalInBlock }, (_, i) => (
+              <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < blockQ ? '#c8952a' : '#1e2d52', transition: 'background .3s' }} />
+            ))}
+          </div>
+
+          {/* 問題カード */}
+          <div style={{ background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 16, padding: '24px 20px', marginBottom: 14, animation: 'q-enter .35s cubic-bezier(.4,0,.2,1)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 9, letterSpacing: 2, color: '#a898f8', background: '#7c6bdc12', border: '1px solid #7c6bdc33', padding: '3px 10px', borderRadius: 20, marginBottom: 12 }}>
+              ✦ {q.tag}
+            </div>
+            {q.multi && (
+              <div style={{ fontSize: 10, color: '#3cc4a8', marginBottom: 8, padding: '4px 10px', background: '#3cc4a814', border: '1px solid #3cc4a833', borderRadius: 6, display: 'inline-block' }}>
+                ✓ 複数選択可
+              </div>
+            )}
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 700, color: '#f0f4ff', lineHeight: 1.5, marginBottom: 8 }}>
+              {q.q}
+            </div>
+            <div style={{ fontSize: 11, color: '#3a4870', fontStyle: 'italic', marginBottom: 20, lineHeight: 1.6, paddingLeft: 12, borderLeft: '2px solid #c8952a44' }}>
+              {q.hint}
+            </div>
+
+            {/* 選択肢 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {q.opts.map((opt, i) => {
+                // Q13: 選択業界（Q12回答）に関係ない職種オプションを非表示
+                if (curQ === 12 && opt.relatedIndustries && opt.relatedIndustries.length > 0) {
+                  const selectedInds: string[] = Array.isArray(answers[11])
+                    ? (answers[11] as number[]).map((idx: number) => QUESTIONS[11].opts[idx]?.s?.industry ?? '').filter(Boolean)
+                    : []
+                  if (selectedInds.length > 0 && !selectedInds.some(ind => opt.relatedIndustries!.includes(ind))) {
+                    return null
+                  }
+                }
+                const picked = isMulti
+                  ? selectedMulti.includes(i)
+                  : answers[curQ] === i
+                return (
+                  <button
+                    key={i}
+                    onClick={() => isMulti ? toggleMulti(i) : pickSingle(i)}
+                    style={{
+                      background: picked ? 'linear-gradient(135deg, #c8952a14, #7c6bdc08)' : '#111c36',
+                      border: `1px solid ${picked ? '#c8952a' : '#1e2d52'}`,
+                      borderRadius: 10,
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                      transition: 'all .18s',
+                      display: 'flex',
+                      gap: 12,
+                      alignItems: 'flex-start',
+                      textAlign: 'left',
+                      width: '100%',
+                      fontFamily: 'var(--font-sans)',
+                    }}
+                  >
+                    <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>{opt.sym}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, color: picked ? '#f0f4ff' : '#dde4f8', fontWeight: 500, lineHeight: 1.4, marginBottom: 2 }}>
+                        {opt.main}
+                      </div>
+                      <div style={{ fontSize: 10, color: '#3a4870', lineHeight: 1.4 }}>
+                        {opt.hint}
+                      </div>
+                    </div>
+                    {isMulti && (
+                      <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${picked ? '#c8952a' : '#2a3f72'}`, background: picked ? '#c8952a' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .18s' }}>
+                        {picked && <span style={{ fontSize: 10, color: '#1a0c00', fontWeight: 900 }}>✓</span>}
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* ナビゲーション */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={prevQ}
+              style={{ padding: '13px 18px', background: 'transparent', border: '1px solid #2a3f72', borderRadius: 10, color: '#7888b8', fontSize: 13, cursor: 'pointer', opacity: curQ === 0 ? 0.3 : 1, pointerEvents: curQ === 0 ? 'none' : 'auto', fontFamily: 'var(--font-sans)', transition: 'all .2s' }}
+            >
+              ← 戻る
+            </button>
+            <button
+              onClick={nextQ}
+              disabled={!isAnswered(curQ)}
+              style={{ flex: 1, padding: 15, background: 'linear-gradient(135deg, #c8952a, #e0a830)', border: 'none', borderRadius: 10, color: '#1a0c00', fontSize: 14, fontWeight: 700, cursor: isAnswered(curQ) ? 'pointer' : 'not-allowed', opacity: isAnswered(curQ) ? 1 : 0.35, transition: 'all .2s', fontFamily: 'var(--font-sans)' }}
+            >
+              {curQ === QUESTIONS.length - 1 ? '診断を完了して決済へ ✨' : '次へ →'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ══════════════════════════════════════
+     PAYMENT
+  ══════════════════════════════════════ */
+  if (step === 'payment') return (
+    <div style={{ background: '#060914', minHeight: '100dvh' }}>
+      <Stars />
+      <div style={pageStyle}>
+        <div style={{ textAlign: 'center', marginBottom: 24, marginTop: 16 }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: '#c8952a', marginBottom: 10 }}>✦ 精密鑑定 ✦</div>
+          <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0f4ff', marginBottom: 8 }}>
+            あと一歩です
+          </h2>
+          <p style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.8 }}>
+            24問の回答をもとに、あなただけの<br />精密鑑定を生成します。
+          </p>
+        </div>
+
+        {/* サマリーカード */}
+        <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #111c36, #0d1428)' }}>
+          <div style={{ fontSize: 11, color: '#c8952a', letterSpacing: 2, marginBottom: 10 }}>✦ 鑑定内容</div>
+          {[
+            '本命星・月星座を使った深い性格鑑定（300〜500文字）',
+            '向いている職種TOP3・業界マッチング',
+            '今後3ヶ月の行動アドバイス（月別）',
+            'AIルナからの個別パーソナライズ鑑定文',
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12, color: '#dde4f8', marginBottom: 8 }}>
+              <span style={{ color: '#3cc4a8', flexShrink: 0 }}>✓</span>
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* 価格 */}
+        <div style={{ textAlign: 'center', marginBottom: 20, padding: '16px', background: '#0d1428', border: '1px solid #c8952a33', borderRadius: 12 }}>
+          <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 4 }}>精密鑑定料金</div>
+          <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 36, fontWeight: 900, color: '#f0c060' }}>¥480</div>
+          <div style={{ fontSize: 10, color: '#3a4870', marginTop: 4 }}>※ 1回限り・返金不可</div>
+        </div>
+
+        {/* Stripeフォーム */}
+        {paymentLoading && (
+          <div style={{ textAlign: 'center', color: '#7888b8', fontSize: 13, padding: 20 }}>
+            決済フォームを準備中…
+          </div>
+        )}
+
+        {paymentError && (
+          <div style={{ background: '#1a0d0d', border: '1px solid #d4607a', borderRadius: 8, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#d4607a' }}>
+            {paymentError}
+          </div>
+        )}
+
+        {/* 開発モード: Stripeキー未設定時はスキップボタンを表示 */}
+        {IS_DEV_MODE && (
+          <div>
+            <div style={{ background: '#1a1a0a', border: '1px solid #c8952a44', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 11, color: '#c8952a', textAlign: 'center' }}>
+              🛠 開発モード — Stripeキー未設定のため決済をスキップできます
+            </div>
+            <button
+              onClick={() => handlePaymentSuccess('dev_skip_' + Date.now())}
+              style={{ width: '100%', padding: 16, background: 'linear-gradient(135deg, #c8952a, #e0a830)', border: 'none', borderRadius: 12, color: '#1a0c00', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-sans)', letterSpacing: 1 }}
+            >
+              ✨ 結果を見る（開発用スキップ）
+            </button>
+          </div>
+        )}
+
+        {!IS_DEV_MODE && clientSecret && stripePromise && (
+          <Elements
+            stripe={stripePromise}
+            options={{
+              clientSecret,
+              appearance: {
+                theme: 'night',
+                variables: {
+                  colorPrimary: '#c8952a',
+                  colorBackground: '#111c36',
+                  colorText: '#dde4f8',
+                  borderRadius: '8px',
+                  fontFamily: 'var(--font-sans)',
+                },
+              },
+            }}
+          >
+            <PaymentForm
+              onSuccess={handlePaymentSuccess}
+              onError={msg => setPaymentError(msg)}
+            />
+          </Elements>
+        )}
+
+        <p style={{ fontSize: 10, color: '#3a4870', textAlign: 'center', marginTop: 14 }}>
+          Stripe決済で安全に処理されます
+        </p>
+      </div>
+    </div>
+  )
+
+  /* ══════════════════════════════════════
+     LOADING
+  ══════════════════════════════════════ */
+  if (step === 'loading') return (
+    <div style={{ background: '#060914', minHeight: '100dvh' }}>
+      <Stars />
+      <div style={{ ...pageStyle, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 20, fontWeight: 900, color: '#f0f4ff', marginBottom: 6, opacity: 0, animation: 'fade-up .8s ease .2s forwards' }}>
+            {loadText}
+          </h2>
+          <p style={{ fontSize: 11, color: '#7888b8', marginBottom: 36, opacity: 0, animation: 'fade-up .8s ease .4s forwards' }}>
+            太陽・月・本命星の声を聞いています…
+          </p>
+
+          {/* スピナー */}
+          <div style={{ position: 'relative', width: 120, height: 120, marginBottom: 28 }}>
+            <div style={{ width: 120, height: 120, borderRadius: '50%', border: '2px solid transparent', borderTopColor: '#c8952a', borderRightColor: '#c8952a66', animation: 'spin-fwd 1.6s cubic-bezier(.4,0,.2,1) infinite', boxShadow: '0 0 18px #c8952a44' }} />
+            <div style={{ position: 'absolute', inset: 12, borderRadius: '50%', border: '2px solid transparent', borderBottomColor: '#a898f8', borderLeftColor: '#a898f844', animation: 'spin-rev 2.4s cubic-bezier(.4,0,.2,1) infinite' }} />
+            <div style={{ position: 'absolute', inset: 24, borderRadius: '50%', border: '1px solid transparent', borderTopColor: '#3cc4a8', animation: 'spin-fwd 3.2s linear infinite' }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 28 }}>🔮</span>
+            </div>
+          </div>
+
+          {/* ステップリスト */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 260 }}>
+            {LOAD_STEPS.map((label, i) => {
+              const isOn = i === loadActiveStep
+              const isDone = i < loadActiveStep
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: isDone ? '#3cc4a8' : isOn ? '#c8952a' : '#3a4870', background: isOn ? '#c8952a08' : 'transparent', border: `1px solid ${isOn ? '#c8952a33' : 'transparent'}`, borderRadius: 8, padding: '5px 10px', transition: 'all .3s' }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: isDone ? '#3cc4a8' : isOn ? '#c8952a' : '#1e2d52', boxShadow: isOn ? '0 0 8px #c8952a' : 'none' }} />
+                  {label}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  /* ══════════════════════════════════════
+     RESULT
+  ══════════════════════════════════════ */
+  if (step === 'result' && result) {
+    const { userData: u, scoreResult: r, topJobs, topIndustries, agents, monthlyAdvice, kansenText } = result
+    const timingData = TIMINGS[r.timing]
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const shareUrl = origin + '/premium'
+    const shareText = `🔮 転職精密鑑定やってみた！\n\n${u.sunSign.emoji}${u.sunSign.name}×月星座${u.moonSign}×${u.honmeiStar}\n転職精密スコア：${r.score_total}点\n\nあなたも試してみて👇\n${shareUrl}`
+
+    const timingColors: Record<string, string> = { now: '#ffa040', '3m': '#f0c060', '6m': '#a898f8', wait: '#3cc4a8' }
+
+    return (
+      <div style={{ background: '#060914', minHeight: '100dvh' }}>
+        <Stars />
+        <div style={pageStyle}>
+          {/* ヘッダー */}
+          <div style={{ border: '1px solid #2a3f72', borderRadius: 8, padding: '10px 16px', marginTop: 16, marginBottom: 10, background: '#060914', textAlign: 'center', fontSize: 16, color: '#7888b8' }}>
+            <span style={{ color: '#f0c060', fontWeight: 700 }}>{u.nickname}</span>さんの精密鑑定結果
+          </div>
+
+          {/* 誕生日・星座ボックス */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              border: '1px solid #2a3f72',
+              borderRadius: 8,
+              padding: '8px 16px',
+              background: '#060914',
+            }}>
+              <span style={{ fontSize: 12, color: '#7888b8' }}>{u.year}年{u.month}月{u.day}日生まれ</span>
+              <span style={{ color: '#2a3f72' }}>|</span>
+              <Image src={`/assets/img/${u.sunSign.en}.png`} alt={u.sunSign.name} width={18} height={18} style={{ objectFit: 'contain', verticalAlign: 'middle' }} />
+              <span style={{ fontSize: 12, color: '#a898f8', fontWeight: 700 }}>{u.sunSign.name}</span>
+            </div>
+          </div>
+
+          {/* ══ セクション1: 星のプロフィール ══ */}
+          <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #111c36, #0d1428)', padding: '24px 20px' }}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 14, textAlign: 'center' }}>
+              ✦ あなたの星のプロフィール
+            </div>
+
+            {/* 3つの星 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+              {[
+                { label: '☀️ 太陽星座', value: `${u.sunSign.name}（${u.sunSign.keyword}）`, color: '#f0c060' },
+                { label: '🌙 月星座',   value: `${u.moonSign}（${u.moonKeyword}）`,          color: '#a898f8' },
+                { label: '⭐ 本命星',   value: `${u.honmeiStar}（${u.honmeiKeyword}）`,      color: '#3cc4a8' },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px' }}>
+                  <span style={{ fontSize: 11, color: '#7888b8', flexShrink: 0, width: 72, lineHeight: 1.6 }}>{label}</span>
+                  <span style={{ fontSize: 12, color, fontWeight: 600, lineHeight: 1.6 }}>{value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* 3つの星の組み合わせメッセージ */}
+            <div style={{ background: '#0a0f1e', border: '1px solid #c8952a33', borderRadius: 10, padding: '14px 16px', fontSize: 12, color: '#dde4f8', lineHeight: 1.8 }}>
+              <div style={{ fontSize: 10, color: '#c8952a', letterSpacing: 2, marginBottom: 8 }}>✦ 3つの星が示す本質</div>
+              <p>
+                太陽星座の<strong style={{ color: '#f0c060' }}>{u.sunSign.keyword.split('・')[0]}</strong>、
+                月星座の<strong style={{ color: '#a898f8' }}>{u.moonKeyword.split('・')[0]}</strong>、
+                そして本命星<strong style={{ color: '#3cc4a8' }}>{u.honmeiStar}</strong>の<strong style={{ color: '#3cc4a8' }}>{u.honmeiKeyword.split('・')[0]}</strong>が重なるあなたは、
+                表の顔と深層の感情と運命の使命が独自のバランスで存在しています。
+                この3つの組み合わせが、転職においての最大の指針となります。
+              </p>
+            </div>
+          </div>
+
+          {/* ══ セクション2: 転職スコア詳細 ══ */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16, textAlign: 'center' }}>
+              ✦ 転職スコア（詳細版）
+            </div>
+
+            {/* 総合スコア */}
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 56, fontWeight: 900, color: '#f0c060', lineHeight: 1 }}>
+                {r.score_total}
+              </div>
+              <div style={{ fontSize: 12, color: '#7888b8', marginTop: 4 }}>総合転職スコア</div>
+            </div>
+
+            {/* 3軸スコア */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { label: 'タイミングスコア', score: r.score_timing, icon: '⚡', desc: r.score_timing >= 70 ? '今が動き時' : r.score_timing >= 50 ? '準備を始めて' : '充電の時期' },
+                { label: '準備スコア',       score: r.score_readiness, icon: '🌙', desc: r.score_readiness >= 70 ? '動く準備ができている' : r.score_readiness >= 50 ? 'あと一歩の準備が必要' : '市場価値を上げる時期' },
+                { label: '相性スコア',       score: r.score_market, icon: '✨', desc: r.score_market >= 70 ? '市場との相性は高い' : r.score_market >= 50 ? '方向性を明確に' : '軸を固める時期' },
+              ].map(({ label, score, icon, desc }) => (
+                <div key={label}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: '#dde4f8' }}>{icon} {label}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#f0c060' }}>{score}点</span>
+                  </div>
+                  <div style={{ height: 6, background: '#1e2d52', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${score}%`, background: 'linear-gradient(90deg, #c8952a, #f0c060)', borderRadius: 3, transition: 'width 1s ease' }} />
+                  </div>
+                  <div style={{ fontSize: 10, color: '#3a4870', marginTop: 4 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* タイミング判定 */}
+            <div style={{ marginTop: 16, padding: '12px 14px', background: '#0a0f1e', border: `1px solid ${timingColors[r.timing]}33`, borderRadius: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: timingColors[r.timing], marginBottom: 6 }}>
+                {timingData.badge}
+              </div>
+              <p style={{ fontSize: 11, color: '#7888b8', lineHeight: 1.7 }}>{timingData.text}</p>
+            </div>
+          </div>
+
+          {/* ══ セクション3: 向いている職種・業界 ══ */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16 }}>
+              ✦ 向いている職種・業界
+            </div>
+
+            <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 10 }}>【TOP 3 職種】</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+              {topJobs.map((job, i) => (
+                <div key={job.job} style={{ background: '#111c36', border: `1px solid ${i === 0 ? '#c8952a' : '#1e2d52'}`, borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11, color: i === 0 ? '#c8952a' : '#7888b8', fontWeight: 700 }}>{i + 1}位</span>
+                      <span style={{ fontSize: 13, color: i === 0 ? '#f0f4ff' : '#dde4f8', fontWeight: 600 }}>{job.job}</span>
+                    </div>
+                    <span style={{ fontSize: 13, color: '#f0c060', fontWeight: 700 }}>{job.score}%</span>
+                  </div>
+                  <div style={{ height: 3, background: '#0a0f1e', borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
+                    <div style={{ height: '100%', width: `${job.score}%`, background: i === 0 ? 'linear-gradient(90deg, #c8952a, #f0c060)' : 'linear-gradient(90deg, #2a3f72, #a898f8)', borderRadius: 2 }} />
+                  </div>
+                  <p style={{ fontSize: 10, color: '#3a4870', lineHeight: 1.6 }}>{job.reason}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 向いている業界 */}
+            {topIndustries.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【向いている業界】</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                  {topIndustries.map(ind => (
+                    <div key={ind.name} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#111c36', border: '1px solid #2a3f72', borderRadius: 20, padding: '6px 14px', fontSize: 12, color: '#dde4f8' }}>
+                      <span>{ind.emoji}</span>
+                      <span>{ind.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* おすすめエージェント */}
+            <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {agents.map(agent => (
+                <a
+                  key={agent.name}
+                  href={agent.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'block', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, color: '#a898f8', fontWeight: 700 }}>{agent.name}</span>
+                    <span style={{ fontSize: 10, color: '#3a4870' }}>→ 詳細を見る</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#7888b8', marginBottom: 6 }}>{agent.desc}</div>
+                  <div style={{ fontSize: 11, color: '#dde4f8', lineHeight: 1.6 }}>🌙 {agent.luna}</div>
+                </a>
+              ))}
+            </div>
+            <p style={{ fontSize: 10, color: '#3a4870', marginTop: 10, textAlign: 'right' }}>※ 広告を含みます</p>
+          </div>
+
+          {/* ══ セクション4: 3ヶ月アドバイス ══ */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16 }}>
+              ✦ 今後3ヶ月の行動アドバイス
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {monthlyAdvice.map((ma, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: ma.highlight ? 'linear-gradient(135deg, #c8952a0a, #111c36)' : '#111c36',
+                    border: `1px solid ${ma.highlight ? '#c8952a44' : '#1e2d52'}`,
+                    borderRadius: 10,
+                    padding: '14px 16px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span style={{ fontSize: 22 }}>{ma.emoji}</span>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: ma.highlight ? '#f0c060' : '#dde4f8' }}>
+                        【{ma.month}】{ma.label}
+                      </span>
+                      {ma.highlight && <span style={{ fontSize: 9, color: '#c8952a', marginLeft: 8, letterSpacing: 1 }}>★ 行動月</span>}
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#7888b8', lineHeight: 1.7 }}>{ma.advice}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ══ セクション5: ルナの鑑定メッセージ ══ */}
+          <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc44' }}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#a898f8', marginBottom: 14, textAlign: 'center' }}>
+              ✦ ルナからの精密鑑定メッセージ
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%, #c8952a, #7c6bdc)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🌙</div>
+              <div style={{ fontSize: 11, color: '#7888b8' }}>
+                <strong style={{ color: '#a898f8' }}>AI占い師◇ルナ</strong>
+                <br />@hoshiyomi_luna
+              </div>
+            </div>
+            <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>
+              <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-serif)' }}>
+                {kansenText}
+              </p>
+            </div>
+          </div>
+
+          {/* ── シェア ── */}
+          <div style={{ ...cardStyle }}>
+            <div style={{ fontSize: 11, color: '#7888b8', textAlign: 'center', marginBottom: 14 }}>
+              鑑定結果をシェアする
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 10, color: '#dde4f8', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
+              >
+                <span style={{ fontSize: 16 }}>𝕏</span> Xでシェアする
+              </a>
+              <button
+                onClick={() => navigator.clipboard?.writeText(shareUrl)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: 'transparent', border: '1px solid #2a3f72', borderRadius: 10, color: '#7888b8', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
+              >
+                🔗 URLをコピー
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
