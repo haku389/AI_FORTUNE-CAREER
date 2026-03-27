@@ -363,10 +363,10 @@ export default function PrecisePage() {
                 amount: 480,
               }),
             }).catch(() => {})
-          }, 1500)
-        }, 500)
+          }, 2000)
+        }, 600)
       }
-    }, 800)
+    }, 1100)
   }
 
   /* ─── Shared Styles ─── */
