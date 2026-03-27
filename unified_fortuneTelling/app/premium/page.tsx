@@ -812,28 +812,28 @@ export default function PrecisePage() {
             <span style={{ color: '#f0c060', fontWeight: 700 }}>{u.nickname}</span>さんの精密鑑定結果
           </div>
 
-          {/* 誕生日・星座ボックス */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              border: '1px solid #2a3f72',
-              borderRadius: 8,
-              padding: '8px 16px',
-              background: '#060914',
-            }}>
-              <span style={{ fontSize: 12, color: '#7888b8' }}>{u.year}年{u.month}月{u.day}日生まれ</span>
-              <span style={{ color: '#2a3f72' }}>|</span>
-              <Image src={`/assets/img/${u.sunSign.en}.png`} alt={u.sunSign.name} width={18} height={18} style={{ objectFit: 'contain', verticalAlign: 'middle' }} />
-              <span style={{ fontSize: 12, color: '#a898f8', fontWeight: 700 }}>{u.sunSign.name}</span>
-            </div>
-          </div>
-
           {/* ══ セクション1: 星のプロフィール ══ */}
           <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #111c36, #0d1428)', padding: '24px 20px' }}>
-            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 14, textAlign: 'center' }}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 12, textAlign: 'center' }}>
               ✦ あなたの星のプロフィール
+            </div>
+
+            {/* 誕生日・星座ボックス */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                border: '1px solid #2a3f72',
+                borderRadius: 8,
+                padding: '7px 14px',
+                background: '#060914',
+              }}>
+                <span style={{ fontSize: 12, color: '#7888b8' }}>{u.year}年{u.month}月{u.day}日生まれ</span>
+                <span style={{ color: '#2a3f72' }}>|</span>
+                <Image src={`/assets/img/${u.sunSign.en}.png`} alt={u.sunSign.name} width={18} height={18} style={{ objectFit: 'contain', verticalAlign: 'middle' }} />
+                <span style={{ fontSize: 12, color: '#a898f8', fontWeight: 700 }}>{u.sunSign.name}</span>
+              </div>
             </div>
 
             {/* 3つの星 */}

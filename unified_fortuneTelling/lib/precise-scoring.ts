@@ -68,7 +68,7 @@ export function calcPreciseScore(
   // urgency最大値の理論値: Q0:4 + Q1:2 + Q2:3 + Q3:3 + Q12:1 + Q13:1 + Q14:1 + Q19:2 + Q22:3 = ~20
   // 実際の最大は約22なので正規化係数は22
   const MAX_URGENCY = 22;
-  const score_timing = Math.max(22, Math.min(97, Math.round((urgency / MAX_URGENCY) * 75 + 22)));
+  const score_timing = Math.max(30, Math.min(97, Math.round((urgency / MAX_URGENCY) * 67 + 30)));
 
   // timing判定
   const timing: TimingKey =
@@ -86,14 +86,14 @@ export function calcPreciseScore(
   const q21Ans = answers[20]; // Q21 is index 20
   const q22Ans = answers[21]; // Q22 is index 21
 
-  const marketValueMap = [90, 70, 40, 55]; // 💎📈😔🔍
-  const externalViewScore = [80, 75, 70, 75]; // 🎯🌈🤝🔬
+  const marketValueMap = [92, 74, 48, 60]; // 💎📈😔🔍
+  const externalViewScore = [83, 78, 73, 78]; // 🎯🌈🤝🔬
 
-  const mvScore = typeof q20Ans === 'number' ? (marketValueMap[q20Ans] ?? 55) : 55;
-  const evScore = typeof q21Ans === 'number' ? (externalViewScore[q21Ans] ?? 70) : 70;
+  const mvScore = typeof q20Ans === 'number' ? (marketValueMap[q20Ans] ?? 60) : 60;
+  const evScore = typeof q21Ans === 'number' ? (externalViewScore[q21Ans] ?? 73) : 73;
   const readinessAdd = typeof q22Ans === 'number' ? (Q[21].opts[q22Ans]?.s?.readiness_add ?? 0) : 0;
 
-  const score_readiness = Math.max(22, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd)));
+  const score_readiness = Math.max(30, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd)));
 
   // ── market スコア ──
   // Q12(index 12): 副業志向 → independent
@@ -103,16 +103,16 @@ export function calcPreciseScore(
   const q13Ans = answers[12]; // Q13 index 12
   const q14Ans = answers[13]; // Q14 index 13
 
-  const independentScores = [85, 70, 55, 40]; // 🌟💭🤔🏛
-  const salaryScores = [50, 65, 85, 75]; // 🌿📈💎🏆
+  const independentScores = [87, 73, 58, 45]; // 🌟💭🤔🏛
+  const salaryScores = [53, 68, 87, 77]; // 🌿📈💎🏆
 
-  const indScore = typeof q13Ans === 'number' ? (independentScores[q13Ans] ?? 60) : 60;
-  const salScore = typeof q14Ans === 'number' ? (salaryScores[q14Ans] ?? 65) : 65;
+  const indScore = typeof q13Ans === 'number' ? (independentScores[q13Ans] ?? 63) : 63;
+  const salScore = typeof q14Ans === 'number' ? (salaryScores[q14Ans] ?? 68) : 68;
 
-  const score_market = Math.max(22, Math.min(97, Math.round((indScore + salScore) / 2)));
+  const score_market = Math.max(30, Math.min(97, Math.round((indScore + salScore) / 2)));
 
   // ── 総合スコア ──
-  const score_total = Math.max(22, Math.min(97, Math.round((score_timing + score_readiness + score_market) / 3)));
+  const score_total = Math.max(30, Math.min(97, Math.round((score_timing + score_readiness + score_market) / 3)));
 
   return { score_total, score_timing, score_readiness, score_market, timing, urgency };
 }
