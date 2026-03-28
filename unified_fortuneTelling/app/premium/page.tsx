@@ -468,7 +468,7 @@ export default function PrecisePage() {
 
             {/* 星座表示 */}
             {sunSign && (
-              <div style={{ marginTop: 12, padding: '14px', background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 16, animation: 'fade-in .4s ease' }}>
+              <div style={{ marginTop: 12, padding: '14px', background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 16, animation: 'fade-in .4s ease', width: '100%', boxSizing: 'border-box' }}>
                 <Image src={`/assets/img/${sunSign.en}.png`} alt={sunSign.name} width={52} height={52} style={{ objectFit: 'contain', flexShrink: 0 }} priority />
                 <div>
                   <strong style={{ color: '#a898f8', display: 'block', fontSize: 14 }}>{sunSign.name}</strong>
