@@ -366,7 +366,7 @@ export default function PrecisePage() {
           }, 2000)
         }, 600)
       }
-    }, 1100)
+    }, 2400)
   }
 
   /* ─── Shared Styles ─── */
