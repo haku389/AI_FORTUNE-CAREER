@@ -704,17 +704,18 @@ export default function DiagnosisPage() {
         )}
 
         <button
-          onClick={handleRetry}
+          onClick={() => router.push('/premium')}
           style={{
             width: '100%', padding: 14,
-            background: 'transparent',
-            border: '1px solid #2a3f72',
+            background: 'linear-gradient(135deg, #7c6bdc, #a898f8)',
+            border: 'none',
             borderRadius: 12,
-            color: '#7888b8', fontSize: 13,
+            color: '#fff', fontSize: 13, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'var(--font-sans)',
+            letterSpacing: 1,
           }}
         >
-          再診断する（制限をリセット）
+          💎 精密診断を受ける →
         </button>
       </div>
     </div>
@@ -904,7 +905,7 @@ export default function DiagnosisPage() {
 
           {/* もう一度 */}
           <button
-            onClick={handleRetry}
+            onClick={() => { startCountdown(); setStep('wait') }}
             style={{
               width: '100%', padding: 14,
               background: 'transparent',
