@@ -317,7 +317,7 @@ export default function DiagnosisPage() {
               性別
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              {[{ val: '女性', label: '女性' }, { val: '男性', label: '男性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
+              {[{ val: '男性', label: '男性' }, { val: '女性', label: '女性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
                 <button
                   key={val}
                   type="button"

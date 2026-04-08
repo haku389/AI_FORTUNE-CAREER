@@ -442,7 +442,7 @@ export default function PrecisePage() {
               性別
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              {[{ val: '女性', label: '女性' }, { val: '男性', label: '男性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
+              {[{ val: '男性', label: '男性' }, { val: '女性', label: '女性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
                 <button
                   key={val}
                   type="button"
@@ -519,7 +519,7 @@ export default function PrecisePage() {
               type="time"
               value={birthtime}
               onChange={e => setBirthtime(e.target.value)}
-              style={{ width: '100%', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 8, padding: '13px 16px', color: birthtime ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none' }}
+              style={{ width: '100%', boxSizing: 'border-box', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 8, padding: '13px 16px', color: birthtime ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', WebkitAppearance: 'none', appearance: 'none' }}
             />
           </div>
 
