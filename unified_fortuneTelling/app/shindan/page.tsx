@@ -45,6 +45,7 @@ export default function DiagnosisPage() {
 
   // input state
   const [nickname, setNickname] = useState('')
+  const [gender, setGender] = useState('')
   const [year, setYear] = useState(0)
   const [month, setMonth] = useState(0)
   const [day, setDay] = useState(0)
@@ -191,6 +192,7 @@ export default function DiagnosisPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 nickname,
+                gender,
                 birthday: `${year}-${pad2(month)}-${pad2(day)}`,
                 zodiac: zodiac.name,
                 career_type: diagResult.type,
@@ -232,7 +234,7 @@ export default function DiagnosisPage() {
   }
 
   /* ─── Render helpers ─── */
-  const inputReady = !!nickname && !!year && !!month && !!day
+  const inputReady = !!nickname && !!gender && !!year && !!month && !!day
 
   const years: number[] = []
   const cur = new Date().getFullYear()
@@ -307,6 +309,35 @@ export default function DiagnosisPage() {
                 transition: 'border-color .2s',
               }}
             />
+          </div>
+
+          {/* 性別 */}
+          <div style={{ marginBottom: 22 }}>
+            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+              性別
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              {[{ val: '女性', label: '女性' }, { val: '男性', label: '男性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setGender(val)}
+                  style={{
+                    padding: '12px 0',
+                    background: gender === val ? 'linear-gradient(135deg, #c8952a14, #7c6bdc14)' : '#111c36',
+                    border: `1px solid ${gender === val ? '#c8952a' : '#2a3f72'}`,
+                    borderRadius: 8,
+                    color: gender === val ? '#f0f4ff' : '#3a4870',
+                    fontSize: 14,
+                    fontFamily: 'var(--font-sans)',
+                    cursor: 'pointer',
+                    transition: 'all .2s',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 生年月日 */}
