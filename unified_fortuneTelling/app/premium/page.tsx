@@ -364,7 +364,9 @@ export default function PrecisePage() {
                 payment_id: paymentIntentId,
                 amount: 480,
               }),
-            }).catch(() => {})
+            }).then(r => r.json()).then(d => {
+              if (d.error) console.error('[precise-diagnose] API error:', d.error)
+            }).catch(e => console.error('[precise-diagnose] fetch error:', e))
           }, 2000)
         }, 600)
       }

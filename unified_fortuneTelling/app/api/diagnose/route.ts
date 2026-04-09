@@ -31,7 +31,7 @@ async function notifyNotion(payload: Record<string, unknown>) {
   const timingLabel  = TIMING_LABEL[String(payload.timing)]  ?? String(payload.timing)
   const careerLabel  = CAREER_LABEL[String(payload.career_type)] ?? String(payload.career_type)
 
-  await fetch('https://api.notion.com/v1/pages', {
+  const res = await fetch('https://api.notion.com/v1/pages', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -55,6 +55,10 @@ async function notifyNotion(payload: Record<string, unknown>) {
       },
     }),
   })
+  if (!res.ok) {
+    const errBody = await res.text()
+    console.error('[Notion diagnose] status:', res.status, errBody)
+  }
 }
 
 export async function POST(request: Request) {
@@ -93,7 +97,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  notifyNotion({ ...body, age, diagnosed_at: today }).catch(e =>
+  await notifyNotion({ ...body, age, diagnosed_at: today }).catch(e =>
     console.error('Notion notify error:', e)
   )
 

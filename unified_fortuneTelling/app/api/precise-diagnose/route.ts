@@ -53,7 +53,7 @@ async function notifyNotion(payload: Record<string, unknown>) {
     properties['決済日時'] = { date: { start: new Date().toISOString() } }
   }
 
-  await fetch('https://api.notion.com/v1/pages', {
+  const res = await fetch('https://api.notion.com/v1/pages', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -62,6 +62,10 @@ async function notifyNotion(payload: Record<string, unknown>) {
     },
     body: JSON.stringify({ parent: { database_id: dbId }, properties }),
   })
+  if (!res.ok) {
+    const errBody = await res.text()
+    console.error('[Notion precise] status:', res.status, errBody)
+  }
 }
 
 export async function POST(request: Request) {
@@ -107,7 +111,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  notifyNotion({ ...body, age }).catch(e =>
+  await notifyNotion({ ...body, age }).catch(e =>
     console.error('Notion notify error:', e)
   )
 

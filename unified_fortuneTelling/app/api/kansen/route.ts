@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const { nickname, zodiacName, zodiacKeyword, score, timing, typeName } = body
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: 'claude-sonnet-4-6',
       max_tokens: 300,
       system: LUNA_SYSTEM_PROMPT,
       messages: [

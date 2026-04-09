@@ -53,22 +53,12 @@ export const metadata: Metadata = {
   },
 }
 
-const ZODIAC_IMAGES = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-]
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="ja"
       className={`${noto.variable} ${shippori.variable} ${zen.variable}`}
     >
-      <head>
-        {ZODIAC_IMAGES.map(name => (
-          <link key={name} rel="preload" as="image" href={`/assets/img/${name}.png`} />
-        ))}
-      </head>
       <body>{children}</body>
     </html>
   )
