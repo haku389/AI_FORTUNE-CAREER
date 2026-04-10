@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
             display: 'flex',
           }}
         >
-          ✦ AI占い師ルナ presents
+          ✦ 転職占い師ルナ presents
         </div>
 
         {isPersonalized ? (

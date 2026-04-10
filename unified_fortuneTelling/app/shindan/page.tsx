@@ -735,7 +735,7 @@ export default function DiagnosisPage() {
         )}
 
         <button
-          onClick={() => router.push('/premium')}
+          onClick={() => router.push('/premium/form')}
           style={{
             width: '100%', padding: 14,
             background: 'linear-gradient(135deg, #7c6bdc, #a898f8)',
@@ -914,7 +914,7 @@ export default function DiagnosisPage() {
               ))}
             </div>
             <button
-              onClick={() => router.push('/premium')}
+              onClick={() => router.push('/premium/form')}
               style={{
                 width: '100%', padding: '13px 0',
                 background: 'linear-gradient(135deg, #7c6bdc, #a898f8)',

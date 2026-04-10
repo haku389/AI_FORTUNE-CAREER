@@ -83,7 +83,7 @@ export default function LandingPage() {
             marginBottom: 20,
           }}
         >
-          ✦ AI占い師ルナ presents
+          ✦ 転職占い師ルナ presents
         </div>
 
         {/* 見出し */}
@@ -172,9 +172,12 @@ export default function LandingPage() {
           <span style={{ color: '#f0f4ff', fontWeight: 700, fontSize: 13 }}>簡易診断</span>
           <span style={{ color: '#3a4870' }}>|</span>
           <span style={{ color: '#7888b8' }}>1日1回</span>
-          <span style={{ marginLeft: 'auto', color: '#a898f8', fontSize: 10, whiteSpace: 'nowrap' }}>
+          <Link
+            href="/premium"
+            style={{ marginLeft: 'auto', color: '#a898f8', fontSize: 10, whiteSpace: 'nowrap', textDecoration: 'none' }}
+          >
             → 精密診断はこちらから
-          </span>
+          </Link>
         </div>
 
         {/* CTA */}
