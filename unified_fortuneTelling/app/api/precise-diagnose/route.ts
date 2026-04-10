@@ -42,6 +42,9 @@ async function notifyNotion(payload: Record<string, unknown>) {
     支払い金額:     { number: Number(payload.amount ?? 0) },
   }
 
+  // 診断日時を常に記録
+  properties['診断日時'] = { date: { start: String(payload.diagnosed_at) } }
+
   // select型は値が空の場合スキップ（Notionがエラーになるため）
   if (payload.zodiac_moon) {
     properties['月星座'] = { select: { name: String(payload.zodiac_moon) } }
@@ -74,8 +77,9 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
-  const body = await request.json()
-  const age  = calcAge(body.birthday)
+  const body        = await request.json()
+  const diagnosedAt = new Date().toISOString()
+  const age         = calcAge(body.birthday)
 
   const { data, error } = await supabase
     .from('precise_diagnoses')
@@ -111,7 +115,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  await notifyNotion({ ...body, age }).catch(e =>
+  await notifyNotion({ ...body, age, diagnosed_at: diagnosedAt }).catch(e =>
     console.error('Notion notify error:', e)
   )
 

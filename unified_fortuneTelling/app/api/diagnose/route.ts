@@ -51,7 +51,7 @@ async function notifyNotion(payload: Record<string, unknown>) {
         タイミング判定: { select: { name: timingLabel } },
         推薦サービス:   { rich_text: [{ text: { content: String(payload.recommended_service ?? '') } }] },
         鑑定文:         { rich_text: [{ text: { content: String(payload.kansen_text ?? '').slice(0, 2000) } }] },
-        診断日:         { date:   { start: String(payload.diagnosed_at) } },
+        診断日:         { date:   { start: String(payload.diagnosed_at_iso) } },
       },
     }),
   })
@@ -67,9 +67,11 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const body  = await request.json()
-  const today = new Date().toISOString().slice(0, 10)
-  const age   = calcAge(body.birthday)
+  const body        = await request.json()
+  const now         = new Date()
+  const today       = now.toISOString().slice(0, 10)
+  const diagnosedAt = now.toISOString()
+  const age         = calcAge(body.birthday)
 
   const { data, error } = await supabase
     .from('diagnoses')
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  await notifyNotion({ ...body, age, diagnosed_at: today }).catch(e =>
+  await notifyNotion({ ...body, age, diagnosed_at: today, diagnosed_at_iso: diagnosedAt }).catch(e =>
     console.error('Notion notify error:', e)
   )
 
