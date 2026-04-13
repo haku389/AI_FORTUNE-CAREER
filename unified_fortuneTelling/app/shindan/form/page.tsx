@@ -10,7 +10,6 @@ import ShareBlock from '@/components/result/ShareBlock'
 import Image from 'next/image'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { QUESTIONS, PLANETS } from '@/lib/questions'
-import { Sparkles } from 'lucide-react'
 import { calcScore, TYPES, TIMINGS, MOONS, SATURNS, DiagnosisResult } from '@/lib/scoring'
 import { getKansen } from '@/lib/kansen'
 
@@ -471,14 +470,13 @@ export default function DiagnosisPage() {
         <div style={{ ...pageStyle, justifyContent: 'flex-start', paddingTop: 28 }}>
           {/* オービット */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-              background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)',
-              boxShadow: '0 0 16px #c8952a44',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Sparkles size={16} color="#1c1400" strokeWidth={2} />
-            </div>
+            <Image
+              src="/moon.png"
+              alt=""
+              width={36}
+              height={36}
+              style={{ flexShrink: 0, filter: 'brightness(1.1) drop-shadow(0 0 8px #c8952a88)' }}
+            />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, color: '#c8952a', marginBottom: 2 }}>
                 {planet.name}
