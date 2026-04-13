@@ -10,6 +10,7 @@ import ShareBlock from '@/components/result/ShareBlock'
 import Image from 'next/image'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { QUESTIONS, PLANETS } from '@/lib/questions'
+import { Sparkles } from 'lucide-react'
 import { calcScore, TYPES, TIMINGS, MOONS, SATURNS, DiagnosisResult } from '@/lib/scoring'
 import { getKansen } from '@/lib/kansen'
 
@@ -475,9 +476,9 @@ export default function DiagnosisPage() {
               background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)',
               boxShadow: '0 0 16px #c8952a44',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 16, color: '#1c1400', fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              ✦
+              <Sparkles size={16} color="#1c1400" strokeWidth={2} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, color: '#c8952a', marginBottom: 2 }}>

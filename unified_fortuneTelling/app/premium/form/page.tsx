@@ -19,6 +19,7 @@ import { calcPreciseScore, TIMINGS, PreciseScoreResult } from '@/lib/precise-sco
 import { calcJobMatch, JobMatch, IndustryMatch, AgentMatch } from '@/lib/jobMatch'
 import { calcMonthlyAdvice, MonthAdvice } from '@/lib/monthlyAdvice'
 import { getPreciseKansen } from '@/lib/precise-kansen'
+import { Sparkles } from 'lucide-react'
 
 /* ─── Stripe ─── */
 const STRIPE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
@@ -567,8 +568,8 @@ export default function PrecisePage() {
         <div style={{ ...pageStyle, justifyContent: 'flex-start', paddingTop: 24 }}>
           {/* プログレスヘッダー */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)', boxShadow: '0 0 14px #c8952a44', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: '#1c1400', fontWeight: 700 }}>
-              ✦
+            <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)', boxShadow: '0 0 14px #c8952a44', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={15} color="#1c1400" strokeWidth={2} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 9, letterSpacing: 2, color: '#c8952a', marginBottom: 2 }}>
