@@ -475,9 +475,9 @@ export default function DiagnosisPage() {
               background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)',
               boxShadow: '0 0 16px #c8952a44',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14,
+              fontSize: 16, color: '#1c1400', fontWeight: 700,
             }}>
-              {planet.icon}
+              ✦
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 9, letterSpacing: 3, color: '#c8952a', marginBottom: 2 }}>
