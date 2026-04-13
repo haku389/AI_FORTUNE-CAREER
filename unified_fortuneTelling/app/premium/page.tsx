@@ -139,7 +139,7 @@ export default function PremiumLandingPage() {
           <span style={{ color: '#3a4870' }}>|</span>
           <span style={{ color: '#7888b8' }}>4軸分析</span>
           <Link
-            href="/"
+            href="/shindan"
             style={{ marginLeft: 'auto', color: '#a898f8', fontSize: 10, whiteSpace: 'nowrap', textDecoration: 'none' }}
           >
             → 無料の簡易診断はこちら
