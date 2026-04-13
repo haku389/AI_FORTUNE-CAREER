@@ -1,11 +1,15 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { PenLine, HelpCircle, Telescope, Moon } from 'lucide-react'
 import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
   title: '転職占い師ルナ | 星座×転職診断サービス',
-  description: '転職占い師ルナが、あなたの転職タイミングを星座で鑑定。無料の簡易診断から4軸分析の精密鑑定まで。',
+  description: '転職占い師ルナが、あなたの転職タイミングを星座で鑑定。無料の簡易占いから4軸分析の精密占いまで。',
 }
+
+const ICON_COLOR = '#c8952a'
+const ICON_SIZE = 20
 
 export default function InfoPage() {
   return (
@@ -30,17 +34,14 @@ export default function InfoPage() {
           textAlign: 'center',
         }}
       >
-        {/* 背景グロー */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'radial-gradient(ellipse 80% 60% at 50% 0%, #2a0d4a88, transparent)',
+            background: 'radial-gradient(ellipse 80% 60% at 50% 0%, #2a0d4a88, transparent)',
             pointerEvents: 'none',
           }}
         />
-
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div
             style={{
@@ -53,13 +54,11 @@ export default function InfoPage() {
               padding: '4px 14px',
               borderRadius: 2,
               marginBottom: 20,
-              textTransform: 'uppercase',
             }}
           >
             ✦ Official Site
           </div>
 
-          {/* ルナ名前 */}
           <h1
             style={{
               fontFamily: 'var(--font-mincho)',
@@ -83,25 +82,16 @@ export default function InfoPage() {
             </span>
           </h1>
 
-          <p
-            style={{
-              fontSize: 11,
-              letterSpacing: 4,
-              color: '#5a6a9a',
-              marginBottom: 28,
-              textTransform: 'uppercase',
-            }}
-          >
+          <p style={{ fontSize: 11, letterSpacing: 4, color: '#5a6a9a', marginBottom: 28 }}>
             Luna — Career Fortune Teller
           </p>
 
           <p style={{ fontSize: 14, color: '#8898c8', lineHeight: 2, marginBottom: 36 }}>
-            転職を迷うすべての人へ。
+            転職するか迷っているすべての人へ。
             <br />
             星の声があなたの背中をそっと押します。
           </p>
 
-          {/* ヒーローCTA */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Link
               href="/shindan"
@@ -118,7 +108,7 @@ export default function InfoPage() {
                 letterSpacing: 1,
               }}
             >
-              ✨ 無料で転職診断する →
+              ✨ 無料で転職占いする →
             </Link>
             <Link
               href="/premium"
@@ -136,39 +126,29 @@ export default function InfoPage() {
                 letterSpacing: 1,
               }}
             >
-              💎 精密鑑定を見る →
+              💎 精密占いを見る →
             </Link>
           </div>
         </div>
       </div>
 
       {/* ── ABOUT LUNA ── */}
-      <div
-        style={{
-          maxWidth: 430,
-          margin: '0 auto',
-          padding: '0 24px 56px',
-        }}
-      >
-        {/* セクションヘッダー */}
+      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 56px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
           <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
           <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>ABOUT</span>
           <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #2a3f72, transparent)' }} />
         </div>
 
-        {/* キャラクタープロフィール */}
         <div
           style={{
             background: 'linear-gradient(135deg, #0d1428, #12102a)',
             border: '1px solid #2a3f72',
             borderRadius: 16,
             padding: '24px 20px',
-            marginBottom: 16,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-            {/* アバター */}
             <div
               style={{
                 width: 60,
@@ -195,17 +175,16 @@ export default function InfoPage() {
           </div>
 
           <p style={{ fontSize: 13, color: '#b0bcd8', lineHeight: 2, marginBottom: 16 }}>
-            夜空の星々が持つエネルギーと、数千年の占星術の叡智を宿したAI占い師。
-            転職を迷う28〜38歳の方に向けて、星座・数秘・MBTIを組み合わせた
-            独自の鑑定で「今あなたに必要なこと」を伝えます。
+            転職するか迷っている方に向けて、星座・数秘・MBTIを
+            組み合わせた独自の鑑定で「今あなたに必要なこと」を
+            星の言葉で伝えます。
           </p>
 
-          {/* プロフィール詳細 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
               { label: '専門', value: '転職タイミング・キャリア鑑定' },
               { label: '鑑定手法', value: '西洋占星術・九星気学・MBTI分析' },
-              { label: '特徴', value: '温かく、寄り添う。背中をそっと押す言葉' },
+              { label: '特徴', value: '星座の特性と今の運気を組み合わせ、転職の「時期」と「方向性」を具体的に示す' },
             ].map(({ label, value }) => (
               <div
                 key={label}
@@ -217,7 +196,7 @@ export default function InfoPage() {
                   fontSize: 12,
                 }}
               >
-                <span style={{ color: '#c8952a', minWidth: 60, fontWeight: 700 }}>{label}</span>
+                <span style={{ color: '#c8952a', minWidth: 60, fontWeight: 700, flexShrink: 0 }}>{label}</span>
                 <span style={{ color: '#8898c8' }}>{value}</span>
               </div>
             ))}
@@ -226,20 +205,14 @@ export default function InfoPage() {
       </div>
 
       {/* ── SERVICES ── */}
-      <div
-        style={{
-          maxWidth: 430,
-          margin: '0 auto',
-          padding: '0 24px 56px',
-        }}
-      >
+      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 56px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
           <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
           <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>SERVICES</span>
           <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #2a3f72, transparent)' }} />
         </div>
 
-        {/* 簡易診断 */}
+        {/* 簡易占い */}
         <Link href="/shindan" style={{ textDecoration: 'none', display: 'block', marginBottom: 14 }}>
           <div
             style={{
@@ -251,17 +224,7 @@ export default function InfoPage() {
               overflow: 'hidden',
             }}
           >
-            {/* アクセントライン */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: 'linear-gradient(90deg, #3cc4a8, transparent)',
-              }}
-            />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #3cc4a8, transparent)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div>
                 <span
@@ -279,8 +242,8 @@ export default function InfoPage() {
                 >
                   FREE
                 </span>
-                <div style={{ fontSize: 17, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff' }}>
-                  簡易転職診断
+                <div style={{ fontSize: 17, fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#f0f4ff' }}>
+                  簡易転職占い
                 </div>
               </div>
               <span style={{ fontSize: 22 }}>⭐</span>
@@ -293,12 +256,12 @@ export default function InfoPage() {
               ))}
             </ul>
             <div style={{ fontSize: 12, color: '#3cc4a8', fontWeight: 700, textAlign: 'right' }}>
-              今すぐ診断する →
+              今すぐ占う →
             </div>
           </div>
         </Link>
 
-        {/* 精密鑑定 */}
+        {/* 精密占い */}
         <Link href="/premium" style={{ textDecoration: 'none', display: 'block' }}>
           <div
             style={{
@@ -310,16 +273,7 @@ export default function InfoPage() {
               overflow: 'hidden',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: 'linear-gradient(90deg, #c8952a, #a855f7, transparent)',
-              }}
-            />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #c8952a, #a855f7, transparent)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div>
                 <span
@@ -337,8 +291,8 @@ export default function InfoPage() {
                 >
                   PREMIUM
                 </span>
-                <div style={{ fontSize: 17, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff' }}>
-                  精密転職鑑定
+                <div style={{ fontSize: 17, fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#f0f4ff' }}>
+                  精密転職占い
                 </div>
               </div>
               <span style={{ fontSize: 22 }}>🔮</span>
@@ -351,20 +305,14 @@ export default function InfoPage() {
               ))}
             </ul>
             <div style={{ fontSize: 12, color: '#a898f8', fontWeight: 700, textAlign: 'right' }}>
-              精密鑑定を見る →
+              精密占いを見る →
             </div>
           </div>
         </Link>
       </div>
 
       {/* ── HOW IT WORKS ── */}
-      <div
-        style={{
-          maxWidth: 430,
-          margin: '0 auto',
-          padding: '0 24px 56px',
-        }}
-      >
+      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 56px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
           <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
           <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>HOW IT WORKS</span>
@@ -373,13 +321,32 @@ export default function InfoPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
-            { num: '01', icon: '✏️', title: '情報を入力', desc: 'ニックネーム・誕生日・性別を入力。精密鑑定は出生時刻・MBTIも。' },
-            { num: '02', icon: '❓', title: '5つの質問に答える', desc: '現在の仕事・転職への気持ちなどを選択式で回答します。' },
-            { num: '03', icon: '🔭', title: 'AIが星座データを解析', desc: '太陽星座・月星座・本命星をリアルタイムで計算・分析します。' },
-            { num: '04', icon: '🌙', title: 'ルナが鑑定文を生成', desc: 'あなただけの転職運命を、ルナの言葉でお届けします。' },
+            {
+              num: '01',
+              icon: <PenLine size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
+              title: '情報を入力',
+              desc: 'ニックネーム・誕生日・性別を入力。精密占いは出生時刻・MBTIも。',
+            },
+            {
+              num: '02',
+              icon: <HelpCircle size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
+              title: '5つの質問に答える',
+              desc: '現在の仕事・転職への気持ちなどを選択式で回答します。',
+            },
+            {
+              num: '03',
+              icon: <Telescope size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
+              title: 'AIが星座データを解析',
+              desc: '太陽星座・月星座・本命星をリアルタイムで計算・分析します。',
+            },
+            {
+              num: '04',
+              icon: <Moon size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
+              title: 'ルナが鑑定文を生成',
+              desc: 'あなただけの転職運命を、ルナの言葉でお届けします。',
+            },
           ].map(({ num, icon, title, desc }, i, arr) => (
-            <div key={num} style={{ display: 'flex', gap: 16, paddingBottom: i < arr.length - 1 ? 0 : 0 }}>
-              {/* ステップライン */}
+            <div key={num} style={{ display: 'flex', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 40, flexShrink: 0 }}>
                 <div
                   style={{
@@ -391,7 +358,6 @@ export default function InfoPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 18,
                     flexShrink: 0,
                   }}
                 >
@@ -401,7 +367,6 @@ export default function InfoPage() {
                   <div style={{ width: 1, flex: 1, minHeight: 24, background: 'linear-gradient(#4a3f72, transparent)', margin: '4px 0' }} />
                 )}
               </div>
-              {/* テキスト */}
               <div style={{ paddingBottom: 28 }}>
                 <div style={{ fontSize: 9, letterSpacing: 2, color: '#c8952a', marginBottom: 4 }}>STEP {num}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#f0f4ff', marginBottom: 6 }}>{title}</div>
@@ -413,13 +378,7 @@ export default function InfoPage() {
       </div>
 
       {/* ── FOOTER CTA ── */}
-      <div
-        style={{
-          maxWidth: 430,
-          margin: '0 auto',
-          padding: '0 24px 56px',
-        }}
-      >
+      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 56px' }}>
         <div
           style={{
             background: 'linear-gradient(135deg, #1a0d3a, #0d1428)',
@@ -458,7 +417,7 @@ export default function InfoPage() {
               letterSpacing: 1,
             }}
           >
-            ✨ 無料で今すぐ診断する →
+            ✨ 無料で今すぐ占う →
           </Link>
         </div>
       </div>
