@@ -476,7 +476,6 @@ export default function DiagnosisPage() {
               background: 'radial-gradient(circle at 35% 35%, #f0d890, #c8952a 40%, #7a4a08 80%)',
               boxShadow: '0 0 16px #c8952a44',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Sparkles size={16} color="#1c1400" strokeWidth={2} />
             </div>
