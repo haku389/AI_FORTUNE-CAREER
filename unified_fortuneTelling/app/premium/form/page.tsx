@@ -10,6 +10,7 @@ import {
 } from '@stripe/react-stripe-js'
 import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
+import ShareBlock from '@/components/result/ShareBlock'
 import Image from 'next/image'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { getMoonSign, getMoonSignKeyword } from '@/lib/moonSign'
@@ -1057,27 +1058,7 @@ export default function PrecisePage() {
           </div>
 
           {/* ── シェア ── */}
-          <div style={{ ...cardStyle }}>
-            <div style={{ fontSize: 11, color: '#7888b8', textAlign: 'center', marginBottom: 14 }}>
-              鑑定結果をシェアする
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: 10, color: '#dde4f8', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
-              >
-                <span style={{ fontSize: 16 }}>𝕏</span> Xでシェアする
-              </a>
-              <button
-                onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: 'transparent', border: '1px solid #2a3f72', borderRadius: 10, color: '#7888b8', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-sans)' }}
-              >
-                🔗 URLをコピー
-              </button>
-            </div>
-          </div>
+          <ShareBlock shareText={shareText} shareUrl={shareUrl} />
 
         </div>
       </div>
