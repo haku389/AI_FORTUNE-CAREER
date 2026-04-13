@@ -9,310 +9,459 @@ export const metadata: Metadata = {
 
 export default function InfoPage() {
   return (
-    <main
+    <div
       style={{
-        position: 'relative',
-        minHeight: '100dvh',
-        maxWidth: 430,
-        margin: '0 auto',
-        padding: '60px 20px 60px',
-        background: '#0a0f1e',
+        background: '#070c1a',
         color: '#f0f4ff',
+        minHeight: '100dvh',
+        fontFamily: 'var(--font-sans)',
       }}
     >
       <Stars />
 
+      {/* ── HERO ── */}
       <div
-        className="fixed inset-0 pointer-events-none"
         style={{
-          zIndex: 0,
-          background:
-            'radial-gradient(ellipse 70% 40% at 50% 0%, #1a0d3a, transparent)',
+          position: 'relative',
+          overflow: 'hidden',
+          maxWidth: 430,
+          margin: '0 auto',
+          padding: '72px 24px 56px',
+          textAlign: 'center',
         }}
-      />
-
-      <div style={{ position: 'relative', zIndex: 1 }}>
-
-        {/* ヘッダー */}
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div
-            style={{
-              display: 'inline-block',
-              fontSize: 10,
-              letterSpacing: 4,
-              color: '#c8952a',
-              border: '1px solid #c8952a44',
-              background: '#c8952a0c',
-              padding: '4px 12px',
-              borderRadius: 2,
-              marginBottom: 16,
-            }}
-          >
-            ✦ OFFICIAL
-          </div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-mincho)',
-              fontSize: 'clamp(26px, 7vw, 34px)',
-              fontWeight: 900,
-              lineHeight: 1.2,
-              color: '#f0f4ff',
-              marginBottom: 12,
-              letterSpacing: '0.02em',
-            }}
-          >
-            転職占い師
-            <br />
-            <span style={{ color: '#f0c060' }}>ルナ</span>
-          </h1>
-          <p style={{ fontSize: 13, color: '#7888b8', lineHeight: 1.8 }}>
-            星座と数秘術で転職タイミングを鑑定する、
-            <br />
-            AIベースの転職占いサービスです。
-          </p>
-        </div>
-
-        {/* 区切り線 */}
+      >
+        {/* 背景グロー */}
         <div
           style={{
-            height: 1,
-            background: 'linear-gradient(90deg, transparent, #2a3f72, transparent)',
-            marginBottom: 40,
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(ellipse 80% 60% at 50% 0%, #2a0d4a88, transparent)',
+            pointerEvents: 'none',
           }}
         />
 
-        {/* ルナについて */}
-        <section style={{ marginBottom: 48 }}>
-          <h2
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div
             style={{
-              fontFamily: 'var(--font-mincho)',
-              fontSize: 16,
-              fontWeight: 700,
-              color: '#f0c060',
-              marginBottom: 16,
-              letterSpacing: 1,
-            }}
-          >
-            🌙 転職占い師ルナとは
-          </h2>
-          <p style={{ fontSize: 13, color: '#b8c4e8', lineHeight: 1.9 }}>
-            ルナは、転職を迷う方の背中をそっと押すために生まれたAI占い師です。
-            太陽星座・月星座・本命星（九星気学）、そしてMBTIを組み合わせた独自の鑑定で、
-            あなたの転職タイミングと向いている方向性を星の言葉で伝えます。
-          </p>
-        </section>
-
-        {/* サービス比較 */}
-        <section style={{ marginBottom: 48 }}>
-          <h2
-            style={{
-              fontFamily: 'var(--font-mincho)',
-              fontSize: 16,
-              fontWeight: 700,
-              color: '#f0c060',
+              display: 'inline-block',
+              fontSize: 9,
+              letterSpacing: 5,
+              color: '#c8952a',
+              border: '1px solid #c8952a55',
+              background: '#c8952a0a',
+              padding: '4px 14px',
+              borderRadius: 2,
               marginBottom: 20,
-              letterSpacing: 1,
+              textTransform: 'uppercase',
             }}
           >
-            ✦ 診断メニュー
-          </h2>
+            ✦ Official Site
+          </div>
 
-          {/* 簡易診断カード */}
-          <Link
-            href="/shindan"
-            style={{ textDecoration: 'none', display: 'block', marginBottom: 16 }}
+          {/* ルナ名前 */}
+          <h1
+            style={{
+              fontFamily: 'var(--font-mincho)',
+              fontSize: 'clamp(38px, 10vw, 52px)',
+              fontWeight: 900,
+              lineHeight: 1.1,
+              marginBottom: 6,
+              letterSpacing: '0.04em',
+            }}
           >
-            <div
+            <span style={{ color: '#f0c060' }}>転職占い師</span>
+            <br />
+            <span
               style={{
-                background: '#0d1428',
-                border: '1px solid #2a3f72',
-                borderRadius: 12,
-                padding: '20px 18px',
+                background: 'linear-gradient(135deg, #f0f4ff, #a898f8)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              ルナ
+            </span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: 11,
+              letterSpacing: 4,
+              color: '#5a6a9a',
+              marginBottom: 28,
+              textTransform: 'uppercase',
+            }}
+          >
+            Luna — Career Fortune Teller
+          </p>
+
+          <p style={{ fontSize: 14, color: '#8898c8', lineHeight: 2, marginBottom: 36 }}>
+            転職を迷うすべての人へ。
+            <br />
+            星の声があなたの背中をそっと押します。
+          </p>
+
+          {/* ヒーローCTA */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link
+              href="/shindan"
+              style={{
+                display: 'block',
+                padding: '15px 0',
+                background: 'linear-gradient(135deg, #c8952a, #e0a830)',
+                borderRadius: 10,
+                color: '#1a0c00',
+                fontSize: 14,
+                fontWeight: 800,
+                textAlign: 'center',
+                textDecoration: 'none',
+                letterSpacing: 1,
+              }}
+            >
+              ✨ 無料で転職診断する →
+            </Link>
+            <Link
+              href="/premium"
+              style={{
+                display: 'block',
+                padding: '13px 0',
+                background: 'transparent',
+                border: '1px solid #4a3f72',
+                borderRadius: 10,
+                color: '#a898f8',
+                fontSize: 13,
+                fontWeight: 700,
+                textAlign: 'center',
+                textDecoration: 'none',
+                letterSpacing: 1,
+              }}
+            >
+              💎 精密鑑定を見る →
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ABOUT LUNA ── */}
+      <div
+        style={{
+          maxWidth: 430,
+          margin: '0 auto',
+          padding: '0 24px 56px',
+        }}
+      >
+        {/* セクションヘッダー */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
+          <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>ABOUT</span>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #2a3f72, transparent)' }} />
+        </div>
+
+        {/* キャラクタープロフィール */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #0d1428, #12102a)',
+            border: '1px solid #2a3f72',
+            borderRadius: 16,
+            padding: '24px 20px',
+            marginBottom: 16,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
+            {/* アバター */}
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2a0d4a, #1a0a3a)',
+                border: '2px solid #7c6bdc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 28,
+                flexShrink: 0,
+                boxShadow: '0 0 20px #7c6bdc44',
+              }}
+            >
+              🌙
+            </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff', marginBottom: 4 }}>
+                ルナ（Luna）
+              </div>
+              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>AI転職占い師</div>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 13, color: '#b0bcd8', lineHeight: 2, marginBottom: 16 }}>
+            夜空の星々が持つエネルギーと、数千年の占星術の叡智を宿したAI占い師。
+            転職を迷う28〜38歳の方に向けて、星座・数秘・MBTIを組み合わせた
+            独自の鑑定で「今あなたに必要なこと」を伝えます。
+          </p>
+
+          {/* プロフィール詳細 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              { label: '専門', value: '転職タイミング・キャリア鑑定' },
+              { label: '鑑定手法', value: '西洋占星術・九星気学・MBTI分析' },
+              { label: '特徴', value: '温かく、寄り添う。背中をそっと押す言葉' },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  padding: '8px 0',
+                  borderTop: '1px solid #1a2444',
+                  fontSize: 12,
+                }}
+              >
+                <span style={{ color: '#c8952a', minWidth: 60, fontWeight: 700 }}>{label}</span>
+                <span style={{ color: '#8898c8' }}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SERVICES ── */}
+      <div
+        style={{
+          maxWidth: 430,
+          margin: '0 auto',
+          padding: '0 24px 56px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
+          <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>SERVICES</span>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #2a3f72, transparent)' }} />
+        </div>
+
+        {/* 簡易診断 */}
+        <Link href="/shindan" style={{ textDecoration: 'none', display: 'block', marginBottom: 14 }}>
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #0d1428, #0a1a2e)',
+              border: '1px solid #2a4060',
+              borderRadius: 14,
+              padding: '22px 20px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* アクセントライン */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 2,
+                background: 'linear-gradient(90deg, #3cc4a8, transparent)',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
                 <span
                   style={{
                     background: '#3cc4a8',
                     color: '#042018',
                     fontWeight: 800,
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    padding: '2px 8px',
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    padding: '3px 8px',
                     borderRadius: 3,
+                    display: 'inline-block',
+                    marginBottom: 8,
                   }}
                 >
                   FREE
                 </span>
-                <span style={{ color: '#f0f4ff', fontWeight: 700, fontSize: 15 }}>簡易転職診断</span>
+                <div style={{ fontSize: 17, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff' }}>
+                  簡易転職診断
+                </div>
               </div>
-              <ul style={{ fontSize: 12, color: '#8898c8', lineHeight: 2, paddingLeft: 16, margin: 0 }}>
-                <li>誕生日と5問の質問で転職スコアを算出</li>
-                <li>転職タイミング・相性サービスを星座で判定</li>
-                <li>1日1回・毎日0時に更新</li>
-              </ul>
-              <div
-                style={{
-                  marginTop: 14,
-                  fontSize: 12,
-                  color: '#c8952a',
-                  fontWeight: 700,
-                  textAlign: 'right',
-                }}
-              >
-                診断する →
-              </div>
+              <span style={{ fontSize: 22 }}>⭐</span>
             </div>
-          </Link>
+            <ul style={{ fontSize: 12, color: '#7888b8', lineHeight: 2.2, paddingLeft: 0, margin: '0 0 14px', listStyle: 'none' }}>
+              {['星座で転職タイミングを判定', 'たった5問・約2分で完了', '1日1回 / 毎日0時リセット'].map(t => (
+                <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#3cc4a8', fontSize: 10 }}>✦</span>{t}
+                </li>
+              ))}
+            </ul>
+            <div style={{ fontSize: 12, color: '#3cc4a8', fontWeight: 700, textAlign: 'right' }}>
+              今すぐ診断する →
+            </div>
+          </div>
+        </Link>
 
-          {/* 精密鑑定カード */}
-          <Link
-            href="/premium"
-            style={{ textDecoration: 'none', display: 'block' }}
+        {/* 精密鑑定 */}
+        <Link href="/premium" style={{ textDecoration: 'none', display: 'block' }}>
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #120a28, #0d1428)',
+              border: '1px solid #4a3f72',
+              borderRadius: 14,
+              padding: '22px 20px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
           >
             <div
               style={{
-                background: '#0d1428',
-                border: '1px solid #4a3f72',
-                borderRadius: 12,
-                padding: '20px 18px',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 2,
+                background: 'linear-gradient(90deg, #c8952a, #a855f7, transparent)',
               }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
                 <span
                   style={{
                     background: 'linear-gradient(135deg, #c8952a, #e0a830)',
                     color: '#1a0c00',
                     fontWeight: 800,
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    padding: '2px 8px',
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    padding: '3px 8px',
                     borderRadius: 3,
+                    display: 'inline-block',
+                    marginBottom: 8,
                   }}
                 >
                   PREMIUM
                 </span>
-                <span style={{ color: '#f0f4ff', fontWeight: 700, fontSize: 15 }}>精密転職鑑定</span>
+                <div style={{ fontSize: 17, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff' }}>
+                  精密転職鑑定
+                </div>
               </div>
-              <ul style={{ fontSize: 12, color: '#8898c8', lineHeight: 2, paddingLeft: 16, margin: 0 }}>
-                <li>太陽星座・月星座・本命星の3軸で深掘り鑑定</li>
-                <li>MBTIと星座の相性から向いている職種を診断</li>
-                <li>転職エージェント推薦・3ヶ月アドバイス付き</li>
-              </ul>
-              <div
-                style={{
-                  marginTop: 14,
-                  fontSize: 12,
-                  color: '#a898f8',
-                  fontWeight: 700,
-                  textAlign: 'right',
-                }}
-              >
-                詳しく見る →
+              <span style={{ fontSize: 22 }}>🔮</span>
+            </div>
+            <ul style={{ fontSize: 12, color: '#7888b8', lineHeight: 2.2, paddingLeft: 0, margin: '0 0 14px', listStyle: 'none' }}>
+              {['太陽・月・本命星の3軸で深掘り鑑定', 'MBTI×星座の相性で職種を診断', '転職エージェント推薦 + 3ヶ月指針'].map(t => (
+                <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#c8952a', fontSize: 10 }}>✦</span>{t}
+                </li>
+              ))}
+            </ul>
+            <div style={{ fontSize: 12, color: '#a898f8', fontWeight: 700, textAlign: 'right' }}>
+              精密鑑定を見る →
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* ── HOW IT WORKS ── */}
+      <div
+        style={{
+          maxWidth: 430,
+          margin: '0 auto',
+          padding: '0 24px 56px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
+          <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>HOW IT WORKS</span>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #2a3f72, transparent)' }} />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {[
+            { num: '01', icon: '✏️', title: '情報を入力', desc: 'ニックネーム・誕生日・性別を入力。精密鑑定は出生時刻・MBTIも。' },
+            { num: '02', icon: '❓', title: '5つの質問に答える', desc: '現在の仕事・転職への気持ちなどを選択式で回答します。' },
+            { num: '03', icon: '🔭', title: 'AIが星座データを解析', desc: '太陽星座・月星座・本命星をリアルタイムで計算・分析します。' },
+            { num: '04', icon: '🌙', title: 'ルナが鑑定文を生成', desc: 'あなただけの転職運命を、ルナの言葉でお届けします。' },
+          ].map(({ num, icon, title, desc }, i, arr) => (
+            <div key={num} style={{ display: 'flex', gap: 16, paddingBottom: i < arr.length - 1 ? 0 : 0 }}>
+              {/* ステップライン */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 40, flexShrink: 0 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #1a0d3a, #0d1428)',
+                    border: '1px solid #4a3f72',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                    flexShrink: 0,
+                  }}
+                >
+                  {icon}
+                </div>
+                {i < arr.length - 1 && (
+                  <div style={{ width: 1, flex: 1, minHeight: 24, background: 'linear-gradient(#4a3f72, transparent)', margin: '4px 0' }} />
+                )}
+              </div>
+              {/* テキスト */}
+              <div style={{ paddingBottom: 28 }}>
+                <div style={{ fontSize: 9, letterSpacing: 2, color: '#c8952a', marginBottom: 4 }}>STEP {num}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#f0f4ff', marginBottom: 6 }}>{title}</div>
+                <div style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.8 }}>{desc}</div>
               </div>
             </div>
-          </Link>
-        </section>
+          ))}
+        </div>
+      </div>
 
-        {/* 鑑定の流れ */}
-        <section style={{ marginBottom: 48 }}>
-          <h2
+      {/* ── FOOTER CTA ── */}
+      <div
+        style={{
+          maxWidth: 430,
+          margin: '0 auto',
+          padding: '0 24px 56px',
+        }}
+      >
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #1a0d3a, #0d1428)',
+            border: '1px solid #2a3f72',
+            borderRadius: 16,
+            padding: '28px 20px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 24, marginBottom: 12 }}>✦</div>
+          <p
             style={{
               fontFamily: 'var(--font-mincho)',
               fontSize: 16,
-              fontWeight: 700,
-              color: '#f0c060',
+              color: '#f0f4ff',
+              lineHeight: 1.8,
               marginBottom: 20,
+            }}
+          >
+            星はいつも、あなたの
+            <br />
+            転職タイミングを知っています。
+          </p>
+          <Link
+            href="/shindan"
+            style={{
+              display: 'block',
+              padding: '14px 0',
+              background: 'linear-gradient(135deg, #c8952a, #e0a830)',
+              borderRadius: 10,
+              color: '#1a0c00',
+              fontSize: 14,
+              fontWeight: 800,
+              textAlign: 'center',
+              textDecoration: 'none',
               letterSpacing: 1,
             }}
           >
-            ✦ 鑑定の流れ
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[
-              { step: '01', text: '誕生日・ニックネームを入力' },
-              { step: '02', text: '5つの質問に答える' },
-              { step: '03', text: 'AIが星座データを解析' },
-              { step: '04', text: 'あなただけの鑑定文が完成' },
-            ].map(({ step, text }) => (
-              <div
-                key={step}
-                style={{ display: 'flex', alignItems: 'center', gap: 14 }}
-              >
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: '#c8952a',
-                    letterSpacing: 1,
-                    minWidth: 24,
-                  }}
-                >
-                  {step}
-                </span>
-                <div
-                  style={{
-                    flex: 1,
-                    height: 1,
-                    background: 'linear-gradient(90deg, #c8952a44, transparent)',
-                    marginRight: 8,
-                  }}
-                />
-                <span style={{ fontSize: 13, color: '#b8c4e8' }}>{text}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 区切り線 */}
-        <div
-          style={{
-            height: 1,
-            background: 'linear-gradient(90deg, transparent, #2a3f72, transparent)',
-            marginBottom: 32,
-          }}
-        />
-
-        {/* CTA */}
-        <Link
-          href="/shindan"
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: 16,
-            background: 'linear-gradient(135deg, #c8952a, #e0a830)',
-            borderRadius: 12,
-            color: '#1a0c00',
-            fontSize: 15,
-            fontWeight: 700,
-            textAlign: 'center',
-            textDecoration: 'none',
-            letterSpacing: 1,
-            marginBottom: 12,
-          }}
-        >
-          ✨ 無料で転職診断する →
-        </Link>
-        <Link
-          href="/premium"
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: 14,
-            background: 'transparent',
-            border: '1px solid #4a3f72',
-            borderRadius: 12,
-            color: '#a898f8',
-            fontSize: 14,
-            fontWeight: 700,
-            textAlign: 'center',
-            textDecoration: 'none',
-            letterSpacing: 1,
-          }}
-        >
-          💎 精密鑑定を見る →
-        </Link>
+            ✨ 無料で今すぐ診断する →
+          </Link>
+        </div>
       </div>
-    </main>
+    </div>
   )
 }

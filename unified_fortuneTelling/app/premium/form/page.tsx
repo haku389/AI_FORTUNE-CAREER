@@ -415,7 +415,7 @@ export default function PrecisePage() {
           {/* ニックネーム */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              ニックネーム
+              ✦ ニックネーム
             </label>
             <input
               type="text"
@@ -441,7 +441,7 @@ export default function PrecisePage() {
           {/* 生年月日 */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              誕生日
+              ✦ 誕生日
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
               <select
@@ -485,7 +485,7 @@ export default function PrecisePage() {
           {/* 出生時間（任意） */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              出生時間（任意）
+              ✦ 出生時間（任意）
               <span style={{ fontSize: 10, color: '#3a4870', marginLeft: 8, letterSpacing: 0 }}>月星座の精度UP</span>
             </label>
             <input
@@ -499,7 +499,7 @@ export default function PrecisePage() {
           {/* 性別 */}
           <div style={{ marginBottom: 28 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              性別
+              ✦ 性別
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
               {[{ val: '男性', label: '男性' }, { val: '女性', label: '女性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (

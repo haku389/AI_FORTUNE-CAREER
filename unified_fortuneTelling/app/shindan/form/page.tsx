@@ -288,7 +288,7 @@ export default function DiagnosisPage() {
           {/* ニックネーム */}
           <div style={{ marginBottom: 22 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              ニックネーム
+              ✦ ニックネーム
             </label>
             <input
               type="text"
@@ -314,7 +314,7 @@ export default function DiagnosisPage() {
           {/* 生年月日 */}
           <div style={{ marginBottom: 22 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              誕生日
+              ✦ 誕生日
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
               {/* 年 */}
@@ -403,7 +403,7 @@ export default function DiagnosisPage() {
           {/* 性別 */}
           <div style={{ marginBottom: 22 }}>
             <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              性別
+              ✦ 性別
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
               {[{ val: '男性', label: '男性' }, { val: '女性', label: '女性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
