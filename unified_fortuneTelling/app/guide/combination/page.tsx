@@ -269,10 +269,13 @@ export default function CombinationPage() {
                     fontWeight: 700,
                     color: color,
                     background: `${color}18`,
-                    padding: '2px 6px',
+                    padding: '2px 0',
                     borderRadius: 3,
                     flexShrink: 0,
                     marginTop: 2,
+                    width: 86,
+                    textAlign: 'center',
+                    display: 'inline-block',
                   }}
                 >
                   {axis}

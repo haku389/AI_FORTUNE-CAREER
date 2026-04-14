@@ -76,9 +76,9 @@ export default function PremiumLandingPage() {
 
         {/* コピー */}
         <p style={{ fontSize: 13, color: '#7888b8', lineHeight: 1.9, marginBottom: 32 }}>
-          太陽・月・本命星の3つの星とMBTIで、
+          太陽・月・本命星の3つの星とMBTIが交差するとき、
           <br />
-          あなただけの転職鑑定文を生成します。
+          あなただけの転職運命が解き明かされます。
         </p>
 
         {/* フィーチャーポイント */}
