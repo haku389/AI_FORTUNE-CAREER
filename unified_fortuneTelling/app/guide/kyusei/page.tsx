@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
+import { Compass } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: '九星気学とは — 本命星が示すキャリアの方向性 | 転職占い師ルナ',
@@ -188,7 +189,7 @@ export default function KyuseiPage() {
               background: 'linear-gradient(90deg, #3cc4a8, transparent)',
             }}
           />
-          <div style={{ fontSize: 28, marginBottom: 12 }}>☯️</div>
+          <Compass size={32} color="#3cc4a8" style={{ marginBottom: 12 }} />
           <p style={{ fontSize: 13, color: '#b0bcd8', lineHeight: 2, margin: 0 }}>
             本命星とは、生まれた年をもとに算出する「その人の根本的なエネルギー」のことです。一白・二黒・三碧・四緑・五黄・六白・七赤・八白・九紫の9種類があり、それぞれ固有の気質・得意分野・相性のいい職場環境が異なります。太陽星座のように生涯変わらず、その人のベースとなる資質を示す羅針盤のような存在です。転職では「どの方向に進むと本来の力を発揮できるか」「どんな仕事スタイルが自分に合っているか」を読み解くために活用します。
           </p>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
+import { Sun, Moon, Flame, Globe, Wind, Droplets } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: '西洋占星術とは — 太陽・月・惑星が示す転職タイミング | 転職占い師ルナ',
@@ -17,31 +18,35 @@ const DIVIDER = ({ label }: { label: string }) => (
 
 const ELEMENTS = [
   {
-    symbol: '🔥',
+    Icon: Flame,
     name: '火',
-    signs: '牡羊・獅子・射手',
-    trait: '行動力と情熱で直感的に動く。スピード感があり、変化や挑戦を好む',
+    signs: '♈牡羊座　♌獅子座　♐射手座',
+    trait: '行動力と情熱で直感的に動くのが火のグループの特徴です。スピード感があり、変化や新しい挑戦を何より好みます。停滞や慣例への縛りを感じると急速に熱が冷め、自ら動き出すことでエネルギーが湧いてきます。転職では「やりたいことをすぐ試せる環境」「スピーディな意思決定ができる組織」との相性が良く、スタートアップや新規事業で実力を発揮しやすいです。',
+    career: '営業・事業開発・起業家・プロデューサー',
     color: '#f07a30',
   },
   {
-    symbol: '🌍',
+    Icon: Globe,
     name: '土',
-    signs: '牡牛・乙女・山羊',
-    trait: '安定・実務を重視し、着実に前進する。長期的な視点で信頼を積み上げる',
+    signs: '♉牡牛座　♍乙女座　♑山羊座',
+    trait: '安定・実務・着実な積み上げを重視する土のグループ。長期的な視点で物事を進め、地道な努力で信頼を築きます。急激な変化より確実に成果を出せる環境を好み、専門性を深めながらキャリアを積んでいくタイプ。転職では「安定した基盤」「評価が明確な制度」「専門性を伸ばせる環境」を重視する傾向があります。',
+    career: '経理・財務・専門職・プロジェクトマネージャー・士業',
     color: '#c8952a',
   },
   {
-    symbol: '💨',
+    Icon: Wind,
     name: '風',
-    signs: '双子・天秤・水瓶',
-    trait: '知性とコミュ力で新しいアイデアを生む。情報収集と人脈形成が得意',
+    signs: '♊双子座　♎天秤座　♒水瓶座',
+    trait: '知性・コミュ力・新しいアイデアを武器とする風のグループ。情報収集と人脈形成が自然とでき、多様な視点を繋ぎ合わせることが得意です。固定した環境より流動的で刺激のある職場を好みます。転職では「知的刺激がある仕事」「多様な人と関わる機会」「新しいことを提案できる裁量」が重要な条件になります。',
+    career: 'マーケター・コンサルタント・編集・企画・PR・エディター',
     color: '#a898f8',
   },
   {
-    symbol: '💧',
+    Icon: Droplets,
     name: '水',
-    signs: '蟹・蠍・魚',
-    trait: '感受性と直感が鋭く、人間関係を深める。共感力と洞察力で場の空気を読む',
+    signs: '♋蟹座　♏蠍座　♓魚座',
+    trait: '感受性・直感・人間関係の深さが強みの水のグループ。場の空気を読む力に優れ、人の感情に寄り添う共感力があります。競争的な環境より信頼関係に基づいた職場を好み、人との深い繋がりの中で本領を発揮します。転職では「人を助けられる仕事」「安心できるチームの雰囲気」「自分のペースで深く取り組める環境」が合います。',
+    career: 'カウンセラー・医療福祉・デザイン・教育・クリエイター',
     color: '#60c8f0',
   },
 ]
@@ -145,7 +150,7 @@ export default function SeiyouPage() {
             }}
           />
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 14 }}>
-            <span style={{ fontSize: 28, flexShrink: 0 }}>☀️</span>
+            <div style={{ flexShrink: 0 }}><Sun size={28} color="#f0c060" /></div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#f0f4ff', marginBottom: 6 }}>
                 太陽星座
@@ -199,7 +204,7 @@ export default function SeiyouPage() {
             }}
           />
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 14 }}>
-            <span style={{ fontSize: 28, flexShrink: 0 }}>🌙</span>
+            <div style={{ flexShrink: 0 }}><Moon size={28} color="#a898f8" /></div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#f0f4ff', marginBottom: 6 }}>
                 月星座
@@ -295,29 +300,41 @@ export default function SeiyouPage() {
       {/* ── 4元素 ── */}
       <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 48px' }}>
         <DIVIDER label="12星座 — 4元素グループ" />
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 10,
-          }}
-        >
-          {ELEMENTS.map(({ symbol, name, signs, trait, color }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {ELEMENTS.map(({ Icon, name, signs, trait, career, color }) => (
             <div
               key={name}
               style={{
                 background: '#0d1428',
                 border: `1px solid ${color}44`,
                 borderRadius: 12,
-                padding: '14px 14px',
+                padding: '18px 16px',
+                position: 'relative',
+                overflow: 'hidden',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <span style={{ fontSize: 18 }}>{symbol}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: color }}>{name}</span>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  width: 3,
+                  background: color,
+                  borderRadius: '12px 0 0 12px',
+                }}
+              />
+              <div style={{ paddingLeft: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <Icon size={16} color={color} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: color }}>{name}のグループ</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#5a6a9a', marginBottom: 8 }}>{signs}</div>
+                <div style={{ fontSize: 12, color: '#8898c8', lineHeight: 1.9, marginBottom: 10 }}>{trait}</div>
+                <div style={{ fontSize: 11, color: '#5a6a9a' }}>
+                  向いている職種: <span style={{ color: color }}>{career}</span>
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: '#5a6a9a', marginBottom: 6 }}>{signs}</div>
-              <div style={{ fontSize: 11, color: '#8898c8', lineHeight: 1.6 }}>{trait}</div>
             </div>
           ))}
         </div>

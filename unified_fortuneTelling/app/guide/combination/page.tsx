@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
+import { Sun, Moon, Compass, Brain } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: '3つの占いを組み合わせると — なぜ4軸の鑑定が必要なのか | 転職占い師ルナ',
@@ -21,28 +22,28 @@ const AXES = [
     label: '外向きの性格・行動スタイル',
     result: 'どんな職場文化に合うか',
     color: '#f0c060',
-    icon: '☀️',
+    icon: <Sun size={20} color="#f0c060" />,
   },
   {
     key: '月星座',
     label: '本音・感情・ストレス',
     result: '転職したい本当の理由',
     color: '#a898f8',
-    icon: '🌙',
+    icon: <Moon size={20} color="#a898f8" />,
   },
   {
     key: '本命星',
     label: '運気の方向性・サイクル',
     result: '今が動く時期かどうか',
     color: '#3cc4a8',
-    icon: '☯️',
+    icon: <Compass size={20} color="#3cc4a8" />,
   },
   {
     key: 'MBTI',
     label: '思考・行動パターン',
     result: '向いている職種・チーム',
     color: '#c8952a',
-    icon: '🧠',
+    icon: <Brain size={20} color="#c8952a" />,
   },
 ]
 
