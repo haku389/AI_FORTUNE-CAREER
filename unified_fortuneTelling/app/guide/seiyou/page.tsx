@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
-import { Sun, Moon, Flame, Globe, Wind, Droplets } from 'lucide-react'
+import { Sun, Moon } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: '西洋占星術とは — 太陽・月・惑星が示す転職タイミング | 転職占い師ルナ',
@@ -18,33 +18,29 @@ const DIVIDER = ({ label }: { label: string }) => (
 
 const ELEMENTS = [
   {
-    Icon: Flame,
     name: '火',
-    signs: '♈牡羊座　♌獅子座　♐射手座',
+    signs: '♈\uFE0E牡羊座　♌\uFE0E獅子座　♐\uFE0E射手座',
     trait: '行動力と情熱で直感的に動くのが火のグループの特徴です。スピード感があり、変化や新しい挑戦を何より好みます。停滞や慣例への縛りを感じると急速に熱が冷め、自ら動き出すことでエネルギーが湧いてきます。転職では「やりたいことをすぐ試せる環境」「スピーディな意思決定ができる組織」との相性が良く、スタートアップや新規事業で実力を発揮しやすいです。',
     career: '営業・事業開発・起業家・プロデューサー',
     color: '#f07a30',
   },
   {
-    Icon: Globe,
     name: '土',
-    signs: '♉牡牛座　♍乙女座　♑山羊座',
+    signs: '♉\uFE0E牡牛座　♍\uFE0E乙女座　♑\uFE0E山羊座',
     trait: '安定・実務・着実な積み上げを重視する土のグループ。長期的な視点で物事を進め、地道な努力で信頼を築きます。急激な変化より確実に成果を出せる環境を好み、専門性を深めながらキャリアを積んでいくタイプ。転職では「安定した基盤」「評価が明確な制度」「専門性を伸ばせる環境」を重視する傾向があります。',
     career: '経理・財務・専門職・プロジェクトマネージャー・士業',
     color: '#c8952a',
   },
   {
-    Icon: Wind,
     name: '風',
-    signs: '♊双子座　♎天秤座　♒水瓶座',
+    signs: '♊\uFE0E双子座　♎\uFE0E天秤座　♒\uFE0E水瓶座',
     trait: '知性・コミュ力・新しいアイデアを武器とする風のグループ。情報収集と人脈形成が自然とでき、多様な視点を繋ぎ合わせることが得意です。固定した環境より流動的で刺激のある職場を好みます。転職では「知的刺激がある仕事」「多様な人と関わる機会」「新しいことを提案できる裁量」が重要な条件になります。',
     career: 'マーケター・コンサルタント・編集・企画・PR・エディター',
     color: '#a898f8',
   },
   {
-    Icon: Droplets,
     name: '水',
-    signs: '♋蟹座　♏蠍座　♓魚座',
+    signs: '♋\uFE0E蟹座　♏\uFE0E蠍座　♓\uFE0E魚座',
     trait: '感受性・直感・人間関係の深さが強みの水のグループ。場の空気を読む力に優れ、人の感情に寄り添う共感力があります。競争的な環境より信頼関係に基づいた職場を好み、人との深い繋がりの中で本領を発揮します。転職では「人を助けられる仕事」「安心できるチームの雰囲気」「自分のペースで深く取り組める環境」が合います。',
     career: 'カウンセラー・医療福祉・デザイン・教育・クリエイター',
     color: '#60c8f0',
@@ -301,7 +297,7 @@ export default function SeiyouPage() {
       <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 48px' }}>
         <DIVIDER label="12星座 — 4元素グループ" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {ELEMENTS.map(({ Icon, name, signs, trait, career, color }) => (
+          {ELEMENTS.map(({ name, signs, trait, career, color }) => (
             <div
               key={name}
               style={{
@@ -326,7 +322,6 @@ export default function SeiyouPage() {
               />
               <div style={{ paddingLeft: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <Icon size={16} color={color} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: color }}>{name}のグループ</span>
                 </div>
                 <div style={{ fontSize: 11, color: '#5a6a9a', marginBottom: 8 }}>{signs}</div>

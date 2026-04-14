@@ -19,7 +19,7 @@ const DIVIDER = ({ label }: { label: string }) => (
 const CARDS = [
   {
     href: '/guide/seiyou',
-    icon: <Sun size={24} />,
+    icon: <Sun size={24} color="#a898f8" />,
     title: '西洋占星術',
     badge: 'ASTROLOGY',
     desc: '太陽・月・惑星の動きで転職タイミングを読む。木星や土星のトランジットが示す「動き時」を捉えることで、転職の最適な時期を星の暦から導きます。',
@@ -27,7 +27,7 @@ const CARDS = [
   },
   {
     href: '/guide/kyusei',
-    icon: <Compass size={24} />,
+    icon: <Compass size={24} color="#3cc4a8" />,
     title: '九星気学',
     badge: 'KYUSEI',
     desc: '生まれ年の本命星でキャリアの方向性を読む。9年サイクルの運気の流れを把握し、今が「仕込みの年」なのか「動く年」なのかを見極めます。',
@@ -35,7 +35,7 @@ const CARDS = [
   },
   {
     href: '/guide/mbti',
-    icon: <Brain size={24} />,
+    icon: <Brain size={24} color="#c8952a" />,
     title: 'MBTI',
     badge: 'PERSONALITY',
     desc: '16タイプの性格分類で向いている職種を分析。思考・感情・行動のパターンから、長く活躍できる職場環境やチームの雰囲気を具体的に絞り込みます。',
