@@ -106,7 +106,6 @@ export async function POST(request: Request) {
       payment_id:         body.payment_id         ?? null,
       paid_at:            body.payment_id ? new Date().toISOString() : null,
       amount:             body.amount             ?? null,
-      line_user_id:       body.line_user_id       ?? null,
     })
     .select('id')
     .single()

@@ -167,19 +167,39 @@ export default function PrecisePage() {
   const [lineDisplayName, setLineDisplayName] = useState<string | null>(null)
   const [linePictureUrl, setLinePictureUrl] = useState<string | null>(null)
   const [lineSent, setLineSent] = useState(false)
+  const [lineErrorMsg, setLineErrorMsg] = useState<string | null>(null)
+  // stale closure 対策: 常に最新のlineUserIdを参照できるref
+  const lineUserIdRef = useRef<string | null>(null)
+  useEffect(() => { lineUserIdRef.current = lineUserId }, [lineUserId])
 
-  /* ── LINE Cookie読み取り ── */
+  /* ── LINE プロフィール取得（サーバーAPI経由でcookieを読む）── */
   useEffect(() => {
-    const getCookie = (name: string) => {
-      const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
-      return match ? decodeURIComponent(match[1]) : null
+    fetch('/api/line/profile')
+      .then(r => r.json())
+      .then((d: { connected: boolean; userId?: string; displayName?: string; pictureUrl?: string }) => {
+        if (d.connected && d.userId) {
+          setLineUserId(d.userId)
+          setLineDisplayName(d.displayName ?? null)
+          setLinePictureUrl(d.pictureUrl ?? null)
+        }
+      })
+      .catch(() => {})
+
+    // URLパラメータ確認（useSearchParams不要・window.location使用）
+    const urlParams = new URLSearchParams(window.location.search)
+    const err = urlParams.get('line_error')
+    if (err) {
+      const msgs: Record<string, string> = {
+        config: 'サーバー設定エラーです。管理者にお問い合わせください。',
+        missing_params: 'LINEからの応答が不正です。再度お試しください。',
+        state_mismatch: '認証セッションが切れました。再度お試しください。',
+        token_failed: 'LINEとの認証に失敗しました。再度お試しください。',
+        profile_failed: 'LINEプロフィールの取得に失敗しました。再度お試しください。',
+        access_denied: 'LINEログインがキャンセルされました。',
+      }
+      setLineErrorMsg(msgs[err] ?? `LINEログインでエラーが発生しました（${err}）`)
+      window.history.replaceState({}, '', '/premium/form')
     }
-    const uid = getCookie('line_user_id')
-    const dname = getCookie('line_display_name')
-    const pic = getCookie('line_picture_url')
-    if (uid) setLineUserId(uid)
-    if (dname) setLineDisplayName(dname)
-    if (pic) setLinePictureUrl(pic)
   }, [])
 
   /* ── Zodiac update when birthday changes ── */
@@ -401,7 +421,7 @@ export default function PrecisePage() {
                 recommended_agents: agents,
                 payment_id: paymentIntentId,
                 amount: 480,
-                line_user_id: lineUserId ?? undefined,
+                line_user_id: lineUserIdRef.current ?? undefined,
               }),
             }).then(r => r.json()).then(d => {
               if (d.error) {
@@ -412,14 +432,15 @@ export default function PrecisePage() {
               setResultId(savedId)
 
               // LINE送信（LINEログイン済みの場合）
-              if (lineUserId && savedId) {
+              const currentLineUserId = lineUserIdRef.current
+              if (currentLineUserId && savedId) {
                 const baseUrl = window.location.origin
                 const resultUrl = `${baseUrl}/premium/result/${savedId}`
                 fetch('/api/line/send', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    userId: lineUserId,
+                    userId: currentLineUserId,
                     nickname,
                     score: scoreResult.score_total,
                     timing: scoreResult.timing,
@@ -469,6 +490,11 @@ export default function PrecisePage() {
       <div style={{ ...pageStyle, justifyContent: 'center' }}>
 
         {/* LINE ログインバナー */}
+        {lineErrorMsg && (
+          <div style={{ background: '#1a0d0d', border: '1px solid #d4607a44', borderRadius: 10, padding: '10px 14px', marginBottom: 10, fontSize: 12, color: '#d4607a' }}>
+            ⚠️ {lineErrorMsg}
+          </div>
+        )}
         <div style={{ background: '#0d1e14', border: '1px solid #06c75533', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
           {lineUserId ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
