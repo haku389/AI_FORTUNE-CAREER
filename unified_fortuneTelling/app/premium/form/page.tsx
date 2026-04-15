@@ -160,6 +160,27 @@ export default function PrecisePage() {
 
   // result state
   const [result, setResult] = useState<PreciseResult | null>(null)
+  const [resultId, setResultId] = useState<string | null>(null)
+
+  // LINE state
+  const [lineUserId, setLineUserId] = useState<string | null>(null)
+  const [lineDisplayName, setLineDisplayName] = useState<string | null>(null)
+  const [linePictureUrl, setLinePictureUrl] = useState<string | null>(null)
+  const [lineSent, setLineSent] = useState(false)
+
+  /* ── LINE Cookie読み取り ── */
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+      return match ? decodeURIComponent(match[1]) : null
+    }
+    const uid = getCookie('line_user_id')
+    const dname = getCookie('line_display_name')
+    const pic = getCookie('line_picture_url')
+    if (uid) setLineUserId(uid)
+    if (dname) setLineDisplayName(dname)
+    if (pic) setLinePictureUrl(pic)
+  }, [])
 
   /* ── Zodiac update when birthday changes ── */
   useEffect(() => {
@@ -286,9 +307,8 @@ export default function PrecisePage() {
     const industries = Array.isArray(answers[11]) ? (answers[11] as number[]).map(i => QUESTIONS[11].opts[i]?.s?.industry ?? '') : typeof answers[11] === 'number' ? [QUESTIONS[11].opts[answers[11]]?.s?.industry ?? ''] : []
 
     const { topJobs, topIndustries, agents } = calcJobMatch(mbti, motivation, roles, industries)
-    const monthlyAdvice = calcMonthlyAdvice(scoreResult.timing)
 
-    // AI鑑定文をバックグラウンドで取得
+    // AI鑑定文 & AI3ヶ月アドバイスをバックグラウンドで並列取得
     const kansenPromise = fetch('/api/precise-kansen', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -310,6 +330,22 @@ export default function PrecisePage() {
       .then(d => (d.text as string) || null)
       .catch(() => null)
 
+    const advicePromise = fetch('/api/precise-advice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nickname,
+        sunSign: sunSign.name,
+        moonSign: moonSignVal,
+        honmeiStar: honmeiStarVal,
+        mbti,
+        timing: scoreResult.timing,
+      }),
+    })
+      .then(r => r.json())
+      .then(d => d.advice ?? null)
+      .catch(() => null)
+
     let i = 0
     const interval = setInterval(() => {
       setLoadActiveStep(i)
@@ -319,8 +355,9 @@ export default function PrecisePage() {
         setTimeout(() => {
           setLoadText('鑑定結果を確認しています…')
           setTimeout(async () => {
-            const aiText = await kansenPromise
+            const [aiText, aiAdvice] = await Promise.all([kansenPromise, advicePromise])
             const kansenText = aiText ?? getPreciseKansen(sunSign, nickname)
+            const monthlyAdvice = aiAdvice ?? calcMonthlyAdvice(scoreResult.timing)
 
             const full: PreciseResult = {
               userData,
@@ -336,7 +373,7 @@ export default function PrecisePage() {
             setResult(full)
             setStep('result')
 
-            // Supabase保存（fire-and-forget）
+            // Supabase保存（IDを取得してLINE送信に使用）
             fetch('/api/precise-diagnose', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -364,9 +401,34 @@ export default function PrecisePage() {
                 recommended_agents: agents,
                 payment_id: paymentIntentId,
                 amount: 480,
+                line_user_id: lineUserId ?? undefined,
               }),
             }).then(r => r.json()).then(d => {
-              if (d.error) console.error('[precise-diagnose] API error:', d.error)
+              if (d.error) {
+                console.error('[precise-diagnose] API error:', d.error)
+                return
+              }
+              const savedId: string = d.id
+              setResultId(savedId)
+
+              // LINE送信（LINEログイン済みの場合）
+              if (lineUserId && savedId) {
+                const baseUrl = window.location.origin
+                const resultUrl = `${baseUrl}/premium/result/${savedId}`
+                fetch('/api/line/send', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    userId: lineUserId,
+                    nickname,
+                    score: scoreResult.score_total,
+                    timing: scoreResult.timing,
+                    resultUrl,
+                  }),
+                }).then(r => r.json()).then(res => {
+                  if (res.ok) setLineSent(true)
+                }).catch(e => console.error('[LINE send] error:', e))
+              }
             }).catch(e => console.error('[precise-diagnose] fetch error:', e))
           }, 2000)
         }, 600)
@@ -405,6 +467,49 @@ export default function PrecisePage() {
     <div style={{ background: '#060914', minHeight: '100dvh' }}>
       <Stars />
       <div style={{ ...pageStyle, justifyContent: 'center' }}>
+
+        {/* LINE ログインバナー */}
+        <div style={{ background: '#0d1e14', border: '1px solid #06c75533', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+          {lineUserId ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {linePictureUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={linePictureUrl} alt="LINE" width={36} height={36} style={{ borderRadius: '50%', border: '1px solid #06c755' }} />
+              )}
+              <div>
+                <div style={{ fontSize: 12, color: '#06c755', fontWeight: 700 }}>LINEアカウント連携済み ✓</div>
+                <div style={{ fontSize: 11, color: '#7888b8' }}>{lineDisplayName}さん・鑑定後に結果をLINEでお届けします</div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 10 }}>
+                📩 LINEアカウントと連携すると、鑑定結果をいつでもLINEから確認できます（任意）
+              </div>
+              <a
+                href="/api/line/login"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  background: '#06c755',
+                  borderRadius: 8,
+                  padding: '11px 16px',
+                  color: '#fff',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  letterSpacing: 0.5,
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" /></svg>
+                LINEでログイン・連携する
+              </a>
+            </div>
+          )}
+        </div>
+
         <div style={cardStyle}>
           <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 20, fontWeight: 700, textAlign: 'center', marginBottom: 6, color: '#f0f4ff' }}>
             あなたの星を深く読む
@@ -1059,6 +1164,48 @@ export default function PrecisePage() {
 
           {/* ── シェア ── */}
           <ShareBlock shareText={shareText} shareUrl={shareUrl} />
+
+          {/* ── LINE通知バナー ── */}
+          {lineUserId && (
+            <div style={{
+              background: lineSent ? '#0d1e14' : '#111c36',
+              border: `1px solid ${lineSent ? '#06c75544' : '#2a3f72'}`,
+              borderRadius: 12,
+              padding: '14px 16px',
+              marginTop: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              fontSize: 12,
+            }}>
+              <span style={{ fontSize: 20 }}>{lineSent ? '✅' : '📨'}</span>
+              <div>
+                {lineSent ? (
+                  <>
+                    <div style={{ color: '#06c755', fontWeight: 700, marginBottom: 2 }}>LINEに結果を送信しました</div>
+                    <div style={{ color: '#7888b8', fontSize: 11 }}>LINEアプリから鑑定結果をいつでも確認できます</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ color: '#f0f4ff', fontWeight: 700, marginBottom: 2 }}>LINE送信中…</div>
+                    <div style={{ color: '#7888b8', fontSize: 11 }}>鑑定結果をLINEに送っています</div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── 結果ページリンク ── */}
+          {resultId && (
+            <div style={{ textAlign: 'center', marginTop: 12 }}>
+              <a
+                href={`/premium/result/${resultId}`}
+                style={{ fontSize: 12, color: '#a898f8', textDecoration: 'underline', textUnderlineOffset: 3 }}
+              >
+                📄 鑑定結果の保存ページを開く
+              </a>
+            </div>
+          )}
 
         </div>
       </div>
