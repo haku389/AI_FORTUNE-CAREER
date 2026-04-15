@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
             gap: 8,
           }}
         >
-          転職運命診断 | AI占い師ルナ @hoshiyomi_luna
+          転職運命診断 | 転職占い師ルナ @hoshiyomi_luna
         </div>
 
         {/* ゴールドボーダー */}

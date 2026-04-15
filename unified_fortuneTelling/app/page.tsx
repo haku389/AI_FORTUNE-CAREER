@@ -327,26 +327,26 @@ export default function InfoPage() {
             {
               num: '01',
               icon: <PenLine size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: '情報を入力',
-              desc: 'ニックネーム・誕生日・性別を入力。精密占いは出生時刻・MBTIも。',
+              title: '生年月日を伝える',
+              desc: 'ニックネーム・誕生日・性別を教えてください。精密鑑定は出生時刻・MBTIも。',
             },
             {
               num: '02',
               icon: <HelpCircle size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: '質問に答える',
-              desc: '現在の仕事・転職への気持ちなどを選択式で回答します。',
+              title: '心の声を打ち明ける',
+              desc: '今の仕事や転職への気持ちをルナに打ち明けてください。',
             },
             {
               num: '03',
               icon: <Telescope size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: 'AIが星座データを解析',
-              desc: '太陽星座・月星座・本命星をリアルタイムで計算・分析します。',
+              title: '星々が交差する',
+              desc: 'あなたの太陽星座・月星座・本命星が、天球の上で静かに重なり合います。',
             },
             {
               num: '04',
               icon: <Moon size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: 'ルナが鑑定文を生成',
-              desc: 'あなただけの転職運命を、ルナの言葉でお届けします。',
+              title: 'ルナが星を読み解く',
+              desc: '星々の声をルナが紡ぎ、あなただけの転職運命をお伝えします。',
             },
           ].map(({ num, icon, title, desc }, i, arr) => (
             <div key={num} style={{ display: 'flex', gap: 16 }}>
