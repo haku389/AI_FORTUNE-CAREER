@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { PenLine, HelpCircle, Telescope, Moon } from 'lucide-react'
 import Stars from '@/components/Stars'
 
@@ -154,17 +155,19 @@ export default function InfoPage() {
                 width: 60,
                 height: 60,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #2a0d4a, #1a0a3a)',
                 border: '2px solid #7c6bdc',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 28,
-                flexShrink: 0,
                 boxShadow: '0 0 20px #7c6bdc44',
+                overflow: 'hidden',
+                flexShrink: 0,
               }}
             >
-              🌙
+              <Image
+                src="/luna_main.png"
+                alt="転職占い師ルナ"
+                width={60}
+                height={60}
+                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+              />
             </div>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff', marginBottom: 4 }}>
@@ -330,7 +333,7 @@ export default function InfoPage() {
             {
               num: '02',
               icon: <HelpCircle size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: '5つの質問に答える',
+              title: '質問に答える',
               desc: '現在の仕事・転職への気持ちなどを選択式で回答します。',
             },
             {
