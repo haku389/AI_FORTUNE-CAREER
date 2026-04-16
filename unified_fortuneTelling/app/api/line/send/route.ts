@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
 
   let token: string
   try {
-    // 既存の長期トークンがあればそちらを優先、なければ動的取得
-    token = process.env.LINE_MESSAGING_CHANNEL_ACCESS_TOKEN || await getChannelAccessToken()
+    // Channel ID + Secret から動的にトークン取得（毎回取得、30日有効）
+    token = await getChannelAccessToken()
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     console.error('[LINE send] token error:', msg)

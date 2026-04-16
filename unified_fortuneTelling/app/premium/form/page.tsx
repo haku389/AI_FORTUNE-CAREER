@@ -168,6 +168,7 @@ export default function PrecisePage() {
   const [linePictureUrl, setLinePictureUrl] = useState<string | null>(null)
   const [lineSent, setLineSent] = useState(false)
   const [lineErrorMsg, setLineErrorMsg] = useState<string | null>(null)
+  const [lineSendError, setLineSendError] = useState<string | null>(null)
   // stale closure 対策: 常に最新のlineUserIdを参照できるref
   const lineUserIdRef = useRef<string | null>(null)
   useEffect(() => { lineUserIdRef.current = lineUserId }, [lineUserId])
@@ -450,9 +451,15 @@ export default function PrecisePage() {
                   if (res.ok) {
                     setLineSent(true)
                   } else {
+                    const detail = res.detail ? JSON.parse(res.detail) : {}
+                    const msg = detail.message ?? res.error ?? 'unknown error'
+                    setLineSendError(`LINE APIエラー [${res.status ?? '?'}]: ${msg}`)
                     console.error('[LINE send] failed:', res)
                   }
-                }).catch(e => console.error('[LINE send] fetch error:', e))
+                }).catch(e => {
+                  setLineSendError(`通信エラー: ${e}`)
+                  console.error('[LINE send] fetch error:', e)
+                })
               }
             }).catch(e => console.error('[precise-diagnose] fetch error:', e))
           }, 2000)
@@ -1198,22 +1205,27 @@ export default function PrecisePage() {
           {/* ── LINE通知バナー ── */}
           {lineUserId && (
             <div style={{
-              background: lineSent ? '#0d1e14' : '#111c36',
-              border: `1px solid ${lineSent ? '#06c75544' : '#2a3f72'}`,
+              background: lineSent ? '#0d1e14' : lineSendError ? '#1a0d0d' : '#111c36',
+              border: `1px solid ${lineSent ? '#06c75544' : lineSendError ? '#d4607a44' : '#2a3f72'}`,
               borderRadius: 12,
               padding: '14px 16px',
               marginTop: 4,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: 12,
               fontSize: 12,
             }}>
-              <span style={{ fontSize: 20 }}>{lineSent ? '✅' : '📨'}</span>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>{lineSent ? '✅' : lineSendError ? '⚠️' : '📨'}</span>
               <div>
                 {lineSent ? (
                   <>
                     <div style={{ color: '#06c755', fontWeight: 700, marginBottom: 2 }}>LINEに結果を送信しました</div>
                     <div style={{ color: '#7888b8', fontSize: 11 }}>LINEアプリから鑑定結果をいつでも確認できます</div>
+                  </>
+                ) : lineSendError ? (
+                  <>
+                    <div style={{ color: '#d4607a', fontWeight: 700, marginBottom: 2 }}>LINE送信に失敗しました</div>
+                    <div style={{ color: '#7888b8', fontSize: 10, wordBreak: 'break-all' }}>{lineSendError}</div>
                   </>
                 ) : (
                   <>
