@@ -173,7 +173,7 @@ export default function InfoPage() {
               <div style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff', marginBottom: 4 }}>
                 ルナ（Luna）
               </div>
-              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>AI転職占い師</div>
+              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>星読み転職占い師</div>
             </div>
           </div>
 
@@ -315,7 +315,7 @@ export default function InfoPage() {
       </div>
 
       {/* ── HOW IT WORKS ── */}
-      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 56px' }}>
+      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
           <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #2a3f72)' }} />
           <span style={{ fontSize: 10, letterSpacing: 4, color: '#5a6a9a', whiteSpace: 'nowrap' }}>HOW IT WORKS</span>

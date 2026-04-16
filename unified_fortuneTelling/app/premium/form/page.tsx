@@ -54,7 +54,7 @@ type PreciseResult = {
 }
 
 /* ─── Helpers ─── */
-const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '鑑定文を生成']
+const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '鑑定文を作成']
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')

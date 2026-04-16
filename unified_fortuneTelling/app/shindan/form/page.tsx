@@ -31,7 +31,7 @@ type FullResult = {
 }
 
 /* ─── Helpers ─── */
-const LOAD_STEPS = ['星座の位置を確認', '月の影響を読み取り', '転職運を計算', '鑑定文を生成']
+const LOAD_STEPS = ['星座の位置を確認', '月の影響を読み取り', '転職運を計算', '鑑定文を作成']
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')
