@@ -447,8 +447,12 @@ export default function PrecisePage() {
                     resultUrl,
                   }),
                 }).then(r => r.json()).then(res => {
-                  if (res.ok) setLineSent(true)
-                }).catch(e => console.error('[LINE send] error:', e))
+                  if (res.ok) {
+                    setLineSent(true)
+                  } else {
+                    console.error('[LINE send] failed:', res)
+                  }
+                }).catch(e => console.error('[LINE send] fetch error:', e))
               }
             }).catch(e => console.error('[precise-diagnose] fetch error:', e))
           }, 2000)

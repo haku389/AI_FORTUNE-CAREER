@@ -7,6 +7,34 @@ const TIMING_LABELS: Record<string, string> = {
   wait: 'じっくり充電期 💧',
 }
 
+/** Channel IDとSecretから短期アクセストークンを取得 */
+async function getChannelAccessToken(): Promise<string> {
+  const channelId = process.env.LINE_MESSAGING_CHANNEL_ID
+  const channelSecret = process.env.LINE_MESSAGING_CHANNEL_SECRET
+
+  if (!channelId || !channelSecret) {
+    throw new Error('LINE_MESSAGING_CHANNEL_ID or LINE_MESSAGING_CHANNEL_SECRET is not set')
+  }
+
+  const res = await fetch('https://api.line.me/v2/oauth/accessToken', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: channelId,
+      client_secret: channelSecret,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Token fetch failed: ${res.status} ${err}`)
+  }
+
+  const data = await res.json()
+  return data.access_token as string
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const { userId, nickname, score, timing, resultUrl } = body as {
@@ -17,106 +45,36 @@ export async function POST(req: NextRequest) {
     resultUrl: string
   }
 
-  const token = process.env.LINE_MESSAGING_CHANNEL_ACCESS_TOKEN!
-  if (!token || !userId) {
-    return NextResponse.json({ error: 'missing params' }, { status: 400 })
+  if (!userId) {
+    return NextResponse.json({ error: 'missing_user_id' }, { status: 400 })
+  }
+
+  let token: string
+  try {
+    // 既存の長期トークンがあればそちらを優先、なければ動的取得
+    token = process.env.LINE_MESSAGING_CHANNEL_ACCESS_TOKEN || await getChannelAccessToken()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('[LINE send] token error:', msg)
+    return NextResponse.json({ error: 'token_failed', detail: msg }, { status: 500 })
   }
 
   const timingLabel = TIMING_LABELS[timing] ?? timing
 
-  const message = {
-    type: 'flex',
-    altText: `${nickname}さんの転職精密鑑定が完了しました ✨`,
-    contents: {
-      type: 'bubble',
-      size: 'kilo',
-      header: {
-        type: 'box',
-        layout: 'vertical',
-        paddingAll: '18px',
-        backgroundColor: '#070c1a',
-        contents: [
-          {
-            type: 'text',
-            text: '転職占い師◇ルナ',
-            size: 'xs',
-            color: '#a898f8',
-            weight: 'bold',
-          },
-          {
-            type: 'text',
-            text: '精密鑑定が完了しました',
-            size: 'md',
-            color: '#f0f4ff',
-            weight: 'bold',
-            margin: 'sm',
-          },
-        ],
-      },
-      body: {
-        type: 'box',
-        layout: 'vertical',
-        paddingAll: '18px',
-        backgroundColor: '#0d1428',
-        contents: [
-          {
-            type: 'box',
-            layout: 'horizontal',
-            paddingBottom: '10px',
-            contents: [
-              { type: 'text', text: '転職スコア', size: 'sm', color: '#7888b8', flex: 1 },
-              {
-                type: 'text',
-                text: `${score}点`,
-                size: 'sm',
-                color: '#f0c060',
-                weight: 'bold',
-                align: 'end',
-              },
-            ],
-          },
-          {
-            type: 'box',
-            layout: 'horizontal',
-            paddingBottom: '14px',
-            contents: [
-              { type: 'text', text: 'タイミング', size: 'sm', color: '#7888b8', flex: 1 },
-              {
-                type: 'text',
-                text: timingLabel,
-                size: 'sm',
-                color: '#c8952a',
-                weight: 'bold',
-                align: 'end',
-              },
-            ],
-          },
-          {
-            type: 'text',
-            text: 'いつでもボタンから鑑定結果を確認できます。',
-            size: 'xs',
-            color: '#7888b8',
-            wrap: true,
-          },
-        ],
-      },
-      footer: {
-        type: 'box',
-        layout: 'vertical',
-        paddingAll: '12px',
-        backgroundColor: '#0d1428',
-        contents: [
-          {
-            type: 'button',
-            action: { type: 'uri', label: '鑑定結果を見る ✨', uri: resultUrl },
-            style: 'primary',
-            color: '#7c6bdc',
-            height: 'sm',
-          },
-        ],
-      },
-    },
+  const textMessage = {
+    type: 'text',
+    text: [
+      `✨ ${nickname}さんの転職精密鑑定が完了しました`,
+      '',
+      `📊 転職スコア：${score}点`,
+      `⏰ タイミング：${timingLabel}`,
+      '',
+      '🔮 鑑定結果はこちらからいつでも確認できます👇',
+      resultUrl,
+    ].join('\n'),
   }
+
+  console.log('[LINE send] sending push to:', userId.slice(0, 8) + '...')
 
   const lineRes = await fetch('https://api.line.me/v2/bot/message/push', {
     method: 'POST',
@@ -124,14 +82,19 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ to: userId, messages: [message] }),
+    body: JSON.stringify({ to: userId, messages: [textMessage] }),
   })
 
+  const responseText = await lineRes.text()
+
   if (!lineRes.ok) {
-    const errText = await lineRes.text()
-    console.error('[LINE send] error:', lineRes.status, errText)
-    return NextResponse.json({ error: 'send failed' }, { status: 500 })
+    console.error('[LINE send] LINE API error:', lineRes.status, responseText)
+    return NextResponse.json(
+      { error: 'line_api_failed', status: lineRes.status, detail: responseText },
+      { status: 500 },
+    )
   }
 
+  console.log('[LINE send] success')
   return NextResponse.json({ ok: true })
 }
