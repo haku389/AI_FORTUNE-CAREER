@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -8,18 +9,11 @@ export const metadata: Metadata = {
 }
 
 type MonthAdvice = {
-  month: string
-  label: string
-  emoji: string
-  advice: string
-  highlight: boolean
+  month: string; label: string; emoji: string; advice: string; highlight: boolean
 }
-
-type TopJob = {
-  job: string
-  score: number
-  reason: string
-}
+type TopJob = { job: string; score: number; reason: string }
+type IndustryMatch = { name: string; emoji: string }
+type AgentMatch = { name: string; url: string; desc: string; luna: string }
 
 type DiagnoseRow = {
   id: string
@@ -30,26 +24,38 @@ type DiagnoseRow = {
   mbti_type: string | null
   score_total: number
   score_timing: number
-  score_readiness: number
-  score_market: number
   kansen_text: string | null
   monthly_advice: MonthAdvice[] | null
   top_jobs: TopJob[] | null
+  top_industries: IndustryMatch[] | null
+  recommended_agents: AgentMatch[] | null
   created_at: string
 }
 
-const TIMING_FROM_SCORE = (timing_score: number): string => {
-  if (timing_score >= 80) return 'now'
-  if (timing_score >= 60) return '3m'
-  if (timing_score >= 40) return '6m'
+const ZODIAC_EN: Record<string, string> = {
+  '牡羊座': 'Aries', '牡牛座': 'Taurus', '双子座': 'Gemini',
+  '蟹座': 'Cancer', '獅子座': 'Leo', '乙女座': 'Virgo',
+  '天秤座': 'Libra', '蠍座': 'Scorpio', '射手座': 'Sagittarius',
+  '山羊座': 'Capricorn', '水瓶座': 'Aquarius', '魚座': 'Pisces',
+}
+
+const TIMING_FROM_SCORE = (s: number): string => {
+  if (s >= 80) return 'now'
+  if (s >= 60) return '3m'
+  if (s >= 40) return '6m'
   return 'wait'
 }
 
 const TIMING_LABELS: Record<string, { badge: string; color: string }> = {
-  now: { badge: '🔥 今すぐ動き時', color: '#ffa040' },
+  now:  { badge: '🔥 今すぐ動き時',    color: '#ffa040' },
   '3m': { badge: '✨ 3ヶ月以内に行動', color: '#f0c060' },
-  '6m': { badge: '🌿 半年後が本番', color: '#a898f8' },
-  wait: { badge: '💧 じっくり充電期', color: '#3cc4a8' },
+  '6m': { badge: '🌿 半年後が本番',    color: '#a898f8' },
+  wait: { badge: '💧 じっくり充電期',  color: '#3cc4a8' },
+}
+
+const card: React.CSSProperties = {
+  background: '#0d1428', border: '1px solid #2a3f72',
+  borderRadius: 16, padding: '20px 18px', marginBottom: 12,
 }
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,7 +68,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
   const { data, error } = await supabase
     .from('precise_diagnoses')
-    .select('id, nickname, zodiac_sun, zodiac_moon, honmei_star, mbti_type, score_total, score_timing, score_readiness, score_market, kansen_text, monthly_advice, top_jobs, created_at')
+    .select('id, nickname, zodiac_sun, zodiac_moon, honmei_star, mbti_type, score_total, score_timing, kansen_text, monthly_advice, top_jobs, top_industries, recommended_agents, created_at')
     .eq('id', id)
     .single()
 
@@ -73,9 +79,13 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const timingInfo = TIMING_LABELS[timing]
   const adviceList: MonthAdvice[] = Array.isArray(row.monthly_advice) ? row.monthly_advice : []
   const topJobs: TopJob[] = Array.isArray(row.top_jobs) ? row.top_jobs.slice(0, 3) : []
+  const topIndustries: IndustryMatch[] = Array.isArray(row.top_industries) ? row.top_industries : []
+  const agents: AgentMatch[] = Array.isArray(row.recommended_agents) ? row.recommended_agents : []
 
   const diagDate = new Date(row.created_at)
   const dateStr = `${diagDate.getFullYear()}年${diagDate.getMonth() + 1}月${diagDate.getDate()}日`
+  const sunEn = ZODIAC_EN[row.zodiac_sun] ?? ''
+  const mbtiLower = row.mbti_type?.toLowerCase() ?? ''
 
   return (
     <div style={{ background: '#060914', minHeight: '100dvh', color: '#f0f4ff' }}>
@@ -90,35 +100,72 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           <p style={{ fontSize: 11, color: '#7888b8' }}>鑑定日：{dateStr}</p>
         </div>
 
-        {/* 星のプロフィール */}
-        <div style={{ background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 16, padding: '20px 18px', marginBottom: 12 }}>
+        {/* ══ 星のプロフィール ══ */}
+        <div style={{ ...card, background: 'linear-gradient(135deg, #111c36, #0d1428)' }}>
           <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 14, textAlign: 'center' }}>
             ✦ あなたの星のプロフィール
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[
-              { label: '☀️ 太陽星座', value: row.zodiac_sun, color: '#f0c060' },
-              { label: '🌙 月星座',   value: row.zodiac_moon ?? '—', color: '#a898f8' },
-              { label: '⭐ 本命星',   value: row.honmei_star ?? '—', color: '#3cc4a8' },
-              { label: '🧠 MBTI',    value: row.mbti_type ?? '—', color: '#c8952a' },
-            ].map(({ label, value, color }) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c36', borderRadius: 8, padding: '8px 14px' }}>
-                <span style={{ fontSize: 12, color: '#7888b8' }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
+
+          {/* 太陽星座アイコン */}
+          {sunEn && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid #2a3f72', borderRadius: 8, padding: '7px 14px', background: '#060914' }}>
+                <Image src={`/assets/img/${sunEn}.png`} alt={row.zodiac_sun} width={18} height={18} style={{ objectFit: 'contain' }} />
+                <span style={{ fontSize: 12, color: '#a898f8', fontWeight: 700 }}>{row.zodiac_sun}</span>
               </div>
-            ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* 太陽星座 */}
+            <a href="/guide/seiyou" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
+              <span style={{ fontSize: 11, color: '#7888b8' }}>☀️ 太陽星座</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {sunEn && <Image src={`/assets/img/${sunEn}.png`} alt="" width={16} height={16} style={{ objectFit: 'contain' }} />}
+                <span style={{ fontSize: 12, color: '#f0c060', fontWeight: 600 }}>{row.zodiac_sun}</span>
+                <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
+              </div>
+            </a>
+
+            {/* 月星座 */}
+            <a href="/guide/seiyou" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
+              <span style={{ fontSize: 11, color: '#7888b8' }}>🌙 月星座</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {row.zodiac_moon && ZODIAC_EN[row.zodiac_moon] && (
+                  <Image src={`/assets/img/${ZODIAC_EN[row.zodiac_moon]}.png`} alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
+                )}
+                <span style={{ fontSize: 12, color: '#a898f8', fontWeight: 600 }}>{row.zodiac_moon ?? '—'}</span>
+                <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
+              </div>
+            </a>
+
+            {/* 本命星 */}
+            <a href="/guide/kyusei" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
+              <span style={{ fontSize: 11, color: '#7888b8' }}>⭐ 本命星</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 12, color: '#3cc4a8', fontWeight: 600 }}>{row.honmei_star ?? '—'}</span>
+                <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
+              </div>
+            </a>
+
+            {/* MBTI */}
+            {row.mbti_type && (
+              <a href={`/guide/mbti/${mbtiLower}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
+                <span style={{ fontSize: 11, color: '#7888b8' }}>🧠 MBTI</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: '#c8952a', fontWeight: 600 }}>{row.mbti_type}</span>
+                  <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
+                </div>
+              </a>
+            )}
           </div>
         </div>
 
-        {/* スコア */}
-        <div style={{ background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 16, padding: '20px 18px', marginBottom: 12 }}>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16, textAlign: 'center' }}>
-            ✦ 転職運スコア
-          </div>
+        {/* ══ 転職スコア ══ */}
+        <div style={card}>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16, textAlign: 'center' }}>✦ 転職スコア</div>
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <span style={{ fontFamily: 'var(--font-mincho)', fontSize: 52, fontWeight: 900, color: '#f0c060', lineHeight: 1 }}>
-              {row.score_total}
-            </span>
+            <span style={{ fontFamily: 'var(--font-mincho)', fontSize: 52, fontWeight: 900, color: '#f0c060', lineHeight: 1 }}>{row.score_total}</span>
             <span style={{ fontSize: 16, color: '#7888b8', marginLeft: 6 }}>点</span>
           </div>
           <div style={{ padding: '12px 14px', background: '#0a0f1e', border: `1px solid ${timingInfo.color}33`, borderRadius: 10, textAlign: 'center' }}>
@@ -126,19 +173,20 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* TOP職種 */}
+        {/* ══ 向いている職種・業界 ══ */}
         {topJobs.length > 0 && (
-          <div style={{ background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 16, padding: '20px 18px', marginBottom: 12 }}>
-            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16 }}>
-              ✦ 向いている職種 TOP3
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={card}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16 }}>✦ 向いている職種・業界</div>
+
+            <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 10 }}>【TOP 3 職種】</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
               {topJobs.map((job, i) => (
                 <div key={job.job} style={{ background: '#111c36', border: `1px solid ${i === 0 ? '#c8952a' : '#1e2d52'}`, borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: i === 0 ? '#f0f4ff' : '#dde4f8' }}>
-                      {i + 1}位 {job.job}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11, color: i === 0 ? '#c8952a' : '#7888b8', fontWeight: 700 }}>{i + 1}位</span>
+                      <span style={{ fontSize: 13, color: i === 0 ? '#f0f4ff' : '#dde4f8', fontWeight: 600 }}>{job.job}</span>
+                    </div>
                     <span style={{ fontSize: 13, color: '#f0c060', fontWeight: 700 }}>{job.score}%</span>
                   </div>
                   <div style={{ height: 3, background: '#0a0f1e', borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
@@ -148,34 +196,53 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                 </div>
               ))}
             </div>
+
+            {topIndustries.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【向いている業界】</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                  {topIndustries.map(ind => (
+                    <div key={ind.name} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#111c36', border: '1px solid #2a3f72', borderRadius: 20, padding: '6px 14px', fontSize: 12, color: '#dde4f8' }}>
+                      <span>{ind.emoji}</span><span>{ind.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {agents.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {agents.map(agent => (
+                    <a key={agent.name} href={agent.url} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'block', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                        <span style={{ fontSize: 13, color: '#a898f8', fontWeight: 700 }}>{agent.name}</span>
+                        <span style={{ fontSize: 10, color: '#3a4870' }}>→ 詳細を見る</span>
+                      </div>
+                      <div style={{ fontSize: 10, color: '#7888b8', marginBottom: 6 }}>{agent.desc}</div>
+                      <div style={{ fontSize: 11, color: '#dde4f8', lineHeight: 1.6 }}>🌙 {agent.luna}</div>
+                    </a>
+                  ))}
+                </div>
+                <p style={{ fontSize: 10, color: '#3a4870', marginTop: 10, textAlign: 'right' }}>※ 広告を含みます</p>
+              </>
+            )}
           </div>
         )}
 
-        {/* 3ヶ月アドバイス */}
+        {/* ══ 3ヶ月アドバイス ══ */}
         {adviceList.length > 0 && (
-          <div style={{ background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 16, padding: '20px 18px', marginBottom: 12 }}>
-            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16 }}>
-              ✦ 今後3ヶ月の行動アドバイス
-            </div>
+          <div style={card}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: '#c8952a', marginBottom: 16 }}>✦ 今後3ヶ月の行動アドバイス</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {adviceList.map((ma, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: ma.highlight ? 'linear-gradient(135deg, #c8952a0a, #111c36)' : '#111c36',
-                    border: `1px solid ${ma.highlight ? '#c8952a44' : '#1e2d52'}`,
-                    borderRadius: 10,
-                    padding: '14px 16px',
-                  }}
-                >
+                <div key={i} style={{ background: ma.highlight ? 'linear-gradient(135deg, #c8952a0a, #111c36)' : '#111c36', border: `1px solid ${ma.highlight ? '#c8952a44' : '#1e2d52'}`, borderRadius: 10, padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                     <span style={{ fontSize: 22 }}>{ma.emoji}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: ma.highlight ? '#f0c060' : '#dde4f8' }}>
-                      【{ma.month}】{ma.label}
-                    </span>
-                    {ma.highlight && (
-                      <span style={{ fontSize: 9, color: '#c8952a', letterSpacing: 1 }}>★ 行動月</span>
-                    )}
+                    <span style={{ fontSize: 12, fontWeight: 700, color: ma.highlight ? '#f0c060' : '#dde4f8' }}>【{ma.month}】{ma.label}</span>
+                    {ma.highlight && <span style={{ fontSize: 9, color: '#c8952a', letterSpacing: 1 }}>★ 行動月</span>}
                   </div>
                   <p style={{ fontSize: 11, color: '#7888b8', lineHeight: 1.7 }}>{ma.advice}</p>
                 </div>
@@ -184,17 +251,16 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
-        {/* ルナのメッセージ */}
+        {/* ══ ルナのメッセージ ══ */}
         {row.kansen_text && (
-          <div style={{ background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc44', borderRadius: 16, padding: '20px 18px', marginBottom: 12 }}>
+          <div style={{ ...card, background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc44' }}>
             <div style={{ fontSize: 11, letterSpacing: 3, color: '#a898f8', marginBottom: 14, textAlign: 'center' }}>
               ✦ ルナからの精密鑑定メッセージ
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%, #c8952a, #7c6bdc)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🌙</div>
               <div style={{ fontSize: 11, color: '#7888b8' }}>
-                <strong style={{ color: '#a898f8' }}>転職占い師◇ルナ</strong>
-                <br />@hoshiyomi_luna
+                <strong style={{ color: '#a898f8' }}>転職占い師◇ルナ</strong><br />@hoshiyomi_luna
               </div>
             </div>
             <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>
@@ -207,10 +273,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
         {/* フッター */}
         <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <a
-            href="/premium"
-            style={{ display: 'inline-block', fontSize: 12, color: '#a898f8', textDecoration: 'underline', textUnderlineOffset: 3 }}
-          >
+          <a href="/premium" style={{ fontSize: 12, color: '#a898f8', textDecoration: 'underline', textUnderlineOffset: 3 }}>
             ← 精密鑑定のトップへ
           </a>
         </div>

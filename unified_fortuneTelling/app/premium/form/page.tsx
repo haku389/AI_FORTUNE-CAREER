@@ -1016,17 +1016,18 @@ export default function PrecisePage() {
               </div>
             </div>
 
-            {/* 3つの星 */}
+            {/* 3つの星（タップで図鑑へ） */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
               {[
-                { label: '☀️ 太陽星座', value: `${u.sunSign.name}（${u.sunSign.keyword}）`, color: '#f0c060' },
-                { label: '🌙 月星座',   value: `${u.moonSign}（${u.moonKeyword}）`,          color: '#a898f8' },
-                { label: '⭐ 本命星',   value: `${u.honmeiStar}（${u.honmeiKeyword}）`,      color: '#3cc4a8' },
-              ].map(({ label, value, color }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px' }}>
+                { label: '☀️ 太陽星座', value: `${u.sunSign.name}（${u.sunSign.keyword}）`, color: '#f0c060', href: '/guide/seiyou' },
+                { label: '🌙 月星座',   value: `${u.moonSign}（${u.moonKeyword}）`,          color: '#a898f8', href: '/guide/seiyou' },
+                { label: '⭐ 本命星',   value: `${u.honmeiStar}（${u.honmeiKeyword}）`,      color: '#3cc4a8', href: '/guide/kyusei' },
+              ].map(({ label, value, color, href }) => (
+                <a key={label} href={href} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
                   <span style={{ fontSize: 11, color: '#7888b8', flexShrink: 0, width: 72, lineHeight: 1.6 }}>{label}</span>
-                  <span style={{ fontSize: 12, color, fontWeight: 600, lineHeight: 1.6 }}>{value}</span>
-                </div>
+                  <span style={{ fontSize: 12, color, fontWeight: 600, lineHeight: 1.6, flex: 1 }}>{value}</span>
+                  <span style={{ fontSize: 9, color: '#3a4870', alignSelf: 'center' }}>→</span>
+                </a>
               ))}
             </div>
 
@@ -1237,17 +1238,6 @@ export default function PrecisePage() {
             </div>
           )}
 
-          {/* ── 結果ページリンク ── */}
-          {resultId && (
-            <div style={{ textAlign: 'center', marginTop: 12 }}>
-              <a
-                href={`/premium/result/${resultId}`}
-                style={{ fontSize: 12, color: '#a898f8', textDecoration: 'underline', textUnderlineOffset: 3 }}
-              >
-                📄 鑑定結果の保存ページを開く
-              </a>
-            </div>
-          )}
 
         </div>
       </div>
