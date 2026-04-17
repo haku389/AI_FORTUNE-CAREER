@@ -327,7 +327,7 @@ export default function PrecisePage() {
     const roles = Array.isArray(answers[12]) ? (answers[12] as number[]).map(i => QUESTIONS[12].opts[i]?.s?.role ?? '') : typeof answers[12] === 'number' ? [QUESTIONS[12].opts[answers[12]]?.s?.role ?? ''] : []
     const industries = Array.isArray(answers[11]) ? (answers[11] as number[]).map(i => QUESTIONS[11].opts[i]?.s?.industry ?? '') : typeof answers[11] === 'number' ? [QUESTIONS[11].opts[answers[11]]?.s?.industry ?? ''] : []
 
-    const { topJobs, topIndustries, agents } = calcJobMatch(mbti, motivation, roles, industries)
+    const { topJobs, topIndustries, agents } = calcJobMatch(mbti, motivation, roles, industries, sunSign?.name, moonSignVal, honmeiStarVal)
 
     // AI鑑定文 & AI3ヶ月アドバイスをバックグラウンドで並列取得
     const kansenPromise = fetch('/api/precise-kansen', {

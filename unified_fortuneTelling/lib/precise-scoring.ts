@@ -78,40 +78,94 @@ export function calcPreciseScore(
     'wait';
 
   // ── readiness スコア ──
-  // Q19(index 19): 市場価値 → market_value
-  // Q20(index 20): 他者評価 → external_view（各optがmarket_valueを持たないが、固定スコアで代替）
-  // Q21(index 21): 行動起点 → readiness_add
+  // Q21(index 20): 市場価値自己評価 → mvScore
+  // Q22(index 21): 他者評価 → evScore
+  // Q23(index 22): 行動起点 → readinessAdd
+  // Q7(index 6):  ストレス反応 → stressAdj
+  // Q9(index 8):  コミュニケーション型 → commAdj
 
-  const q20Ans = answers[19]; // Q20 is index 19 (0-indexed)
-  const q21Ans = answers[20]; // Q21 is index 20
-  const q22Ans = answers[21]; // Q22 is index 21
+  const q21Ans = answers[20]; // 市場価値自己評価
+  const q22Ans = answers[21]; // 他者評価
+  const q23Ans = answers[22]; // 行動起点
+  const q7Ans  = answers[6];  // ストレス反応
+  const q9Ans  = answers[8];  // コミュニケーション型
 
   const marketValueMap = [92, 74, 48, 60]; // 💎📈😔🔍
-  const externalViewScore = [83, 78, 73, 78]; // 🎯🌈🤝🔬
+  // 他者評価 opt順: 0=leader, 1=creative, 2=supporter, 3=analyst
+  const externalViewScores = [90, 80, 65, 78];
+  // ストレス反応 opt順: energize(+5), steady(+3), anxious(0), freeze(-5)
+  const stressAdjMap = [5, 3, 0, -5];
+  // コミュニケーション opt順: verbal(+2), written(+1), visual(+2), deep(0)
+  const commAdjMap = [2, 1, 2, 0];
 
-  const mvScore = typeof q20Ans === 'number' ? (marketValueMap[q20Ans] ?? 60) : 60;
-  const evScore = typeof q21Ans === 'number' ? (externalViewScore[q21Ans] ?? 73) : 73;
-  const readinessAdd = typeof q22Ans === 'number' ? (Q[21].opts[q22Ans]?.s?.readiness_add ?? 0) : 0;
+  const mvScore     = typeof q21Ans === 'number' ? (marketValueMap[q21Ans] ?? 60) : 60;
+  const evScore     = typeof q22Ans === 'number' ? (externalViewScores[q22Ans] ?? 73) : 73;
+  const readinessAdd = typeof q23Ans === 'number' ? (Q[22].opts[q23Ans]?.s?.readiness_add ?? 0) : 0;
+  const stressAdj   = typeof q7Ans  === 'number' ? (stressAdjMap[q7Ans] ?? 0) : 0;
+  const commAdj     = typeof q9Ans  === 'number' ? (commAdjMap[q9Ans] ?? 0) : 0;
 
-  const score_readiness = Math.max(30, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd)));
+  const score_readiness = Math.max(30, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd + stressAdj + commAdj)));
 
-  // ── market スコア ──
-  // Q14(index 13): 副業志向 → independent
-  // Q15(index 14): 年収優先度 → salary_focus
+  // ── market スコア（現職場とのミスマッチ度）──
+  // 使用: Q8(index 7)=リーダー像, Q11(index 10)=現業界, Q17(index 16)=働き方, Q18(index 17)=組織規模, Q19(index 18)=WLB
 
-  const indAns = answers[13]; // 副業志向 index 13
-  const salAns = answers[14]; // 年収優先度 index 14
+  const INDUSTRY_PROFILES: Record<string, { work_style: string; org_size: string; wlb: string; leader: string }> = {
+    it:           { work_style: 'remote',    org_size: 'startup', wlb: 'health',  leader: 'delegate' },
+    maker:        { work_style: 'office',    org_size: 'large',   wlb: 'family',  leader: 'support'  },
+    healthcare:   { work_style: 'field',     org_size: 'large',   wlb: 'health',  leader: 'support'  },
+    finance:      { work_style: 'office',    org_size: 'large',   wlb: 'hobby',   leader: 'results'  },
+    retail:       { work_style: 'field',     org_size: 'large',   wlb: 'private', leader: 'results'  },
+    education:    { work_style: 'office',    org_size: 'large',   wlb: 'family',  leader: 'support'  },
+    consulting:   { work_style: 'office',    org_size: 'large',   wlb: 'hobby',   leader: 'results'  },
+    public:       { work_style: 'office',    org_size: 'large',   wlb: 'family',  leader: 'support'  },
+    construction: { work_style: 'field',     org_size: 'large',   wlb: 'health',  leader: 'support'  },
+    media:        { work_style: 'flexible',  org_size: 'startup', wlb: 'hobby',   leader: 'delegate' },
+    other:        { work_style: 'office',    org_size: 'large',   wlb: 'private', leader: 'support'  },
+  };
 
-  const independentScores = [87, 73, 58, 45]; // 🌟💭🤔🏛
-  const salaryScores = [53, 68, 87, 77]; // 🌿📈💎🏆
+  const wlbHighConflict: Record<string, string[]> = {
+    family: ['finance', 'consulting', 'media'],
+    health: ['finance', 'consulting', 'retail'],
+  };
 
-  const indScore = typeof indAns === 'number' ? (independentScores[indAns] ?? 63) : 63;
-  const salScore = typeof salAns === 'number' ? (salaryScores[salAns] ?? 68) : 68;
+  // 現業界取得（multi-select対応: 先頭を使用）
+  const q11Ans = answers[10];
+  const currentIndustryKey = Array.isArray(q11Ans) && q11Ans.length > 0
+    ? (Q[10].opts[q11Ans[0]]?.s?.current_industry ?? null)
+    : typeof q11Ans === 'number'
+    ? (Q[10].opts[q11Ans]?.s?.current_industry ?? null)
+    : null;
 
-  const score_market = Math.max(30, Math.min(97, Math.round((indScore + salScore) / 2)));
+  const q8Ans  = answers[7];
+  const q17Ans = answers[16];
+  const q18Ans = answers[17];
+  const q19Ans = answers[18];
 
-  // ── 総合スコア ──
-  const score_total = Math.max(30, Math.min(97, Math.round((score_timing + score_readiness + score_market) / 3)));
+  const leadership = typeof q8Ans  === 'number' ? (Q[7].opts[q8Ans]?.s?.leadership ?? null) : null;
+  const workStyle  = typeof q17Ans === 'number' ? (Q[16].opts[q17Ans]?.s?.work_style ?? null) : null;
+  const orgSize    = typeof q18Ans === 'number' ? (Q[17].opts[q18Ans]?.s?.org_size ?? null) : null;
+  const wlbPref    = typeof q19Ans === 'number' ? (Q[18].opts[q19Ans]?.s?.wlb ?? null) : null;
+
+  let score_market: number;
+  const profile = currentIndustryKey ? INDUSTRY_PROFILES[currentIndustryKey] : null;
+
+  if (!profile) {
+    // 現業界未回答の場合は中間値
+    score_market = 50;
+  } else {
+    let mismatch = 0;
+    if (workStyle && workStyle !== profile.work_style) mismatch += 20;
+    if (orgSize && orgSize !== profile.org_size && orgSize !== 'culture_first') mismatch += 20;
+    if (wlbPref) {
+      if (wlbHighConflict[wlbPref]?.includes(currentIndustryKey!)) mismatch += 20;
+      else if (wlbPref !== profile.wlb) mismatch += 10;
+    }
+    if (leadership && leadership !== profile.leader) mismatch += 10;
+    score_market = Math.max(30, Math.min(97, Math.round((mismatch / 70) * 67 + 30)));
+  }
+
+  // ── 総合スコア（加重平均: timing×0.4 + readiness×0.33 + market×0.27）──
+  const score_total = Math.max(30, Math.min(97, Math.round(score_timing * 0.4 + score_readiness * 0.33 + score_market * 0.27)));
 
   return { score_total, score_timing, score_readiness, score_market, timing, urgency };
 }
