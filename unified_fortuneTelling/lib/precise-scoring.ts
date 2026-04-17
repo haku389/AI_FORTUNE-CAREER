@@ -96,18 +96,17 @@ export function calcPreciseScore(
   const score_readiness = Math.max(30, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd)));
 
   // ── market スコア ──
-  // Q12(index 12): 副業志向 → independent
-  // Q13(index 13): 年収優先度 → salary_focus
-  // Q18(index 18): 5年ビジョン → vision urgency_add
+  // Q14(index 13): 副業志向 → independent
+  // Q15(index 14): 年収優先度 → salary_focus
 
-  const q13Ans = answers[12]; // Q13 index 12
-  const q14Ans = answers[13]; // Q14 index 13
+  const indAns = answers[13]; // 副業志向 index 13
+  const salAns = answers[14]; // 年収優先度 index 14
 
   const independentScores = [87, 73, 58, 45]; // 🌟💭🤔🏛
   const salaryScores = [53, 68, 87, 77]; // 🌿📈💎🏆
 
-  const indScore = typeof q13Ans === 'number' ? (independentScores[q13Ans] ?? 63) : 63;
-  const salScore = typeof q14Ans === 'number' ? (salaryScores[q14Ans] ?? 68) : 68;
+  const indScore = typeof indAns === 'number' ? (independentScores[indAns] ?? 63) : 63;
+  const salScore = typeof salAns === 'number' ? (salaryScores[salAns] ?? 68) : 68;
 
   const score_market = Math.max(30, Math.min(97, Math.round((indScore + salScore) / 2)));
 

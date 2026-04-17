@@ -187,16 +187,21 @@ export function calcJobMatch(
   const sortedEntries = (Object.entries(scores) as [JobName, number][]).sort(([, a], [, b]) => b - a)
   const top3Entries = sortedEntries.slice(0, 3)
 
-  // 68〜92 の範囲にマッピングし、最小 6pt 差を保証して2位・3位が自然に低くなるようにする
+  // 68〜92 の範囲にマッピングし、順位ごとに最低スコアを保証して必ず異なる値にする
   const TOP_MAX = 92
   const TOP_MIN = 68
+  // rank別の最低スコア: rank1=92固定, rank2=80以上, rank3=68以上
+  const RANK_FLOORS = [TOP_MAX, TOP_MIN + 12, TOP_MIN] // [92, 80, 68]
 
   const topJobs: JobMatch[] = []
   let prevScore = Infinity
 
-  for (const [job, rawScore] of top3Entries) {
+  for (let i = 0; i < top3Entries.length; i++) {
+    const [job, rawScore] = top3Entries[i]
     const proportional = Math.round(((rawScore - minRaw) / rawRange) * (TOP_MAX - TOP_MIN) + TOP_MIN)
-    const score = Math.max(TOP_MIN, Math.min(prevScore - 6, proportional))
+    const score = i === 0
+      ? TOP_MAX
+      : Math.max(RANK_FLOORS[i], Math.min(prevScore - 6, proportional))
     topJobs.push({ job, score, reason: JOB_REASONS[job as JobName] })
     prevScore = score
   }

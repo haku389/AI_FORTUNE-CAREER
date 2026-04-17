@@ -218,12 +218,12 @@ export default function TsukiPage() {
 
       {/* フッター */}
       <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 24px 48px' }}>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <Link href="/guide/seiyou" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px', fontSize: 12, color: '#a898f8', textDecoration: 'none', fontWeight: 700 }}>
-            ← 西洋占星術に戻る
-          </Link>
-          <Link href="/shindan" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'linear-gradient(135deg, #c8952a, #e0a830)', borderRadius: 10, padding: '12px', fontSize: 12, color: '#1a0c00', textDecoration: 'none', fontWeight: 700 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Link href="/shindan" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'linear-gradient(135deg, #c8952a, #e0a830)', borderRadius: 10, padding: '14px', fontSize: 13, color: '#1a0c00', textDecoration: 'none', fontWeight: 700 }}>
             ✨ 占いを始める →
+          </Link>
+          <Link href="/guide/seiyou" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#0d1428', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px', fontSize: 12, color: '#a898f8', textDecoration: 'none', fontWeight: 700 }}>
+            ← 西洋占星術に戻る
           </Link>
         </div>
       </div>
