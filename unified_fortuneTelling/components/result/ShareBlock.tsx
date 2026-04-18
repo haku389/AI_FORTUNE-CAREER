@@ -25,8 +25,8 @@ export default function ShareBlock({
     )
   }
 
-  const copyURL = async () => {
-    await navigator.clipboard.writeText(shareUrl)
+  const copyText = async () => {
+    await navigator.clipboard.writeText(shareText)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
   }
@@ -86,7 +86,7 @@ export default function ShareBlock({
           LINEで送る
         </button>
         <button
-          onClick={copyURL}
+          onClick={copyText}
           style={{
             ...btnBase,
             borderColor: '#c8952a44',

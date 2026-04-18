@@ -116,48 +116,19 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {/* 太陽星座 */}
-            <a href="/guide/seiyou" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
-              <span style={{ fontSize: 11, color: '#7888b8' }}>☀️ 太陽星座</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {sunEn && <Image src={`/assets/img/${sunEn}.png`} alt="" width={16} height={16} style={{ objectFit: 'contain' }} />}
-                <span style={{ fontSize: 12, color: '#f0c060', fontWeight: 600 }}>{row.zodiac_sun}</span>
-                <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
-              </div>
-            </a>
-
-            {/* 月星座 */}
-            <a href="/guide/seiyou" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
-              <span style={{ fontSize: 11, color: '#7888b8' }}>🌙 月星座</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {row.zodiac_moon && ZODIAC_EN[row.zodiac_moon] && (
-                  <Image src={`/assets/img/${ZODIAC_EN[row.zodiac_moon]}.png`} alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
-                )}
-                <span style={{ fontSize: 12, color: '#a898f8', fontWeight: 600 }}>{row.zodiac_moon ?? '—'}</span>
-                <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
-              </div>
-            </a>
-
-            {/* 本命星 */}
-            <a href="/guide/kyusei" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
-              <span style={{ fontSize: 11, color: '#7888b8' }}>⭐ 本命星</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 12, color: '#3cc4a8', fontWeight: 600 }}>{row.honmei_star ?? '—'}</span>
-                <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
-              </div>
-            </a>
-
-            {/* MBTI */}
-            {row.mbti_type && (
-              <a href={`/guide/mbti/${mbtiLower}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
-                <span style={{ fontSize: 11, color: '#7888b8' }}>🧠 MBTI</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 12, color: '#c8952a', fontWeight: 600 }}>{row.mbti_type}</span>
-                  <span style={{ fontSize: 9, color: '#3a4870' }}>→</span>
-                </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { label: '☀️ 太陽星座', value: row.zodiac_sun,       color: '#f0c060', href: '/guide/seiyou' },
+              { label: '🌙 月星座',   value: row.zodiac_moon ?? '—', color: '#a898f8', href: '/guide/seiyou' },
+              { label: '⭐ 本命星',   value: row.honmei_star ?? '—', color: '#3cc4a8', href: '/guide/kyusei' },
+              ...(row.mbti_type ? [{ label: '🧠 MBTI', value: row.mbti_type, color: '#c8952a', href: `/guide/mbti/${mbtiLower}` }] : []),
+            ].map(({ label, value, color, href }) => (
+              <a key={label} href={href} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
+                <span style={{ fontSize: 11, color: '#7888b8', flexShrink: 0, width: 72, lineHeight: 1.6 }}>{label}</span>
+                <span style={{ fontSize: 12, color, fontWeight: 600, lineHeight: 1.6, flex: 1 }}>{value}</span>
+                <span style={{ fontSize: 9, color: '#3a4870', alignSelf: 'center' }}>→</span>
               </a>
-            )}
+            ))}
           </div>
         </div>
 

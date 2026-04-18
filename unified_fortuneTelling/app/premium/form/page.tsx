@@ -54,7 +54,7 @@ type PreciseResult = {
 }
 
 /* ─── Helpers ─── */
-const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '鑑定文を作成']
+const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '天の声を言葉に降ろしています']
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')
@@ -490,7 +490,7 @@ export default function PrecisePage() {
 
   const years: number[] = []
   const cur = new Date().getFullYear()
-  for (let y = cur; y >= 1960; y--) years.push(y)
+  for (let y = cur - 18; y >= 1960; y--) years.push(y)
 
   /* ══════════════════════════════════════
      INPUT
@@ -949,7 +949,7 @@ export default function PrecisePage() {
             <div style={{ position: 'absolute', inset: 12, borderRadius: '50%', border: '2px solid transparent', borderBottomColor: '#a898f8', borderLeftColor: '#a898f844', animation: 'spin-rev 2.4s cubic-bezier(.4,0,.2,1) infinite' }} />
             <div style={{ position: 'absolute', inset: 24, borderRadius: '50%', border: '1px solid transparent', borderTopColor: '#3cc4a8', animation: 'spin-fwd 3.2s linear infinite' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 28 }}>🔮</span>
+              <img src="/crystalBall.png" alt="" style={{ width: 36, height: 36 }} />
             </div>
           </div>
 
@@ -979,7 +979,7 @@ export default function PrecisePage() {
     const timingData = TIMINGS[r.timing]
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
     const shareUrl = origin + '/premium'
-    const shareText = `🔮 転職精密鑑定やってみた！\n\n${u.sunSign.emoji}${u.sunSign.name}×月星座${u.moonSign}×${u.honmeiStar}\n転職精密スコア：${r.score_total}点\n\nあなたも試してみて👇\n${shareUrl}`
+    const shareText = `転職占い師ルナの精密鑑定を受けました。\n\n${u.sunSign.name} × 月星座 ${u.moonSign} × ${u.honmeiStar}\n転職スコア ${r.score_total}点\n\nあなたも鑑定を受けてみてください。\n${shareUrl}`
 
     const timingColors: Record<string, string> = { now: '#ffa040', '3m': '#f0c060', '6m': '#a898f8', wait: '#3cc4a8' }
 

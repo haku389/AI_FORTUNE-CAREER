@@ -238,7 +238,7 @@ export default function DiagnosisPage() {
 
   const years: number[] = []
   const cur = new Date().getFullYear()
-  for (let y = cur; y >= 1960; y--) years.push(y)
+  for (let y = cur - 18; y >= 1960; y--) years.push(y)
 
   /* ─── Shared Styles ─── */
   const pageStyle: React.CSSProperties = {
@@ -769,7 +769,7 @@ export default function DiagnosisPage() {
       type: r.type,
     })
     const shareUrl = `${origin}?${ogParams.toString()}`
-    const shareText = `🔮 転職運命診断やってみた！\n\n${u.zodiac.emoji}${u.zodiac.name}×${typeData.name}\n転職運スコア：${r.score}点\n\nあなたも試してみて👇\n${shareUrl}`
+    const shareText = `転職占い師ルナの診断を受けました。\n\n${u.zodiac.name} × ${typeData.name}\n転職スコア ${r.score}点\n\nあなたも試してみてください。\n${shareUrl}`
 
     const timingColors: Record<string, string> = {
       now: '#ffa040',
