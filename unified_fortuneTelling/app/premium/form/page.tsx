@@ -799,7 +799,7 @@ export default function PrecisePage() {
                   >
                     {isMulti
                       ? <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>{opt.sym}</span>
-                      : <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center' }}><QIcon name={opt.sym} picked={picked} size={18} /></span>
+                      : <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center', alignSelf: 'center' }}><QIcon name={opt.sym} picked={picked} size={18} /></span>
                     }
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, color: picked ? '#f0f4ff' : '#dde4f8', fontWeight: 500, lineHeight: 1.4, marginBottom: 2 }}>

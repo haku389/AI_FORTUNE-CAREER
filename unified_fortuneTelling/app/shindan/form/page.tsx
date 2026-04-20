@@ -560,7 +560,7 @@ export default function DiagnosisPage() {
                       fontFamily: 'var(--font-sans)',
                     }}
                   >
-                    <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center' }}>
+                    <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center', alignSelf: 'center' }}>
                       <QIcon name={opt.sym} picked={picked} size={20} />
                     </span>
                     <div style={{ flex: 1 }}>
