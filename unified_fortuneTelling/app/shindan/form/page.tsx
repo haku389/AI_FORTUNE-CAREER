@@ -8,6 +8,7 @@ import ScoreRing from '@/components/result/ScoreRing'
 import AffiliBlock from '@/components/result/AffiliBlock'
 import ShareBlock from '@/components/result/ShareBlock'
 import Image from 'next/image'
+import * as LucideIcons from 'lucide-react'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { QUESTIONS, PLANETS } from '@/lib/questions'
 import { calcScore, TYPES, TIMINGS, MOONS, SATURNS, DiagnosisResult } from '@/lib/scoring'
@@ -35,6 +36,14 @@ const LOAD_STEPS = ['星座の位置を確認', '月の影響を読み取り', '
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')
+}
+
+/* ─── Lucide Icon Helper ─── */
+type LIcon = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>
+function QIcon({ name, picked, size = 20 }: { name: string; picked: boolean; size?: number }) {
+  const Icon = (LucideIcons as Record<string, unknown>)[name] as LIcon | undefined
+  if (!Icon) return null
+  return <Icon size={size} color={picked ? '#f0c060' : '#a898f8'} strokeWidth={1.5} />
 }
 
 /* ─── Main Component ─── */
@@ -551,7 +560,9 @@ export default function DiagnosisPage() {
                       fontFamily: 'var(--font-sans)',
                     }}
                   >
-                    <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1.4 }}>{opt.sym}</span>
+                    <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center' }}>
+                      <QIcon name={opt.sym} picked={picked} size={20} />
+                    </span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, color: picked ? '#f0f4ff' : '#dde4f8', fontWeight: 500, lineHeight: 1.4, marginBottom: 2 }}>
                         {opt.main}

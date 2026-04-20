@@ -12,6 +12,7 @@ import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
 import ShareBlock from '@/components/result/ShareBlock'
 import Image from 'next/image'
+import * as LucideIcons from 'lucide-react'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { getMoonSign, getMoonSignKeyword } from '@/lib/moonSign'
 import { getHonmeiStar, getHonmeiStarKeyword, HonmeiStar } from '@/lib/honmeiStar'
@@ -58,6 +59,14 @@ const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り'
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')
+}
+
+/* ─── Lucide Icon Helper ─── */
+type LIcon = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>
+function QIcon({ name, picked, size = 18 }: { name: string; picked: boolean; size?: number }) {
+  const Icon = (LucideIcons as Record<string, unknown>)[name] as LIcon | undefined
+  if (!Icon) return null
+  return <Icon size={size} color={picked ? '#f0c060' : '#a898f8'} strokeWidth={1.5} />
 }
 
 /* ─── Stripe Payment Form Component ─── */
@@ -788,7 +797,10 @@ export default function PrecisePage() {
                       fontFamily: 'var(--font-sans)',
                     }}
                   >
-                    <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>{opt.sym}</span>
+                    {isMulti
+                      ? <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>{opt.sym}</span>
+                      : <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center' }}><QIcon name={opt.sym} picked={picked} size={18} /></span>
+                    }
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, color: picked ? '#f0f4ff' : '#dde4f8', fontWeight: 500, lineHeight: 1.4, marginBottom: 2 }}>
                         {opt.main}

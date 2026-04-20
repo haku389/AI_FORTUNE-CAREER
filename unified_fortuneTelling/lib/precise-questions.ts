@@ -53,10 +53,10 @@ export const QUESTIONS: Question[] = [
     q: '今の職場に「もう限界かも」と感じ始めたのはいつ頃から？',
     hint: '土星は「忍耐と試練」を司る惑星。あなたの正直な感覚が最も精度の高い星読みになります。',
     opts: [
-      { sym: '🌑', main: '入社当初から感じていた',   hint: '最初から合わないと直感していた',     s: { urgency_add: 4 } },
-      { sym: '🌘', main: '1年以内に感じ始めた',      hint: '働き始めてすぐに違和感が生まれた',   s: { urgency_add: 3 } },
-      { sym: '🌓', main: '2〜3年経ってから',         hint: '積み重なって気づいたら限界だった',   s: { urgency_add: 2 } },
-      { sym: '🌕', main: '最近になって急に',          hint: '何かをきっかけに突然感じ始めた',     s: { urgency_add: 4 } },
+      { sym: 'AlertCircle', main: '入社当初から感じていた',   hint: '最初から合わないと直感していた',     s: { urgency_add: 4 } },
+      { sym: 'Clock',       main: '1年以内に感じ始めた',      hint: '働き始めてすぐに違和感が生まれた',   s: { urgency_add: 3 } },
+      { sym: 'Calendar',    main: '2〜3年経ってから',         hint: '積み重なって気づいたら限界だった',   s: { urgency_add: 2 } },
+      { sym: 'Zap',         main: '最近になって急に',          hint: '何かをきっかけに突然感じ始めた',     s: { urgency_add: 4 } },
     ],
   },
   {
@@ -66,10 +66,10 @@ export const QUESTIONS: Question[] = [
     q: '仕事の悩みを、誰かに打ち明けられないまま心の奥にしまっていることはある？',
     hint: '月は「隠れた感情と本音」を映す惑星。夜中に浮かぶ思いこそが、今の星の声です。',
     opts: [
-      { sym: '🌑', main: 'いつもそう感じている',   hint: '誰にも言えない本音がある',   s: { urgency_add: 2, suppression: 3 } },
-      { sym: '🌘', main: 'たまにある',             hint: '時々心が重くなる夜がある',   s: { urgency_add: 1, suppression: 2 } },
-      { sym: '🌓', main: 'あまりない',             hint: '比較的話せている方かも',     s: { urgency_add: 0, suppression: 1 } },
-      { sym: '🌕', main: 'ほとんどない',           hint: '今は心が穏やかな状態',       s: { urgency_add: 0, suppression: 0 } },
+      { sym: 'Lock',          main: 'いつもそう感じている',   hint: '誰にも言えない本音がある',   s: { urgency_add: 2, suppression: 3 } },
+      { sym: 'MessageCircle', main: 'たまにある',             hint: '時々心が重くなる夜がある',   s: { urgency_add: 1, suppression: 2 } },
+      { sym: 'MessageSquare', main: 'あまりない',             hint: '比較的話せている方かも',     s: { urgency_add: 0, suppression: 1 } },
+      { sym: 'Heart',         main: 'ほとんどない',           hint: '今は心が穏やかな状態',       s: { urgency_add: 0, suppression: 0 } },
     ],
   },
   {
@@ -79,10 +79,10 @@ export const QUESTIONS: Question[] = [
     q: '今の職場で「自分の得意なことが活かせている」と感じる場面は？',
     hint: '水星は「才能と言葉」を司る惑星。今の環境で輝けているかが転職判断の鍵になります。',
     opts: [
-      { sym: '✨', main: 'たくさんある',       hint: '毎日が充実していると感じる',         s: { urgency_add: 0, strength_lack: 0 } },
-      { sym: '🌤', main: '少しはある',         hint: '一部は活かせているけど物足りない',   s: { urgency_add: 1, strength_lack: 1 } },
-      { sym: '☁️', main: 'あまり感じない',    hint: '実力が発揮できていないもどかしさ',   s: { urgency_add: 2, strength_lack: 2 } },
-      { sym: '⛈️', main: 'まったく感じない', hint: '才能が埋まっている感覚がずっとある', s: { urgency_add: 3, strength_lack: 3 } },
+      { sym: 'Sparkles',       main: 'たくさんある',       hint: '毎日が充実していると感じる',         s: { urgency_add: 0, strength_lack: 0 } },
+      { sym: 'CloudSun',       main: '少しはある',         hint: '一部は活かせているけど物足りない',   s: { urgency_add: 1, strength_lack: 1 } },
+      { sym: 'Cloud',          main: 'あまり感じない',     hint: '実力が発揮できていないもどかしさ',   s: { urgency_add: 2, strength_lack: 2 } },
+      { sym: 'CloudLightning', main: 'まったく感じない',   hint: '才能が埋まっている感覚がずっとある', s: { urgency_add: 3, strength_lack: 3 } },
     ],
   },
   {
@@ -92,11 +92,11 @@ export const QUESTIONS: Question[] = [
     q: '今の職場に何年いる？また、転職は今回が何回目になる？',
     hint: '土星は「時間と経験の蓄積」を司る惑星。あなたが積み上げてきたものが、市場価値を決めます。',
     opts: [
-      { sym: '🌱', main: '在籍3年未満・初転職',        hint: '社会人経験が浅め。若さが武器',       s: { urgency_add: 1, tenure: 'short_first' } },
-      { sym: '⭐', main: '在籍3年未満・転職経験あり',   hint: '柔軟な動き方を知っている',           s: { urgency_add: 1, tenure: 'short_exp' } },
-      { sym: '🌿', main: '在籍3〜7年・初転職',         hint: '専門性が蓄積されてきた時期',         s: { urgency_add: 2, tenure: 'mid_first' } },
-      { sym: '💎', main: '在籍3〜7年・転職経験あり',   hint: 'キャリアの方向性を見定めている段階', s: { urgency_add: 2, tenure: 'mid_exp' } },
-      { sym: '🏆', main: '在籍7年以上',               hint: '深い専門性と実績がある',             s: { urgency_add: 3, tenure: 'long' } },
+      { sym: 'Sprout', main: '在籍3年未満・初転職',        hint: '社会人経験が浅め。若さが武器',       s: { urgency_add: 1, tenure: 'short_first' } },
+      { sym: 'Star',   main: '在籍3年未満・転職経験あり',   hint: '柔軟な動き方を知っている',           s: { urgency_add: 1, tenure: 'short_exp' } },
+      { sym: 'Leaf',   main: '在籍3〜7年・初転職',         hint: '専門性が蓄積されてきた時期',         s: { urgency_add: 2, tenure: 'mid_first' } },
+      { sym: 'Gem',    main: '在籍3〜7年・転職経験あり',   hint: 'キャリアの方向性を見定めている段階', s: { urgency_add: 2, tenure: 'mid_exp' } },
+      { sym: 'Trophy', main: '在籍7年以上',               hint: '深い専門性と実績がある',             s: { urgency_add: 3, tenure: 'long' } },
     ],
   },
 
@@ -108,11 +108,11 @@ export const QUESTIONS: Question[] = [
     q: 'あなたのMBTIタイプに近いのはどれ？わからない場合は、直感で一番しっくりくるものを選んで',
     hint: '水星は「思考と言語」を司る惑星。あなたの思考パターンが職種マッチングの精度を高めます。',
     opts: [
-      { sym: '🧠', main: 'INTJ / INTP / ENTJ / ENTP（論理・戦略・革新系）', hint: 'NT型 — 理論的・独立した思考', s: { mbti: 'NT' } },
-      { sym: '💡', main: 'INFJ / INFP / ENFJ / ENFP（理念・共感・ビジョン系）', hint: 'NF型 — 直感的・感情的', s: { mbti: 'NF' } },
-      { sym: '📋', main: 'ISTJ / ISFJ / ESTJ / ESFJ（責任・秩序・サポート系）', hint: 'SJ型 — 実務的・安定志向', s: { mbti: 'SJ' } },
-      { sym: '🎯', main: 'ISTP / ISFP / ESTP / ESFP（行動・適応・実践系）',    hint: 'SP型 — 柔軟・現実対応型', s: { mbti: 'SP' } },
-      { sym: '🔮', main: 'よくわからない・診断したことがない',                  hint: '直感で選んだもので大丈夫', s: { mbti: 'unknown' } },
+      { sym: 'Brain',         main: 'INTJ / INTP / ENTJ / ENTP（論理・戦略・革新系）', hint: 'NT型 — 理論的・独立した思考', s: { mbti: 'NT' } },
+      { sym: 'Lightbulb',     main: 'INFJ / INFP / ENFJ / ENFP（理念・共感・ビジョン系）', hint: 'NF型 — 直感的・感情的', s: { mbti: 'NF' } },
+      { sym: 'ClipboardList', main: 'ISTJ / ISFJ / ESTJ / ESFJ（責任・秩序・サポート系）', hint: 'SJ型 — 実務的・安定志向', s: { mbti: 'SJ' } },
+      { sym: 'Target',        main: 'ISTP / ISFP / ESTP / ESFP（行動・適応・実践系）',    hint: 'SP型 — 柔軟・現実対応型', s: { mbti: 'SP' } },
+      { sym: 'HelpCircle',    main: 'よくわからない・診断したことがない',                  hint: '直感で選んだもので大丈夫', s: { mbti: 'unknown' } },
     ],
   },
   {
@@ -122,10 +122,10 @@ export const QUESTIONS: Question[] = [
     q: '仕事の中で「時間を忘れるほど没頭できる」のは、どんな瞬間？',
     hint: '金星は「喜びと情熱」を司る惑星。没頭できるものこそ、あなたの天性の強みのサイン。',
     opts: [
-      { sym: '🤝', main: '誰かの役に立てていると感じる時', hint: '貢献・サポートが原動力',        s: { motivation: 'contribution' } },
-      { sym: '🔍', main: '新しいことを発見・学んでいる時', hint: '好奇心・探求が原動力',          s: { motivation: 'learning' } },
-      { sym: '🎨', main: '自分のアイデアが形になる時',     hint: '創造・表現が原動力',            s: { motivation: 'creation' } },
-      { sym: '📊', main: '数字や結果が出た時',             hint: '成果・達成感が原動力',          s: { motivation: 'achievement' } },
+      { sym: 'Handshake', main: '誰かの役に立てていると感じる時', hint: '貢献・サポートが原動力', s: { motivation: 'contribution' } },
+      { sym: 'Search',    main: '新しいことを発見・学んでいる時', hint: '好奇心・探求が原動力',   s: { motivation: 'learning' } },
+      { sym: 'Palette',   main: '自分のアイデアが形になる時',     hint: '創造・表現が原動力',     s: { motivation: 'creation' } },
+      { sym: 'BarChart2', main: '数字や結果が出た時',             hint: '成果・達成感が原動力',   s: { motivation: 'achievement' } },
     ],
   },
   {
@@ -135,10 +135,10 @@ export const QUESTIONS: Question[] = [
     q: '締め切りや急なトラブルが来たとき、あなたの星はどう反応する？',
     hint: '火星は「行動と闘争心」を司る惑星。プレッシャーへの反応が、あなたに向く職場環境を示します。',
     opts: [
-      { sym: '🔥', main: '燃えて集中力が増す',          hint: '追い込まれた方が力が出るタイプ', s: { stress_type: 'energize' } },
-      { sym: '🌊', main: '冷静に一つずつ対処する',       hint: '感情を抑えて手を動かせる',       s: { stress_type: 'steady' } },
-      { sym: '🌪', main: '焦りながらも何とかこなす',     hint: '焦りはあるが最後はやり切る',     s: { stress_type: 'anxious' } },
-      { sym: '🪨', main: '固まってしまい動けなくなる',   hint: '穏やかな環境で本領発揮できる',   s: { stress_type: 'freeze' } },
+      { sym: 'Flame',  main: '燃えて集中力が増す',          hint: '追い込まれた方が力が出るタイプ', s: { stress_type: 'energize' } },
+      { sym: 'Waves',  main: '冷静に一つずつ対処する',       hint: '感情を抑えて手を動かせる',       s: { stress_type: 'steady' } },
+      { sym: 'Wind',   main: '焦りながらも何とかこなす',     hint: '焦りはあるが最後はやり切る',     s: { stress_type: 'anxious' } },
+      { sym: 'Anchor', main: '固まってしまい動けなくなる',   hint: '穏やかな環境で本領発揮できる',   s: { stress_type: 'freeze' } },
     ],
   },
   {
@@ -148,10 +148,10 @@ export const QUESTIONS: Question[] = [
     q: '上司にするなら、どんなタイプの人のもとで一番力が発揮できる？',
     hint: '土星は「組織と規律」を司る惑星。相性のいい上司タイプが、職場環境選びの指針になります。',
     opts: [
-      { sym: '🦅', main: '方向性を示してあとは任せてくれる人',   hint: '自律性を重視するタイプ',       s: { leadership: 'delegate' } },
-      { sym: '🌿', main: '細かく丁寧にサポートしてくれる人',     hint: '手厚いサポートで伸びるタイプ', s: { leadership: 'support' } },
-      { sym: '⚖️', main: '対等に意見を言い合える人',             hint: 'フラットな関係性が合うタイプ', s: { leadership: 'equal' } },
-      { sym: '🎯', main: '結果だけ求めて干渉しない人',           hint: '完全な裁量で動くタイプ',       s: { leadership: 'results' } },
+      { sym: 'UserCheck', main: '方向性を示してあとは任せてくれる人',   hint: '自律性を重視するタイプ',       s: { leadership: 'delegate' } },
+      { sym: 'Leaf',      main: '細かく丁寧にサポートしてくれる人',     hint: '手厚いサポートで伸びるタイプ', s: { leadership: 'support' } },
+      { sym: 'Scale',     main: '対等に意見を言い合える人',             hint: 'フラットな関係性が合うタイプ', s: { leadership: 'equal' } },
+      { sym: 'Target',    main: '結果だけ求めて干渉しない人',           hint: '完全な裁量で動くタイプ',       s: { leadership: 'results' } },
     ],
   },
   {
@@ -161,10 +161,10 @@ export const QUESTIONS: Question[] = [
     q: '自分の考えを一番うまく伝えられるのは、どんな方法？',
     hint: '水星は「コミュニケーション」を司る惑星。あなたの得意な伝え方が、活きる職種のヒントになります。',
     opts: [
-      { sym: '🗣', main: '直接話す・対面が一番伝わる',         hint: '言葉で熱量を伝えるタイプ',         s: { comm_type: 'verbal' } },
-      { sym: '✍️', main: '文章・メッセージで整理して伝える',  hint: '言語化・ライティングが強いタイプ', s: { comm_type: 'written' } },
-      { sym: '📊', main: '資料・図解にまとめて見せる',         hint: '視覚的説得力があるタイプ',         s: { comm_type: 'visual' } },
-      { sym: '💬', main: '少人数でじっくり話し合う',           hint: '深い対話・傾聴が得意なタイプ',     s: { comm_type: 'deep' } },
+      { sym: 'MessageCircle', main: '直接話す・対面が一番伝わる',         hint: '言葉で熱量を伝えるタイプ',         s: { comm_type: 'verbal' } },
+      { sym: 'PenLine',       main: '文章・メッセージで整理して伝える',   hint: '言語化・ライティングが強いタイプ', s: { comm_type: 'written' } },
+      { sym: 'BarChart2',     main: '資料・図解にまとめて見せる',         hint: '視覚的説得力があるタイプ',         s: { comm_type: 'visual' } },
+      { sym: 'MessageSquare', main: '少人数でじっくり話し合う',           hint: '深い対話・傾聴が得意なタイプ',     s: { comm_type: 'deep' } },
     ],
   },
   {
@@ -174,10 +174,10 @@ export const QUESTIONS: Question[] = [
     q: '大事な決断をするとき、あなたの太陽はどちらに光を当てる？',
     hint: '太陽は「本質と自己表現」を照らす惑星。意思決定スタイルが、向く仕事の深さを示します。',
     opts: [
-      { sym: '🔮', main: '「なんとなくこれだ」という直感を信じる', hint: '内側の声を信頼するタイプ', s: { decision: 'intuition' } },
-      { sym: '🧠', main: '情報を集めて論理的に判断する',           hint: '根拠を大切にするタイプ',   s: { decision: 'logic' } },
-      { sym: '⚖️', main: '直感と論理を両方使う',                   hint: 'バランス型・統合タイプ',   s: { decision: 'both' } },
-      { sym: '😰', main: '誰かに相談してから決める',               hint: '対話で考えが整うタイプ',   s: { decision: 'consult' } },
+      { sym: 'Sparkles',      main: '「なんとなくこれだ」という直感を信じる', hint: '内側の声を信頼するタイプ', s: { decision: 'intuition' } },
+      { sym: 'Brain',         main: '情報を集めて論理的に判断する',           hint: '根拠を大切にするタイプ',   s: { decision: 'logic' } },
+      { sym: 'Scale',         main: '直感と論理を両方使う',                   hint: 'バランス型・統合タイプ',   s: { decision: 'both' } },
+      { sym: 'Users',         main: '誰かに相談してから決める',               hint: '対話で考えが整うタイプ',   s: { decision: 'consult' } },
     ],
   },
 
@@ -266,10 +266,10 @@ export const QUESTIONS: Question[] = [
     q: '転職とは別に、副業・フリーランス・起業といった「自分の可能性を広げる動き」に興味はある？',
     hint: '天王星は「革新と自由」を司る惑星。あなたの枠を超えたい気持ちが、星の読みに深みを加えます。',
     opts: [
-      { sym: '🌟', main: '強く興味がある。すでに動き始めている', hint: '自分の世界を切り開こうとしている', s: { independent: 4, urgency_add: 1 } },
-      { sym: '💭', main: 'いつかはやりたいと思っている',         hint: '思い描いている未来がある',         s: { independent: 3, urgency_add: 1 } },
-      { sym: '🤔', main: '興味はあるがまだ現実的でない',         hint: 'ぼんやりと憧れている',            s: { independent: 2, urgency_add: 0 } },
-      { sym: '🏛', main: '今は安定した環境を優先したい',         hint: '土台を固めることを重視している',  s: { independent: 1, urgency_add: 0 } },
+      { sym: 'Star',       main: '強く興味がある。すでに動き始めている', hint: '自分の世界を切り開こうとしている', s: { independent: 4, urgency_add: 1 } },
+      { sym: 'Cloud',      main: 'いつかはやりたいと思っている',         hint: '思い描いている未来がある',         s: { independent: 3, urgency_add: 1 } },
+      { sym: 'HelpCircle', main: '興味はあるがまだ現実的でない',         hint: 'ぼんやりと憧れている',            s: { independent: 2, urgency_add: 0 } },
+      { sym: 'Building2',  main: '今は安定した環境を優先したい',         hint: '土台を固めることを重視している',  s: { independent: 1, urgency_add: 0 } },
     ],
   },
   {
@@ -279,10 +279,10 @@ export const QUESTIONS: Question[] = [
     q: '年収について、あなたの星は今どこを向いている？',
     hint: '金星は「豊かさと価値観」を司る惑星。お金への正直な気持ちが、転職の方向性を決めます。',
     opts: [
-      { sym: '🌿', main: '年収より「やりがい」と「環境」を重視したい', hint: '心の豊かさを優先',                 s: { salary_focus: 1 } },
-      { sym: '📈', main: '今より少し上がれば十分',                    hint: '最低限のベースアップを望んでいる', s: { salary_focus: 2 } },
-      { sym: '💎', main: '明確に年収アップを狙いたい',               hint: '収入アップが主要な動機',           s: { salary_focus: 4, urgency_add: 1 } },
-      { sym: '🏆', main: '将来のために今は年収にこだわる',           hint: '長期的な経済設計を考えている',     s: { salary_focus: 3, urgency_add: 1 } },
+      { sym: 'Leaf',       main: '年収より「やりがい」と「環境」を重視したい', hint: '心の豊かさを優先',                 s: { salary_focus: 1 } },
+      { sym: 'TrendingUp', main: '今より少し上がれば十分',                    hint: '最低限のベースアップを望んでいる', s: { salary_focus: 2 } },
+      { sym: 'Gem',        main: '明確に年収アップを狙いたい',               hint: '収入アップが主要な動機',           s: { salary_focus: 4, urgency_add: 1 } },
+      { sym: 'Trophy',     main: '将来のために今は年収にこだわる',           hint: '長期的な経済設計を考えている',     s: { salary_focus: 3, urgency_add: 1 } },
     ],
   },
   {
@@ -292,10 +292,10 @@ export const QUESTIONS: Question[] = [
     q: '転職への一歩を止めているのは、どんな月の影？',
     hint: '月は「恐怖と無意識の声」を映す惑星。本当の障壁を知ることが、最初の一歩につながります。',
     opts: [
-      { sym: '😨', main: '失敗して今より悪くなるのが怖い',           hint: '安全への欲求が強い',           s: { barrier: 'failure_fear', urgency_add: 1 } },
-      { sym: '🤷', main: '次の職場が自分に合うかわからない',          hint: '判断材料が足りていない',       s: { barrier: 'uncertainty', urgency_add: 1 } },
-      { sym: '🙏', main: '今の職場や同僚への申し訳なさ',              hint: '他者への責任感が強い',         s: { barrier: 'guilt', urgency_add: 0 } },
-      { sym: '💔', main: '自分に市場価値があるか自信がない',          hint: '自己評価が低めになっている',   s: { barrier: 'self_doubt', urgency_add: 2 } },
+      { sym: 'AlertTriangle', main: '失敗して今より悪くなるのが怖い',           hint: '安全への欲求が強い',           s: { barrier: 'failure_fear', urgency_add: 1 } },
+      { sym: 'HelpCircle',    main: '次の職場が自分に合うかわからない',          hint: '判断材料が足りていない',       s: { barrier: 'uncertainty', urgency_add: 1 } },
+      { sym: 'Heart',         main: '今の職場や同僚への申し訳なさ',              hint: '他者への責任感が強い',         s: { barrier: 'guilt', urgency_add: 0 } },
+      { sym: 'TrendingDown',  main: '自分に市場価値があるか自信がない',          hint: '自己評価が低めになっている',   s: { barrier: 'self_doubt', urgency_add: 2 } },
     ],
   },
 
@@ -307,10 +307,10 @@ export const QUESTIONS: Question[] = [
     q: '月があなたに「ここが正しい場所だ」と告げるのは、どんな働き方をしている時？',
     hint: '月は「安心と居場所」を司る惑星。心から安らげる環境を選ぶことが転職成功の鍵です。',
     opts: [
-      { sym: '🏡', main: '家やカフェで集中して働くリモートワーク', hint: '自分のペースで深く集中できる環境', s: { work_style: 'remote' } },
-      { sym: '🏢', main: '仲間と同じ空間で働くオフィス勤務',       hint: 'チームの空気感でモチベーションが上がる', s: { work_style: 'office' } },
-      { sym: '🦋', main: '時間や場所を自分で決められる自由な働き方',hint: '裁量と自律性が最大の原動力',         s: { work_style: 'flexible' } },
-      { sym: '👥', main: '現場・お客様と直接向き合う仕事',          hint: 'リアルな接点が喜びのタイプ',          s: { work_style: 'field' } },
+      { sym: 'Home',     main: '家やカフェで集中して働くリモートワーク', hint: '自分のペースで深く集中できる環境',       s: { work_style: 'remote' } },
+      { sym: 'Building2',main: '仲間と同じ空間で働くオフィス勤務',       hint: 'チームの空気感でモチベーションが上がる', s: { work_style: 'office' } },
+      { sym: 'Compass',  main: '時間や場所を自分で決められる自由な働き方',hint: '裁量と自律性が最大の原動力',             s: { work_style: 'flexible' } },
+      { sym: 'Users',    main: '現場・お客様と直接向き合う仕事',          hint: 'リアルな接点が喜びのタイプ',             s: { work_style: 'field' } },
     ],
   },
   {
@@ -320,10 +320,10 @@ export const QUESTIONS: Question[] = [
     q: '木星があなたの才能を最も輝かせる職場の規模感は？',
     hint: '木星は「スケールと可能性」を司る惑星。自分に合う組織の大きさが転職先選びを変えます。',
     opts: [
-      { sym: '🚀', main: '少数精鋭・スタートアップ（裁量大・変化が速い）', hint: '変化を楽しめる人向き', s: { org_size: 'startup' } },
-      { sym: '🏢', main: '中堅〜大企業（安定・ブランド・組織力）',          hint: '安定と信頼感を重視', s: { org_size: 'large' } },
-      { sym: '🌐', main: '外資系・グローバル企業（実力主義・国際環境）',    hint: '実力で評価される環境', s: { org_size: 'global' } },
-      { sym: '🔑', main: 'どんな規模でも役割と文化次第',                    hint: 'カルチャーフィットを最優先', s: { org_size: 'culture_first' } },
+      { sym: 'Rocket',   main: '少数精鋭・スタートアップ（裁量大・変化が速い）', hint: '変化を楽しめる人向き',       s: { org_size: 'startup' } },
+      { sym: 'Building2',main: '中堅〜大企業（安定・ブランド・組織力）',          hint: '安定と信頼感を重視',         s: { org_size: 'large' } },
+      { sym: 'Globe',    main: '外資系・グローバル企業（実力主義・国際環境）',    hint: '実力で評価される環境',       s: { org_size: 'global' } },
+      { sym: 'Key',      main: 'どんな規模でも役割と文化次第',                    hint: 'カルチャーフィットを最優先', s: { org_size: 'culture_first' } },
     ],
   },
   {
@@ -333,10 +333,10 @@ export const QUESTIONS: Question[] = [
     q: '仕事以外の時間で、金星が絶対に守りたいものは？',
     hint: '金星は「愛と喜び」を司る惑星。仕事以外の大切なものを知ると、本当に合う職場が見えてきます。',
     opts: [
-      { sym: '💑', main: '家族・パートナーと過ごす時間', hint: '大切な人との時間を最優先', s: { wlb: 'family' } },
-      { sym: '💪', main: '自分の体と心の健康',           hint: 'セルフケアを何より大切に', s: { wlb: 'health' } },
-      { sym: '🎭', main: '趣味・好きなことへの時間',     hint: '人生の彩りを仕事以外にも', s: { wlb: 'hobby' } },
-      { sym: '🌙', main: 'プライベートの時間全般',       hint: 'オフタイムをしっかり確保', s: { wlb: 'private' } },
+      { sym: 'Heart',    main: '家族・パートナーと過ごす時間', hint: '大切な人との時間を最優先', s: { wlb: 'family' } },
+      { sym: 'Activity', main: '自分の体と心の健康',           hint: 'セルフケアを何より大切に', s: { wlb: 'health' } },
+      { sym: 'Smile',    main: '趣味・好きなことへの時間',     hint: '人生の彩りを仕事以外にも', s: { wlb: 'hobby' } },
+      { sym: 'Moon',     main: 'プライベートの時間全般',       hint: 'オフタイムをしっかり確保', s: { wlb: 'private' } },
     ],
   },
   {
@@ -346,10 +346,10 @@ export const QUESTIONS: Question[] = [
     q: '5年後、木星があなたをどこへ連れて行ってほしい？',
     hint: '木星は「成長と未来」を司る惑星。5年後のビジョンが、今どこに転職すべきかを示しています。',
     opts: [
-      { sym: '👑', main: 'チームや組織を率いるリーダーの位置',          hint: '人を動かす立場で輝きたい',   s: { vision: 'leader', urgency_add: 1 } },
-      { sym: '🔬', main: '誰にも負けない専門性を持つスペシャリスト',    hint: '深さで価値を出したい',       s: { vision: 'specialist', urgency_add: 1 } },
-      { sym: '🌟', main: '起業・副業・フリーランスで自分の道を切り開く',hint: '自分のブランドで生きたい',   s: { vision: 'independent', urgency_add: 2 } },
-      { sym: '🌿', main: '今より豊かで安定した環境で働いている',         hint: '心と生活の安定を手に入れたい',s: { vision: 'stable', urgency_add: 0 } },
+      { sym: 'Crown',      main: 'チームや組織を率いるリーダーの位置',          hint: '人を動かす立場で輝きたい',       s: { vision: 'leader', urgency_add: 1 } },
+      { sym: 'Microscope', main: '誰にも負けない専門性を持つスペシャリスト',    hint: '深さで価値を出したい',           s: { vision: 'specialist', urgency_add: 1 } },
+      { sym: 'Star',       main: '起業・副業・フリーランスで自分の道を切り開く',hint: '自分のブランドで生きたい',       s: { vision: 'independent', urgency_add: 2 } },
+      { sym: 'Leaf',       main: '今より豊かで安定した環境で働いている',         hint: '心と生活の安定を手に入れたい', s: { vision: 'stable', urgency_add: 0 } },
     ],
   },
 
@@ -361,10 +361,10 @@ export const QUESTIONS: Question[] = [
     q: '今の自分のスキルや経験について、土星の目で正直に見るとどう思う？',
     hint: '土星は「現実と評価」を司る惑星。自己評価の正直さが、最適なキャリア戦略を生みます。',
     opts: [
-      { sym: '💎', main: '胸を張って他社でも通用すると思う',       hint: '市場価値に自信がある',           s: { market_value: 90, urgency_add: 1 } },
-      { sym: '📈', main: 'まだ途中だが確実に積み上がっている',     hint: '成長の軌道に乗っている',         s: { market_value: 70 } },
-      { sym: '😔', main: '正直なところ自信があまりない',           hint: '市場価値を上げる動きが必要',     s: { market_value: 40 } },
-      { sym: '🔍', main: '自分では判断できないので診断したい',     hint: '第三者の目線で把握したい',       s: { market_value: 55 } },
+      { sym: 'Gem',        main: '胸を張って他社でも通用すると思う',       hint: '市場価値に自信がある',       s: { market_value: 90, urgency_add: 1 } },
+      { sym: 'TrendingUp', main: 'まだ途中だが確実に積み上がっている',     hint: '成長の軌道に乗っている',     s: { market_value: 70 } },
+      { sym: 'TrendingDown',main: '正直なところ自信があまりない',           hint: '市場価値を上げる動きが必要', s: { market_value: 40 } },
+      { sym: 'Search',     main: '自分では判断できないので診断したい',     hint: '第三者の目線で把握したい',   s: { market_value: 55 } },
     ],
   },
   {
@@ -374,10 +374,10 @@ export const QUESTIONS: Question[] = [
     q: '職場の人や友人から「あなたってこういう人だよね」と言われることに近いのは？',
     hint: '太陽は「他者から見た輝き」を示す惑星。周囲からの評価が、あなたの客観的な強みです。',
     opts: [
-      { sym: '🎯', main: '頼りになる・決断が速い',       hint: 'リーダーシップ・実行力タイプ', s: { external_view: 'leader' } },
-      { sym: '🌈', main: 'アイデアが豊富・発想が面白い', hint: 'クリエイティブ・革新タイプ',   s: { external_view: 'creative' } },
-      { sym: '🤝', main: '面倒見がいい・空気を読む',     hint: 'サポート・協調性タイプ',       s: { external_view: 'supporter' } },
-      { sym: '🔬', main: '細かい・丁寧・正確',           hint: '分析・品質重視タイプ',         s: { external_view: 'analyst' } },
+      { sym: 'Target',     main: '頼りになる・決断が速い',       hint: 'リーダーシップ・実行力タイプ', s: { external_view: 'leader' } },
+      { sym: 'Lightbulb',  main: 'アイデアが豊富・発想が面白い', hint: 'クリエイティブ・革新タイプ',   s: { external_view: 'creative' } },
+      { sym: 'Handshake',  main: '面倒見がいい・空気を読む',     hint: 'サポート・協調性タイプ',       s: { external_view: 'supporter' } },
+      { sym: 'Microscope', main: '細かい・丁寧・正確',           hint: '分析・品質重視タイプ',         s: { external_view: 'analyst' } },
     ],
   },
   {
@@ -387,10 +387,10 @@ export const QUESTIONS: Question[] = [
     q: '転職活動を始めるなら、あなたの火星が最初に動かすのはどれ？',
     hint: '火星は「最初の行動」を司る惑星。あなたの行動起点が、エージェント活用法のヒントになります。',
     opts: [
-      { sym: '🔍', main: 'まず転職サイトに登録して求人を見る', hint: '情報収集から入るタイプ', s: { action_start: 'job_site', readiness_add: 5 } },
-      { sym: '👥', main: '転職エージェントに相談する',         hint: 'プロの力を借りるタイプ', s: { action_start: 'agent', readiness_add: 10 } },
-      { sym: '📝', main: '自分のスキルや経歴を整理する',       hint: '自己分析から始めるタイプ', s: { action_start: 'self_analyze', readiness_add: 5 } },
-      { sym: '💬', main: '転職した友人・知人に話を聞く',       hint: '口コミ・体験談を重視するタイプ', s: { action_start: 'network', readiness_add: 5 } },
+      { sym: 'Search',        main: 'まず転職サイトに登録して求人を見る', hint: '情報収集から入るタイプ',       s: { action_start: 'job_site', readiness_add: 5 } },
+      { sym: 'Users',         main: '転職エージェントに相談する',         hint: 'プロの力を借りるタイプ',       s: { action_start: 'agent', readiness_add: 10 } },
+      { sym: 'ClipboardList', main: '自分のスキルや経歴を整理する',       hint: '自己分析から始めるタイプ',     s: { action_start: 'self_analyze', readiness_add: 5 } },
+      { sym: 'MessageSquare', main: '転職した友人・知人に話を聞く',       hint: '口コミ・体験談を重視するタイプ', s: { action_start: 'network', readiness_add: 5 } },
     ],
   },
 
@@ -402,10 +402,10 @@ export const QUESTIONS: Question[] = [
     q: 'すべての星を読み終えた今、あなたはどんな言葉が一番心に響く？',
     hint: '冥王星は「変容と再生」を司る惑星。最後の選択が、あなたの星の総意を表しています。',
     opts: [
-      { sym: '⚡', main: '「もう動くタイミングは来ている。あとは踏み出すだけ」', hint: '行動への確信がある',       s: { determination: 4, urgency_add: 3 } },
-      { sym: '🔮', main: '「星の示す方向を信じて、まず一歩だけ踏み出してみて」', hint: '慎重に、でも動き始めたい', s: { determination: 3, urgency_add: 2 } },
-      { sym: '🌙', main: '「焦らなくていい。準備を整えれば必ず道は開ける」',     hint: 'じっくり準備を整えたい',  s: { determination: 2, urgency_add: 1 } },
-      { sym: '🌱', main: '「まだ今じゃない。今は力を蓄える時期」',               hint: '今はまだ充電が必要',      s: { determination: 1, urgency_add: 0 } },
+      { sym: 'Zap',      main: '「もう動くタイミングは来ている。あとは踏み出すだけ」', hint: '行動への確信がある',       s: { determination: 4, urgency_add: 3 } },
+      { sym: 'Sparkles', main: '「星の示す方向を信じて、まず一歩だけ踏み出してみて」', hint: '慎重に、でも動き始めたい', s: { determination: 3, urgency_add: 2 } },
+      { sym: 'Moon',     main: '「焦らなくていい。準備を整えれば必ず道は開ける」',     hint: 'じっくり準備を整えたい',  s: { determination: 2, urgency_add: 1 } },
+      { sym: 'Sprout',   main: '「まだ今じゃない。今は力を蓄える時期」',               hint: '今はまだ充電が必要',      s: { determination: 1, urgency_add: 0 } },
     ],
   },
 ];
