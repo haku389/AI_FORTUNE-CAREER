@@ -135,7 +135,7 @@ function PaymentForm({
           transition: 'all .2s',
         }}
       >
-        {processing ? '処理中…' : '¥480 で精密鑑定を受ける ✨'}
+        {processing ? '処理中…' : '¥1,980 で精密鑑定を受ける ✨'}
       </button>
     </form>
   )
@@ -430,7 +430,7 @@ export default function PrecisePage() {
                 kansen_text: kansenText,
                 recommended_agents: agents,
                 payment_id: paymentIntentId,
-                amount: 480,
+                amount: 1980,
                 line_user_id: lineUserIdRef.current ?? undefined,
               }),
             }).then(r => r.json()).then(d => {
@@ -693,7 +693,7 @@ export default function PrecisePage() {
             24問の精密診断を始める →
           </button>
           <p style={{ fontSize: 10, color: '#3a4870', textAlign: 'center', marginTop: 10 }}>
-            ※ 診断後に¥480の決済があります
+            ※ 診断後に¥1,980の決済があります
           </p>
         </div>
       </div>
@@ -877,7 +877,7 @@ export default function PrecisePage() {
         {/* 価格 */}
         <div style={{ textAlign: 'center', marginBottom: 20, padding: '16px', background: '#0d1428', border: '1px solid #c8952a33', borderRadius: 12 }}>
           <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 4 }}>精密鑑定料金</div>
-          <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 36, fontWeight: 900, color: '#f0c060' }}>¥480</div>
+          <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 36, fontWeight: 900, color: '#f0c060' }}>¥1,980</div>
           <div style={{ fontSize: 10, color: '#3a4870', marginTop: 4 }}>※ 1回限り・返金不可</div>
         </div>
 
