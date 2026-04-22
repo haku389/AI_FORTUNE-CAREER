@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Noto_Sans_JP, Shippori_Mincho, Zen_Old_Mincho } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 
 const noto = Noto_Sans_JP({
@@ -59,7 +60,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="ja"
       className={`${noto.variable} ${shippori.variable} ${zen.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }
