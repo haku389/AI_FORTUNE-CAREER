@@ -767,12 +767,22 @@ export default function PrecisePage() {
             {/* 選択肢 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {q.opts.map((opt, i) => {
-                // Q13: 選択業界（Q12回答）に関係ない職種オプションを非表示
+                // Q13(index 12): 選択業界（Q12回答）に関係ない職種オプションを非表示
                 if (curQ === 12 && opt.relatedIndustries && opt.relatedIndustries.length > 0) {
                   const selectedInds: string[] = Array.isArray(answers[11])
                     ? (answers[11] as number[]).map((idx: number) => QUESTIONS[11].opts[idx]?.s?.industry ?? '').filter(Boolean)
                     : []
                   if (selectedInds.length > 0 && !selectedInds.some(ind => opt.relatedIndustries!.includes(ind))) {
+                    return null
+                  }
+                }
+                // Q15(index 14): 選択地方（Q14回答）に関係ない都道府県オプションを非表示
+                if (curQ === 14 && opt.relatedAreas && opt.relatedAreas.length > 0) {
+                  const selectedAreas: string[] = Array.isArray(answers[13])
+                    ? (answers[13] as number[]).map((idx: number) => QUESTIONS[13].opts[idx]?.s?.area ?? '').filter(Boolean)
+                    : []
+                  const hasAny = selectedAreas.includes('any')
+                  if (!hasAny && selectedAreas.length > 0 && !selectedAreas.some(area => opt.relatedAreas!.includes(area))) {
                     return null
                   }
                 }

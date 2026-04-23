@@ -12,18 +12,20 @@ export type AnswerScore = {
   current_industry?: string; // 現業界（Q11）
   industry?: string;        // 業界マッチング（Q12）
   role?: string;            // 職種マッチング（Q12）
-  independent?: number;     // 独立志向スコア（Q13）
-  salary_focus?: number;    // 年収重視スコア（Q14）
-  barrier?: string;         // 転職障壁（Q15）
-  work_style?: string;      // 働き方タイプ（Q16）
-  org_size?: string;        // 組織規模（Q17）
-  wlb?: string;             // WLB優先度（Q18）
-  vision?: string;          // キャリアビジョン（Q19）
-  market_value?: number;    // 市場価値スコア（Q20）
-  external_view?: string;   // 他者評価（Q21）
-  action_start?: string;    // 行動起点（Q22）
-  readiness_add?: number;   // 行動準備スコア追加（Q22）
-  determination?: number;   // 変容への覚悟（Q23）
+  area?: string;            // 希望エリア（Q13）
+  prefecture?: string;      // 希望都道府県（Q14）
+  independent?: number;     // 独立志向スコア（Q15）
+  salary_focus?: number;    // 年収重視スコア（Q16）
+  barrier?: string;         // 転職障壁（Q17）
+  work_style?: string;      // 働き方タイプ（Q18）
+  org_size?: string;        // 組織規模（Q19）
+  wlb?: string;             // WLB優先度（Q20）
+  vision?: string;          // キャリアビジョン（Q21）
+  market_value?: number;    // 市場価値スコア（Q22）
+  external_view?: string;   // 他者評価（Q23）
+  action_start?: string;    // 行動起点（Q24）
+  readiness_add?: number;   // 行動準備スコア追加（Q24）
+  determination?: number;   // 変容への覚悟（Q25）
 };
 
 export type QuestionOption = {
@@ -32,6 +34,7 @@ export type QuestionOption = {
   hint: string;
   s: AnswerScore;
   relatedIndustries?: string[]; // Q12専用: 指定業界選択時のみ表示（未指定=常時表示）
+  relatedAreas?: string[];      // Q14専用: 指定地方選択時のみ表示（未指定=常時表示）
 };
 
 export type Question = {
@@ -261,6 +264,89 @@ export const QUESTIONS: Question[] = [
   },
   {
     block: 3,
+    tag: '♃ 木星が示す — 次の舞台',
+    planet: '木星',
+    q: '転職後の勤務エリアに希望はありますか？（複数選択可）',
+    hint: '木星は「拡大と可能性」を司る惑星。活躍の舞台を広げることが、転職成功の鍵になります。',
+    multi: true,
+    opts: [
+      { sym: '🌐', main: 'エリアにはこだわらない', hint: '全国・リモートも含め幅広く',                           s: { area: 'any' } },
+      { sym: '🌨️', main: '北海道・東北',           hint: '北海道・青森・岩手・宮城・秋田・山形・福島',           s: { area: 'hokkaido_tohoku' } },
+      { sym: '🗼',  main: '関東',                   hint: '東京・神奈川・埼玉・千葉・茨城・栃木・群馬',           s: { area: 'kanto' } },
+      { sym: '🗻',  main: '中部',                   hint: '新潟・富山・石川・福井・山梨・長野・岐阜・静岡・愛知', s: { area: 'chubu' } },
+      { sym: '🏮',  main: '近畿',                   hint: '三重・滋賀・京都・大阪・兵庫・奈良・和歌山',           s: { area: 'kinki' } },
+      { sym: '🏯',  main: '中国地方',               hint: '鳥取・島根・岡山・広島・山口',                         s: { area: 'chugoku' } },
+      { sym: '🌊',  main: '四国',                   hint: '徳島・香川・愛媛・高知',                               s: { area: 'shikoku' } },
+      { sym: '🌺',  main: '九州・沖縄',             hint: '福岡・佐賀・長崎・熊本・大分・宮崎・鹿児島・沖縄',     s: { area: 'kyushu_okinawa' } },
+    ],
+  },
+  {
+    block: 3,
+    tag: '♃ 木星が示す — 魂の拠点',
+    planet: '木星',
+    q: '具体的に希望する都道府県を教えてください。（複数選択可）',
+    hint: '木星は「あなたが輝く場所」を示す惑星。より具体的な希望が、精度の高いマッチングにつながります。',
+    multi: true,
+    opts: [
+      { sym: '🌐', main: 'こだわらない', hint: '都道府県の指定なし', s: { prefecture: 'any' } },
+      // 北海道・東北
+      { sym: '📍', main: '北海道', hint: '', s: { prefecture: '北海道' }, relatedAreas: ['hokkaido_tohoku'] },
+      { sym: '📍', main: '青森県', hint: '', s: { prefecture: '青森県' }, relatedAreas: ['hokkaido_tohoku'] },
+      { sym: '📍', main: '岩手県', hint: '', s: { prefecture: '岩手県' }, relatedAreas: ['hokkaido_tohoku'] },
+      { sym: '📍', main: '宮城県', hint: '', s: { prefecture: '宮城県' }, relatedAreas: ['hokkaido_tohoku'] },
+      { sym: '📍', main: '秋田県', hint: '', s: { prefecture: '秋田県' }, relatedAreas: ['hokkaido_tohoku'] },
+      { sym: '📍', main: '山形県', hint: '', s: { prefecture: '山形県' }, relatedAreas: ['hokkaido_tohoku'] },
+      { sym: '📍', main: '福島県', hint: '', s: { prefecture: '福島県' }, relatedAreas: ['hokkaido_tohoku'] },
+      // 関東
+      { sym: '📍', main: '東京都',   hint: '', s: { prefecture: '東京都' },   relatedAreas: ['kanto'] },
+      { sym: '📍', main: '神奈川県', hint: '', s: { prefecture: '神奈川県' }, relatedAreas: ['kanto'] },
+      { sym: '📍', main: '埼玉県',   hint: '', s: { prefecture: '埼玉県' },   relatedAreas: ['kanto'] },
+      { sym: '📍', main: '千葉県',   hint: '', s: { prefecture: '千葉県' },   relatedAreas: ['kanto'] },
+      { sym: '📍', main: '茨城県',   hint: '', s: { prefecture: '茨城県' },   relatedAreas: ['kanto'] },
+      { sym: '📍', main: '栃木県',   hint: '', s: { prefecture: '栃木県' },   relatedAreas: ['kanto'] },
+      { sym: '📍', main: '群馬県',   hint: '', s: { prefecture: '群馬県' },   relatedAreas: ['kanto'] },
+      // 中部
+      { sym: '📍', main: '新潟県', hint: '', s: { prefecture: '新潟県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '富山県', hint: '', s: { prefecture: '富山県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '石川県', hint: '', s: { prefecture: '石川県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '福井県', hint: '', s: { prefecture: '福井県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '山梨県', hint: '', s: { prefecture: '山梨県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '長野県', hint: '', s: { prefecture: '長野県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '岐阜県', hint: '', s: { prefecture: '岐阜県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '静岡県', hint: '', s: { prefecture: '静岡県' }, relatedAreas: ['chubu'] },
+      { sym: '📍', main: '愛知県', hint: '', s: { prefecture: '愛知県' }, relatedAreas: ['chubu'] },
+      // 近畿
+      { sym: '📍', main: '三重県',   hint: '', s: { prefecture: '三重県' },   relatedAreas: ['kinki'] },
+      { sym: '📍', main: '滋賀県',   hint: '', s: { prefecture: '滋賀県' },   relatedAreas: ['kinki'] },
+      { sym: '📍', main: '京都府',   hint: '', s: { prefecture: '京都府' },   relatedAreas: ['kinki'] },
+      { sym: '📍', main: '大阪府',   hint: '', s: { prefecture: '大阪府' },   relatedAreas: ['kinki'] },
+      { sym: '📍', main: '兵庫県',   hint: '', s: { prefecture: '兵庫県' },   relatedAreas: ['kinki'] },
+      { sym: '📍', main: '奈良県',   hint: '', s: { prefecture: '奈良県' },   relatedAreas: ['kinki'] },
+      { sym: '📍', main: '和歌山県', hint: '', s: { prefecture: '和歌山県' }, relatedAreas: ['kinki'] },
+      // 中国地方
+      { sym: '📍', main: '鳥取県', hint: '', s: { prefecture: '鳥取県' }, relatedAreas: ['chugoku'] },
+      { sym: '📍', main: '島根県', hint: '', s: { prefecture: '島根県' }, relatedAreas: ['chugoku'] },
+      { sym: '📍', main: '岡山県', hint: '', s: { prefecture: '岡山県' }, relatedAreas: ['chugoku'] },
+      { sym: '📍', main: '広島県', hint: '', s: { prefecture: '広島県' }, relatedAreas: ['chugoku'] },
+      { sym: '📍', main: '山口県', hint: '', s: { prefecture: '山口県' }, relatedAreas: ['chugoku'] },
+      // 四国
+      { sym: '📍', main: '徳島県', hint: '', s: { prefecture: '徳島県' }, relatedAreas: ['shikoku'] },
+      { sym: '📍', main: '香川県', hint: '', s: { prefecture: '香川県' }, relatedAreas: ['shikoku'] },
+      { sym: '📍', main: '愛媛県', hint: '', s: { prefecture: '愛媛県' }, relatedAreas: ['shikoku'] },
+      { sym: '📍', main: '高知県', hint: '', s: { prefecture: '高知県' }, relatedAreas: ['shikoku'] },
+      // 九州・沖縄
+      { sym: '📍', main: '福岡県',   hint: '', s: { prefecture: '福岡県' },   relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '佐賀県',   hint: '', s: { prefecture: '佐賀県' },   relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '長崎県',   hint: '', s: { prefecture: '長崎県' },   relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '熊本県',   hint: '', s: { prefecture: '熊本県' },   relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '大分県',   hint: '', s: { prefecture: '大分県' },   relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '宮崎県',   hint: '', s: { prefecture: '宮崎県' },   relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '鹿児島県', hint: '', s: { prefecture: '鹿児島県' }, relatedAreas: ['kyushu_okinawa'] },
+      { sym: '📍', main: '沖縄県',   hint: '', s: { prefecture: '沖縄県' },   relatedAreas: ['kyushu_okinawa'] },
+    ],
+  },
+  {
+    block: 3,
     tag: '⛢ 天王星が呼ぶ — 変革への渇望',
     planet: '天王星',
     q: '転職とは別に、副業・フリーランス・起業といった「自分の可能性を広げる動き」に興味はある？',
@@ -414,7 +500,7 @@ export const QUESTIONS: Question[] = [
 export const BLOCKS = [
   { num: 1, title: '土星が刻む「今の場所と時間」', icon: '🪐', questionCount: 4 },
   { num: 2, title: '惑星が読み解く「魂の色」',       icon: '✨', questionCount: 6 },
-  { num: 3, title: '木星が照らす「次の場所」',         icon: '♃', questionCount: 5 },
+  { num: 3, title: '木星が照らす「次の場所」',         icon: '♃', questionCount: 8 },
   { num: 4, title: '月が守る「魂の居場所」',           icon: '🌙', questionCount: 4 },
   { num: 5, title: '星が映す「隠れた自分」',           icon: '☀️', questionCount: 3 },
   { num: 6, title: '冥王星が問う「最後の扉」',         icon: '🌟', questionCount: 1 },
