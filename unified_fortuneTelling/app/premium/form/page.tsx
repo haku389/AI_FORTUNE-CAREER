@@ -808,7 +808,7 @@ export default function PrecisePage() {
                       fontFamily: 'var(--font-sans)',
                     }}
                   >
-                    {isMulti
+                    {isMulti && curQ !== 13 && curQ !== 14
                       ? <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>{opt.sym}</span>
                       : <span style={{ flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center', alignSelf: 'center' }}><QIcon name={opt.sym} picked={picked} size={18} /></span>
                     }
