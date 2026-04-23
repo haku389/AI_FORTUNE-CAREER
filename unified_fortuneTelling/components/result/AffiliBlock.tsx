@@ -1,6 +1,6 @@
 'use client'
 
-import { track } from '@vercel/analytics'
+import { trackEvent } from '@/lib/gtag'
 import { TypeData } from '@/lib/scoring'
 
 export default function AffiliBlock({
@@ -34,7 +34,7 @@ export default function AffiliBlock({
         href={typeData.url}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => track('affiliate_click', { name: typeData.affili, source: 'shindan' })}
+        onClick={() => trackEvent('affiliate_click', { name: typeData.affili, source: 'shindan' })}
         style={{
           display: 'flex',
           alignItems: 'center',

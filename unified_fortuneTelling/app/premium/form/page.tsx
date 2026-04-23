@@ -13,7 +13,7 @@ import MoonImage from '@/components/MoonImage'
 import ShareBlock from '@/components/result/ShareBlock'
 import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'
-import { track } from '@vercel/analytics'
+import { trackEvent } from '@/lib/gtag'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { getMoonSign, getMoonSignKeyword } from '@/lib/moonSign'
 import { getHonmeiStar, getHonmeiStarKeyword, HonmeiStar } from '@/lib/honmeiStar'
@@ -1149,7 +1149,7 @@ export default function PrecisePage() {
                   href={agent.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => track('affiliate_click', { name: agent.name, source: 'premium_form' })}
+                  onClick={() => trackEvent('affiliate_click', { name: agent.name, source: 'premium_form' })}
                   style={{ display: 'block', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Noto_Sans_JP, Shippori_Mincho, Zen_Old_Mincho } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/react'
+import Script from 'next/script'
+import { GA_ID } from '@/lib/gtag'
 import './globals.css'
 
 const noto = Noto_Sans_JP({
@@ -60,10 +61,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="ja"
       className={`${noto.variable} ${shippori.variable} ${zen.variable}`}
     >
-      <body>
-        {children}
-        <Analytics />
-      </body>
+      <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_ID}');
+        `}</Script>
+      </head>
+      <body>{children}</body>
     </html>
   )
 }

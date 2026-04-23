@@ -1,6 +1,6 @@
 'use client'
 
-import { track } from '@vercel/analytics'
+import { trackEvent } from '@/lib/gtag'
 
 type AgentMatch = { name: string; url: string; desc: string; luna: string }
 
@@ -10,7 +10,7 @@ export default function AgentLink({ agent }: { agent: AgentMatch }) {
       href={agent.url}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track('affiliate_click', { name: agent.name, source: 'premium_saved' })}
+      onClick={() => trackEvent('affiliate_click', { name: agent.name, source: 'premium_saved' })}
       style={{
         display: 'block',
         background: '#111c36',
