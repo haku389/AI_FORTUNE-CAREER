@@ -691,7 +691,7 @@ export default function PrecisePage() {
               transition: 'opacity .2s', fontFamily: 'var(--font-sans)', letterSpacing: 1,
             }}
           >
-            24問の精密診断を始める →
+            26問の精密診断を始める →
           </button>
           <p style={{ fontSize: 10, color: '#3a4870', textAlign: 'center', marginTop: 10 }}>
             ※ 診断後に¥1,980の決済があります
@@ -865,7 +865,7 @@ export default function PrecisePage() {
             あと一歩です
           </h2>
           <p style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.8 }}>
-            24問の回答をもとに、あなただけの<br />精密鑑定を生成します。
+            26問の回答をもとに、あなただけの<br />精密鑑定を生成します。
           </p>
         </div>
 

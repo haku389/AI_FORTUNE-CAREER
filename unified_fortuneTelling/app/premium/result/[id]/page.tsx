@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import AgentLink from '@/components/result/AgentLink'
+import { ZODIAC } from '@/lib/zodiac'
+import { getHonmeiStarKeyword } from '@/lib/honmeiStar'
 
 export const metadata: Metadata = {
   title: '鑑定結果 | 転職占い師ルナ',
@@ -87,6 +89,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const dateStr = `${diagDate.getFullYear()}年${diagDate.getMonth() + 1}月${diagDate.getDate()}日`
   const sunEn = ZODIAC_EN[row.zodiac_sun] ?? ''
   const mbtiLower = row.mbti_type?.toLowerCase() ?? ''
+  const sunKeyword = ZODIAC.find(z => z.name === row.zodiac_sun)?.keyword ?? ''
+  const moonKeyword = row.zodiac_moon ? (ZODIAC.find(z => z.name === row.zodiac_moon)?.keyword ?? '') : ''
+  const honmeiKeyword = row.honmei_star ? getHonmeiStarKeyword(row.honmei_star as Parameters<typeof getHonmeiStarKeyword>[0]) : ''
 
   return (
     <div style={{ background: '#060914', minHeight: '100dvh', color: '#f0f4ff' }}>
@@ -119,9 +124,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { label: '☀️ 太陽星座', value: row.zodiac_sun,       color: '#f0c060', href: '/guide/seiyou' },
-              { label: '🌙 月星座',   value: row.zodiac_moon ?? '—', color: '#a898f8', href: '/guide/seiyou' },
-              { label: '⭐ 本命星',   value: row.honmei_star ?? '—', color: '#3cc4a8', href: '/guide/kyusei' },
+              { label: '☀️ 太陽星座', value: sunKeyword ? `${row.zodiac_sun}（${sunKeyword}）` : row.zodiac_sun,                             color: '#f0c060', href: '/guide/seiyou' },
+              { label: '🌙 月星座',   value: row.zodiac_moon ? (moonKeyword ? `${row.zodiac_moon}（${moonKeyword}）` : row.zodiac_moon) : '—', color: '#a898f8', href: '/guide/seiyou' },
+              { label: '⭐ 本命星',   value: row.honmei_star ? (honmeiKeyword ? `${row.honmei_star}（${honmeiKeyword}）` : row.honmei_star) : '—', color: '#3cc4a8', href: '/guide/kyusei' },
               ...(row.mbti_type ? [{ label: '🧠 MBTI', value: row.mbti_type, color: '#c8952a', href: `/guide/mbti/${mbtiLower}` }] : []),
             ].map(({ label, value, color, href }) => (
               <a key={label} href={href} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
