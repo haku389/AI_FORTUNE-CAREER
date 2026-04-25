@@ -238,21 +238,21 @@ export function calcJobMatch(
   const sortedEntries = (Object.entries(scores) as [JobName, number][]).sort(([, a], [, b]) => b - a)
   const top3Entries = sortedEntries.slice(0, 3)
 
-  // rank1: raw1とraw2の差に応じて92〜97%の可変
   const raw1 = top3Entries[0]?.[1] ?? 0
   const raw2 = top3Entries[1]?.[1] ?? 0
   const raw3 = top3Entries[2]?.[1] ?? 0
-  const MAX_GAP = 30
-  const gapRatio = Math.min((raw1 - raw2) / MAX_GAP, 1)
-  const rank1Score = Math.round(92 + gapRatio * 5) // 92〜97%
 
-  // rank2: 72〜(rank1-6)%
-  const proportional2 = Math.round(((raw2 - minRaw) / rawRange) * 14 + 72)
-  const rank2Score = Math.max(72, Math.min(rank1Score - 6, proportional2))
+  // rank1: rawスコアの全体比率から77〜95%の可変
+  const proportional1 = Math.round(((raw1 - minRaw) / rawRange) * 18 + 77)
+  const rank1Score = Math.max(77, Math.min(95, proportional1))
 
-  // rank3: 60〜(rank2-6)%
-  const proportional3 = Math.round(((raw3 - minRaw) / rawRange) * 14 + 60)
-  const rank3Score = Math.max(60, Math.min(rank2Score - 6, proportional3))
+  // rank2: 64〜(rank1-5)%
+  const proportional2 = Math.round(((raw2 - minRaw) / rawRange) * 16 + 64)
+  const rank2Score = Math.max(64, Math.min(rank1Score - 5, proportional2))
+
+  // rank3: 52〜(rank2-5)%
+  const proportional3 = Math.round(((raw3 - minRaw) / rawRange) * 14 + 52)
+  const rank3Score = Math.max(52, Math.min(rank2Score - 5, proportional3))
 
   const displayScores = [rank1Score, rank2Score, rank3Score]
 

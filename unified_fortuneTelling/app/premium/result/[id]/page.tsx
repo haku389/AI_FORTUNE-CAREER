@@ -92,6 +92,14 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const sunKeyword = ZODIAC.find(z => z.name === row.zodiac_sun)?.keyword ?? ''
   const moonKeyword = row.zodiac_moon ? (ZODIAC.find(z => z.name === row.zodiac_moon)?.keyword ?? '') : ''
   const honmeiKeyword = row.honmei_star ? getHonmeiStarKeyword(row.honmei_star as Parameters<typeof getHonmeiStarKeyword>[0]) : ''
+  const MBTI_LABELS: Record<string, string> = {
+    NT: 'NT型（論理・戦略・革新系）',
+    NF: 'NF型（理念・共感・ビジョン系）',
+    SJ: 'SJ型（責任・秩序・サポート系）',
+    SP: 'SP型（行動・適応・実践系）',
+    unknown: '未診断',
+  }
+  const mbtiLabel = row.mbti_type ? (MBTI_LABELS[row.mbti_type] ?? row.mbti_type) : null
 
   return (
     <div style={{ background: '#060914', minHeight: '100dvh', color: '#f0f4ff' }}>
@@ -127,7 +135,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
               { label: '☀️ 太陽星座', value: sunKeyword ? `${row.zodiac_sun}（${sunKeyword}）` : row.zodiac_sun,                             color: '#f0c060', href: '/guide/seiyou' },
               { label: '🌙 月星座',   value: row.zodiac_moon ? (moonKeyword ? `${row.zodiac_moon}（${moonKeyword}）` : row.zodiac_moon) : '—', color: '#a898f8', href: '/guide/seiyou' },
               { label: '⭐ 本命星',   value: row.honmei_star ? (honmeiKeyword ? `${row.honmei_star}（${honmeiKeyword}）` : row.honmei_star) : '—', color: '#3cc4a8', href: '/guide/kyusei' },
-              ...(row.mbti_type ? [{ label: '🧠 MBTI', value: row.mbti_type, color: '#c8952a', href: `/guide/mbti/${mbtiLower}` }] : []),
+              ...(mbtiLabel ? [{ label: '🧠 MBTI', value: mbtiLabel, color: '#c8952a', href: `/guide/mbti/${mbtiLower}` }] : []),
             ].map(({ label, value, color, href }) => (
               <a key={label} href={href} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
                 <span style={{ fontSize: 11, color: '#7888b8', flexShrink: 0, width: 72, lineHeight: 1.6 }}>{label}</span>

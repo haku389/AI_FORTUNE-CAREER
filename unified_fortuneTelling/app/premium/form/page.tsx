@@ -1059,13 +1059,25 @@ export default function PrecisePage() {
               </div>
             </div>
 
-            {/* 3つの星（タップで図鑑へ） */}
+            {/* 3つの星 + MBTI（タップで図鑑へ） */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-              {[
-                { label: '☀️ 太陽星座', value: `${u.sunSign.name}（${u.sunSign.keyword}）`, color: '#f0c060', href: '/guide/seiyou' },
-                { label: '🌙 月星座',   value: `${u.moonSign}（${u.moonKeyword}）`,          color: '#a898f8', href: '/guide/seiyou' },
-                { label: '⭐ 本命星',   value: `${u.honmeiStar}（${u.honmeiKeyword}）`,      color: '#3cc4a8', href: '/guide/kyusei' },
-              ].map(({ label, value, color, href }) => (
+              {(() => {
+                const MBTI_LABELS: Record<string, string> = {
+                  NT: 'NT型（論理・戦略・革新系）',
+                  NF: 'NF型（理念・共感・ビジョン系）',
+                  SJ: 'SJ型（責任・秩序・サポート系）',
+                  SP: 'SP型（行動・適応・実践系）',
+                  unknown: '未診断',
+                }
+                const mbtiLabel = MBTI_LABELS[u.mbti] ?? u.mbti
+                const mbtiLower = u.mbti?.toLowerCase() ?? ''
+                return [
+                  { label: '☀️ 太陽星座', value: `${u.sunSign.name}（${u.sunSign.keyword}）`, color: '#f0c060', href: '/guide/seiyou' },
+                  { label: '🌙 月星座',   value: `${u.moonSign}（${u.moonKeyword}）`,          color: '#a898f8', href: '/guide/seiyou' },
+                  { label: '⭐ 本命星',   value: `${u.honmeiStar}（${u.honmeiKeyword}）`,      color: '#3cc4a8', href: '/guide/kyusei' },
+                  { label: '🧠 MBTI',     value: mbtiLabel,                                    color: '#c8952a', href: `/guide/mbti/${mbtiLower}` },
+                ]
+              })().map(({ label, value, color, href }) => (
                 <a key={label} href={href} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#111c3688', border: '1px solid #1e2d52', borderRadius: 10, padding: '10px 14px', textDecoration: 'none' }}>
                   <span style={{ fontSize: 11, color: '#7888b8', flexShrink: 0, width: 72, lineHeight: 1.6 }}>{label}</span>
                   <span style={{ fontSize: 12, color, fontWeight: 600, lineHeight: 1.6, flex: 1 }}>{value}</span>
@@ -1073,6 +1085,7 @@ export default function PrecisePage() {
                 </a>
               ))}
             </div>
+
 
             {/* 3つの星の組み合わせメッセージ */}
             <div style={{ background: '#0a0f1e', border: '1px solid #c8952a33', borderRadius: 10, padding: '14px 16px', fontSize: 12, color: '#dde4f8', lineHeight: 1.8 }}>
