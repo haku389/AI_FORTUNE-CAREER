@@ -971,9 +971,6 @@ export default function PrecisePage() {
             <div style={{ width: 120, height: 120, borderRadius: '50%', border: '2px solid transparent', borderTopColor: '#c8952a', borderRightColor: '#c8952a66', animation: 'spin-fwd 1.6s cubic-bezier(.4,0,.2,1) infinite', boxShadow: '0 0 18px #c8952a44' }} />
             <div style={{ position: 'absolute', inset: 12, borderRadius: '50%', border: '2px solid transparent', borderBottomColor: '#a898f8', borderLeftColor: '#a898f844', animation: 'spin-rev 2.4s cubic-bezier(.4,0,.2,1) infinite' }} />
             <div style={{ position: 'absolute', inset: 24, borderRadius: '50%', border: '1px solid transparent', borderTopColor: '#3cc4a8', animation: 'spin-fwd 3.2s linear infinite' }} />
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/crystalBall.png" alt="" style={{ width: 36, height: 36 }} />
-            </div>
           </div>
 
           {/* ステップリスト */}
@@ -1211,7 +1208,7 @@ export default function PrecisePage() {
               ✦ ルナからの精密鑑定メッセージ
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-              <Image src="/luna_main.png" alt="ルナ" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
+              <Image src="/luna_mainIcon.png" alt="ルナ" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
               <div style={{ fontSize: 11, color: '#7888b8' }}>
                 <strong style={{ color: '#a898f8' }}>転職占い師◇ルナ</strong>
                 <br />@hoshiyomi_luna

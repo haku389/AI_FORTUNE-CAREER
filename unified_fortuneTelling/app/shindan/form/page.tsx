@@ -665,15 +665,6 @@ export default function DiagnosisPage() {
               borderLeftColor: '#a898f844',
               animation: 'spin-rev 2.4s cubic-bezier(.4,0,.2,1) infinite',
             }} />
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <img src="/crystalBall.png" alt="" style={{ width: 44, height: 44 }} />
-            </div>
           </div>
 
           {/* ステップリスト */}

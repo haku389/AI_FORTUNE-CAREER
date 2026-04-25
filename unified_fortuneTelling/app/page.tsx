@@ -162,7 +162,7 @@ export default function InfoPage() {
               }}
             >
               <Image
-                src="/luna_main.png"
+                src="/luna_mainIcon.png"
                 alt="転職占い師ルナ"
                 width={60}
                 height={60}

@@ -227,7 +227,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
               ✦ ルナからの精密鑑定メッセージ
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-              <Image src="/luna_main.png" alt="ルナ" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
+              <Image src="/luna_mainIcon.png" alt="ルナ" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
               <div style={{ fontSize: 11, color: '#7888b8' }}>
                 <strong style={{ color: '#a898f8' }}>転職占い師◇ルナ</strong><br />@hoshiyomi_luna
               </div>
