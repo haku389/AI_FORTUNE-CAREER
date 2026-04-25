@@ -68,7 +68,7 @@ export function calcPreciseScore(
   // urgency最大値の理論値: Q0:4 + Q1:2 + Q2:3 + Q3:3 + Q12:1 + Q13:1 + Q14:1 + Q19:2 + Q22:3 = ~20
   // 実際の最大は約22なので正規化係数は22
   const MAX_URGENCY = 22;
-  const score_timing = Math.max(30, Math.min(97, Math.round((urgency / MAX_URGENCY) * 67 + 30)));
+  const score_timing = Math.max(50, Math.min(97, Math.round((urgency / MAX_URGENCY) * 47 + 50)));
 
   // timing判定
   const timing: TimingKey =
@@ -104,7 +104,7 @@ export function calcPreciseScore(
   const stressAdj   = typeof q7Ans  === 'number' ? (stressAdjMap[q7Ans] ?? 0) : 0;
   const commAdj     = typeof q9Ans  === 'number' ? (commAdjMap[q9Ans] ?? 0) : 0;
 
-  const score_readiness = Math.max(30, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd + stressAdj + commAdj)));
+  const score_readiness = Math.max(52, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd + stressAdj + commAdj)));
 
   // ── market スコア（現職場とのミスマッチ度）──
   // 使用: Q8(index 7)=リーダー像, Q11(index 10)=現業界, Q18(index 18)=働き方, Q19(index 19)=組織規模, Q20(index 20)=WLB
@@ -151,7 +151,7 @@ export function calcPreciseScore(
 
   if (!profile) {
     // 現業界未回答の場合は中間値
-    score_market = 50;
+    score_market = 65;
   } else {
     let mismatch = 0;
     if (workStyle && workStyle !== profile.work_style) mismatch += 20;
@@ -161,11 +161,11 @@ export function calcPreciseScore(
       else if (wlbPref !== profile.wlb) mismatch += 10;
     }
     if (leadership && leadership !== profile.leader) mismatch += 10;
-    score_market = Math.max(30, Math.min(97, Math.round((mismatch / 70) * 67 + 30)));
+    score_market = Math.max(50, Math.min(97, Math.round((mismatch / 70) * 47 + 50)));
   }
 
   // ── 総合スコア（加重平均: timing×0.4 + readiness×0.33 + market×0.27）──
-  const score_total = Math.max(30, Math.min(97, Math.round(score_timing * 0.4 + score_readiness * 0.33 + score_market * 0.27)));
+  const score_total = Math.max(52, Math.min(97, Math.round(score_timing * 0.4 + score_readiness * 0.33 + score_market * 0.27)));
 
   return { score_total, score_timing, score_readiness, score_market, timing, urgency };
 }

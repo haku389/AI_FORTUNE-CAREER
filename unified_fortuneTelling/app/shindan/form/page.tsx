@@ -67,6 +67,25 @@ export default function DiagnosisPage() {
   // loading state
   const [loadActiveStep, setLoadActiveStep] = useState(-1)
   const [loadText, setLoadText] = useState('星の声を聞いています')
+  const [loadPct, setLoadPct] = useState(0)
+  const loadPctRef = useRef(0)
+  const loadTargetRef = useRef(0)
+
+  useEffect(() => {
+    const target = loadActiveStep < 0 ? 5 : Math.min(95, Math.round(((loadActiveStep + 1) / LOAD_STEPS.length) * 100))
+    loadTargetRef.current = target
+  }, [loadActiveStep])
+
+  useEffect(() => {
+    if (step !== 'loading') { loadPctRef.current = 0; setLoadPct(0); return }
+    const iv = setInterval(() => {
+      if (loadPctRef.current < loadTargetRef.current) {
+        loadPctRef.current += 1
+        setLoadPct(loadPctRef.current)
+      }
+    }, 35)
+    return () => clearInterval(iv)
+  }, [step])
 
   // result state
   const [result, setResult] = useState<FullResult | null>(null)
@@ -665,6 +684,10 @@ export default function DiagnosisPage() {
               borderLeftColor: '#a898f844',
               animation: 'spin-rev 2.4s cubic-bezier(.4,0,.2,1) infinite',
             }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-mincho)', fontSize: 28, fontWeight: 900, color: '#f0c060', lineHeight: 1, letterSpacing: -1 }}>{loadPct}</span>
+              <span style={{ fontSize: 10, color: '#a898f8', letterSpacing: 1, marginTop: 2 }}>%</span>
+            </div>
           </div>
 
           {/* ステップリスト */}

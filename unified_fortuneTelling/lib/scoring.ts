@@ -148,8 +148,8 @@ export function calcScore(answers: number[]): DiagnosisResult {
   const mars = (Q[3].opts[answers[3]].s.mars ?? 'calm') as MarsKey;
 
   const marsBonus = mars === 'suppressed' || mars === 'misfit' ? 8 : 0;
-  let score = Math.min(urgency * 7 + 20 + marsBonus, 97);
-  score = Math.max(score, 22);
+  let score = Math.min(urgency * 6 + 45 + marsBonus, 97);
+  score = Math.max(score, 48);
 
   const timing: TimingKey =
     urgency >= 8 ? 'now' :

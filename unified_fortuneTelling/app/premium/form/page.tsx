@@ -167,6 +167,25 @@ export default function PrecisePage() {
   // loading state
   const [loadActiveStep, setLoadActiveStep] = useState(-1)
   const [loadText, setLoadText] = useState('星の声を聞いています')
+  const [loadPct, setLoadPct] = useState(0)
+  const loadPctRef = useRef(0)
+  const loadTargetRef = useRef(0)
+
+  useEffect(() => {
+    const target = loadActiveStep < 0 ? 5 : Math.min(95, Math.round(((loadActiveStep + 1) / LOAD_STEPS.length) * 100))
+    loadTargetRef.current = target
+  }, [loadActiveStep])
+
+  useEffect(() => {
+    if (step !== 'loading') { loadPctRef.current = 0; setLoadPct(0); return }
+    const iv = setInterval(() => {
+      if (loadPctRef.current < loadTargetRef.current) {
+        loadPctRef.current += 1
+        setLoadPct(loadPctRef.current)
+      }
+    }, 35)
+    return () => clearInterval(iv)
+  }, [step])
 
   // result state
   const [result, setResult] = useState<PreciseResult | null>(null)
@@ -971,6 +990,10 @@ export default function PrecisePage() {
             <div style={{ width: 120, height: 120, borderRadius: '50%', border: '2px solid transparent', borderTopColor: '#c8952a', borderRightColor: '#c8952a66', animation: 'spin-fwd 1.6s cubic-bezier(.4,0,.2,1) infinite', boxShadow: '0 0 18px #c8952a44' }} />
             <div style={{ position: 'absolute', inset: 12, borderRadius: '50%', border: '2px solid transparent', borderBottomColor: '#a898f8', borderLeftColor: '#a898f844', animation: 'spin-rev 2.4s cubic-bezier(.4,0,.2,1) infinite' }} />
             <div style={{ position: 'absolute', inset: 24, borderRadius: '50%', border: '1px solid transparent', borderTopColor: '#3cc4a8', animation: 'spin-fwd 3.2s linear infinite' }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-mincho)', fontSize: 26, fontWeight: 900, color: '#f0c060', lineHeight: 1, letterSpacing: -1 }}>{loadPct}</span>
+              <span style={{ fontSize: 10, color: '#a898f8', letterSpacing: 1, marginTop: 2 }}>%</span>
+            </div>
           </div>
 
           {/* ステップリスト */}
