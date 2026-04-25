@@ -42,6 +42,7 @@ type UserData = {
   moonKeyword: string
   honmeiStar: HonmeiStar
   honmeiKeyword: string
+  mbti: string
 }
 
 type PreciseResult = {
@@ -337,6 +338,9 @@ export default function PrecisePage() {
     const honmeiStarVal = getHonmeiStar(year, month, day)
     const honmeiKeywordVal = getHonmeiStarKeyword(honmeiStarVal)
 
+    // MBTI・motivation・roles・industriesを回答から抽出
+    const mbti = (typeof answers[4] === 'number' ? QUESTIONS[4].opts[answers[4]]?.s?.mbti : null) ?? 'unknown'
+
     const userData: UserData = {
       nickname,
       year, month, day, birthtime,
@@ -345,13 +349,11 @@ export default function PrecisePage() {
       moonKeyword: moonKeywordVal,
       honmeiStar: honmeiStarVal,
       honmeiKeyword: honmeiKeywordVal,
+      mbti,
     }
 
     // スコア計算
     const scoreResult = calcPreciseScore(answers)
-
-    // MBTI・motivation・roles・industriesを回答から抽出
-    const mbti = (typeof answers[4] === 'number' ? QUESTIONS[4].opts[answers[4]]?.s?.mbti : null) ?? 'unknown'
     const motivation = (typeof answers[5] === 'number' ? QUESTIONS[5].opts[answers[5]]?.s?.motivation : null) ?? 'achievement'
     const roles = Array.isArray(answers[12]) ? (answers[12] as number[]).map(i => QUESTIONS[12].opts[i]?.s?.role ?? '') : typeof answers[12] === 'number' ? [QUESTIONS[12].opts[answers[12]]?.s?.role ?? ''] : []
     const industries = Array.isArray(answers[11]) ? (answers[11] as number[]).map(i => QUESTIONS[11].opts[i]?.s?.industry ?? '') : typeof answers[11] === 'number' ? [QUESTIONS[11].opts[answers[11]]?.s?.industry ?? ''] : []
