@@ -1,13 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { loadStripe } from '@stripe/stripe-js'
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js'
 import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
 import ShareBlock from '@/components/result/ShareBlock'
@@ -23,13 +16,8 @@ import { calcJobMatch, JobMatch, IndustryMatch, AgentMatch } from '@/lib/jobMatc
 import { calcMonthlyAdvice, MonthAdvice } from '@/lib/monthlyAdvice'
 import { getPreciseKansen } from '@/lib/precise-kansen'
 
-/* ─── Stripe ─── */
-const STRIPE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
-const IS_DEV_MODE = !STRIPE_KEY || STRIPE_KEY.includes('your_key')
-const stripePromise = IS_DEV_MODE ? null : loadStripe(STRIPE_KEY)
-
 /* ─── Types ─── */
-type Step = 'input' | 'questions' | 'payment' | 'loading' | 'result'
+type Step = 'input' | 'questions' | 'loading' | 'result'
 
 type UserData = {
   nickname: string
@@ -71,78 +59,6 @@ function QIcon({ name, picked, size = 18 }: { name: string; picked: boolean; siz
   return <Icon size={size} color={picked ? '#f0c060' : '#a898f8'} strokeWidth={1.5} />
 }
 
-/* ─── Stripe Payment Form Component ─── */
-function PaymentForm({
-  onSuccess,
-  onError,
-}: {
-  onSuccess: (paymentIntentId: string) => void
-  onError: (msg: string) => void
-}) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [processing, setProcessing] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!stripe || !elements) return
-
-    setProcessing(true)
-
-    const result = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/premium?payment_success=true`,
-      },
-      redirect: 'if_required',
-    })
-
-    if (result.error) {
-      onError(result.error.message ?? '決済に失敗しました')
-      setProcessing(false)
-    } else if (result.paymentIntent?.status === 'succeeded') {
-      onSuccess(result.paymentIntent.id)
-    } else {
-      onError('予期しないエラーが発生しました。もう一度お試しください。')
-      setProcessing(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement
-        options={{
-          layout: 'tabs',
-          fields: { billingDetails: { name: 'never', email: 'never' } },
-        }}
-      />
-      <button
-        type="submit"
-        disabled={!stripe || processing}
-        style={{
-          marginTop: 24,
-          width: '100%',
-          padding: 16,
-          background: processing
-            ? '#3a4870'
-            : 'linear-gradient(135deg, #c8952a, #e0a830)',
-          border: 'none',
-          borderRadius: 12,
-          color: processing ? '#7888b8' : '#1a0c00',
-          fontSize: 15,
-          fontWeight: 700,
-          cursor: processing ? 'not-allowed' : 'pointer',
-          fontFamily: 'var(--font-sans)',
-          letterSpacing: 1,
-          transition: 'all .2s',
-        }}
-      >
-        {processing ? '処理中…' : '¥1,980 で精密鑑定を受ける ✨'}
-      </button>
-    </form>
-  )
-}
-
 /* ─── Main Component ─── */
 export default function PrecisePage() {
   const [step, setStep] = useState<Step>('input')
@@ -159,11 +75,6 @@ export default function PrecisePage() {
   // questions state
   const [curQ, setCurQ] = useState(0)
   const [answers, setAnswers] = useState<(number | number[])[]>([])
-
-  // payment state
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
-  const [paymentError, setPaymentError] = useState<string | null>(null)
-  const [paymentLoading, setPaymentLoading] = useState(false)
 
   // loading state
   const [loadActiveStep, setLoadActiveStep] = useState(-1)
@@ -284,7 +195,7 @@ export default function PrecisePage() {
     if (curQ < QUESTIONS.length - 1) {
       setCurQ(q => q + 1)
     } else {
-      startLoading('dev_skip_' + Date.now())
+      startLoading()
     }
   }
 
@@ -292,41 +203,8 @@ export default function PrecisePage() {
     if (curQ > 0) setCurQ(q => q - 1)
   }
 
-  /* ── Payment ── */
-  const enterPayment = async () => {
-    setPaymentLoading(true)
-    setPaymentError(null)
-    setStep('payment')
-
-    try {
-      const res = await fetch('/api/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname }),
-      })
-      const data = await res.json()
-      if (data.clientSecret) {
-        setClientSecret(data.clientSecret)
-      } else {
-        setPaymentError('決済の初期化に失敗しました。もう一度お試しください。')
-      }
-    } catch {
-      setPaymentError('ネットワークエラーが発生しました。')
-    } finally {
-      setPaymentLoading(false)
-    }
-  }
-
-  const handlePaymentSuccess = useCallback(
-    (paymentIntentId: string) => {
-      startLoading(paymentIntentId)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [answers, nickname, year, month, day, birthtime, sunSign],
-  )
-
   /* ── Loading ── */
-  const startLoading = (paymentIntentId: string) => {
+  const startLoading = () => {
     if (!sunSign) return
     setLoadActiveStep(-1)
     setLoadText('星の声を聞いています')
@@ -419,7 +297,7 @@ export default function PrecisePage() {
               agents,
               monthlyAdvice,
               kansenText,
-              paymentIntentId,
+              paymentIntentId: '',
             }
 
             setResult(full)
@@ -451,8 +329,8 @@ export default function PrecisePage() {
                 monthly_advice: monthlyAdvice,
                 kansen_text: kansenText,
                 recommended_agents: agents,
-                payment_id: paymentIntentId,
-                amount: 1980,
+                payment_id: null,
+                amount: 0,
                 line_user_id: lineUserIdRef.current ?? undefined,
               }),
             }).then(r => r.json()).then(d => {
@@ -537,7 +415,7 @@ export default function PrecisePage() {
             ⚠️ {lineErrorMsg}
           </div>
         )}
-        <div style={{ background: '#0d1e14', border: '1px solid #06c75533', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+        <div style={{ background: lineUserId ? '#0d1e14' : '#1a1230', border: `1px solid ${lineUserId ? '#06c75533' : '#a898f866'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
           {lineUserId ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {linePictureUrl && (
@@ -546,13 +424,14 @@ export default function PrecisePage() {
               )}
               <div>
                 <div style={{ fontSize: 12, color: '#06c755', fontWeight: 700 }}>LINEアカウント連携済み ✓</div>
-                <div style={{ fontSize: 11, color: '#7888b8' }}>{lineDisplayName}さん・鑑定後に結果をLINEでお届けします</div>
+                <div style={{ fontSize: 11, color: '#7888b8' }}>{lineDisplayName}さん・鑑定結果をLINEでお届けします</div>
               </div>
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 10 }}>
-                📩 LINEアカウントと連携すると、鑑定結果をいつでもLINEから確認できます（任意）
+              <div style={{ fontSize: 12, color: '#a898f8', fontWeight: 700, marginBottom: 6 }}>🔒 LINEログインが必要です</div>
+              <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 12 }}>
+                精密鑑定を受けるにはLINEアカウントが必要です。ログイン後、定期的に転職情報をお届けします。
               </div>
               <a
                 href="/api/line/login"
@@ -563,16 +442,16 @@ export default function PrecisePage() {
                   gap: 10,
                   background: '#06c755',
                   borderRadius: 8,
-                  padding: '11px 16px',
+                  padding: '13px 16px',
                   color: '#fff',
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 700,
                   textDecoration: 'none',
                   letterSpacing: 0.5,
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" /></svg>
-                LINEでログイン・連携する
+                LINEでログインして診断を始める
               </a>
             </div>
           )}
@@ -701,22 +580,24 @@ export default function PrecisePage() {
 
           <button
             onClick={handleStartQuiz}
-            disabled={!nickname || !gender || !year || !month || !day}
+            disabled={!lineUserId || !nickname || !gender || !year || !month || !day}
             style={{
               width: '100%', padding: 16,
               background: 'linear-gradient(135deg, #c8952a, #e0a830)',
               border: 'none', borderRadius: 12,
               color: '#1a0c00', fontSize: 15, fontWeight: 700,
-              cursor: (!nickname || !gender || !year || !month || !day) ? 'not-allowed' : 'pointer',
-              opacity: (!nickname || !gender || !year || !month || !day) ? 0.4 : 1,
+              cursor: (!lineUserId || !nickname || !gender || !year || !month || !day) ? 'not-allowed' : 'pointer',
+              opacity: (!lineUserId || !nickname || !gender || !year || !month || !day) ? 0.4 : 1,
               transition: 'opacity .2s', fontFamily: 'var(--font-sans)', letterSpacing: 1,
             }}
           >
             26問の精密診断を始める →
           </button>
-          <p style={{ fontSize: 10, color: '#3a4870', textAlign: 'center', marginTop: 10 }}>
-            ※ 診断後に¥1,980の決済があります
-          </p>
+          {!lineUserId && (
+            <p style={{ fontSize: 11, color: '#a898f8', textAlign: 'center', marginTop: 10 }}>
+              ↑ LINEログインが必要です
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -865,7 +746,7 @@ export default function PrecisePage() {
               disabled={!isAnswered(curQ)}
               style={{ flex: 1, padding: 15, background: 'linear-gradient(135deg, #c8952a, #e0a830)', border: 'none', borderRadius: 10, color: '#1a0c00', fontSize: 14, fontWeight: 700, cursor: isAnswered(curQ) ? 'pointer' : 'not-allowed', opacity: isAnswered(curQ) ? 1 : 0.35, transition: 'all .2s', fontFamily: 'var(--font-sans)' }}
             >
-              {curQ === QUESTIONS.length - 1 ? '診断を完了して決済へ ✨' : '次へ →'}
+              {curQ === QUESTIONS.length - 1 ? '診断を完了して鑑定結果を見る ✨' : '次へ →'}
             </button>
           </div>
         </div>
@@ -873,104 +754,6 @@ export default function PrecisePage() {
     )
   }
 
-  /* ══════════════════════════════════════
-     PAYMENT
-  ══════════════════════════════════════ */
-  if (step === 'payment') return (
-    <div style={{ background: '#060914', minHeight: '100dvh' }}>
-      <Stars />
-      <div style={pageStyle}>
-        <div style={{ textAlign: 'center', marginBottom: 24, marginTop: 16 }}>
-          <div style={{ fontSize: 10, letterSpacing: 4, color: '#c8952a', marginBottom: 10 }}>✦ 精密鑑定 ✦</div>
-          <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0f4ff', marginBottom: 8 }}>
-            あと一歩です
-          </h2>
-          <p style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.8 }}>
-            26問の回答をもとに、あなただけの<br />精密鑑定を生成します。
-          </p>
-        </div>
-
-        {/* サマリーカード */}
-        <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #111c36, #0d1428)' }}>
-          <div style={{ fontSize: 11, color: '#c8952a', letterSpacing: 2, marginBottom: 10 }}>✦ 鑑定内容</div>
-          {[
-            '本命星・月星座を使った深い性格鑑定（300〜500文字）',
-            '向いている職種TOP3・業界マッチング',
-            '今後3ヶ月の行動アドバイス（月別）',
-            'AIルナからの個別パーソナライズ鑑定文',
-          ].map((item, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12, color: '#dde4f8', marginBottom: 8 }}>
-              <span style={{ color: '#3cc4a8', flexShrink: 0 }}>✓</span>
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* 価格 */}
-        <div style={{ textAlign: 'center', marginBottom: 20, padding: '16px', background: '#0d1428', border: '1px solid #c8952a33', borderRadius: 12 }}>
-          <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 4 }}>精密鑑定料金</div>
-          <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 36, fontWeight: 900, color: '#f0c060' }}>¥1,980</div>
-          <div style={{ fontSize: 10, color: '#3a4870', marginTop: 4 }}>※ 1回限り・返金不可</div>
-        </div>
-
-        {/* Stripeフォーム */}
-        {paymentLoading && (
-          <div style={{ textAlign: 'center', color: '#7888b8', fontSize: 13, padding: 20 }}>
-            決済フォームを準備中…
-          </div>
-        )}
-
-        {paymentError && (
-          <div style={{ background: '#1a0d0d', border: '1px solid #d4607a', borderRadius: 8, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#d4607a' }}>
-            {paymentError}
-          </div>
-        )}
-
-        {/* 開発モード: Stripeキー未設定時はスキップボタンを表示 */}
-        {IS_DEV_MODE && (
-          <div>
-            <div style={{ background: '#1a1a0a', border: '1px solid #c8952a44', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 11, color: '#c8952a', textAlign: 'center' }}>
-              🛠 開発モード — Stripeキー未設定のため決済をスキップできます
-            </div>
-            <button
-              onClick={() => handlePaymentSuccess('dev_skip_' + Date.now())}
-              style={{ width: '100%', padding: 16, background: 'linear-gradient(135deg, #c8952a, #e0a830)', border: 'none', borderRadius: 12, color: '#1a0c00', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-sans)', letterSpacing: 1 }}
-            >
-              ✨ 結果を見る（開発用スキップ）
-            </button>
-          </div>
-        )}
-
-        {!IS_DEV_MODE && clientSecret && stripePromise && (
-          <Elements
-            stripe={stripePromise}
-            options={{
-              clientSecret,
-              appearance: {
-                theme: 'night',
-                variables: {
-                  colorPrimary: '#c8952a',
-                  colorBackground: '#111c36',
-                  colorText: '#dde4f8',
-                  borderRadius: '8px',
-                  fontFamily: 'var(--font-sans)',
-                },
-              },
-            }}
-          >
-            <PaymentForm
-              onSuccess={handlePaymentSuccess}
-              onError={msg => setPaymentError(msg)}
-            />
-          </Elements>
-        )}
-
-        <p style={{ fontSize: 10, color: '#3a4870', textAlign: 'center', marginTop: 14 }}>
-          Stripe決済で安全に処理されます
-        </p>
-      </div>
-    </div>
-  )
 
   /* ══════════════════════════════════════
      LOADING
