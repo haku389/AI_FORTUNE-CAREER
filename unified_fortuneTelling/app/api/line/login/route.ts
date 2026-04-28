@@ -26,10 +26,11 @@ export async function GET(_req: NextRequest) {
   const res = NextResponse.redirect(
     `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`,
   )
+  // SameSite=None + Secure: Safariの ITP によるクロスサイトcookieブロックを回避
   res.cookies.set('line_state', state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 600,
     path: '/',
   })
