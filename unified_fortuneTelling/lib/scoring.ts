@@ -138,6 +138,7 @@ export const SATURNS: Record<MarsKey, SaturnData> = {
 export function calcScore(answers: number[]): DiagnosisResult {
   const Q = QUESTIONS;
 
+  // urgency = Q0(基礎値1-4) + Q2(+0-1) + Q3(+0-2) + Q4(+0-3) → 最大10
   let urgency = Q[0].opts[answers[0]].s.urgency ?? 0;
   urgency += Q[2].opts[answers[2]].s.urgency_add ?? 0;
   urgency += Q[3].opts[answers[3]].s.urgency_add ?? 0;
@@ -147,9 +148,10 @@ export function calcScore(answers: number[]): DiagnosisResult {
   const stress = (Q[2].opts[answers[2]].s.stress ?? 'calm') as StressKey;
   const mars = (Q[3].opts[answers[3]].s.mars ?? 'calm') as MarsKey;
 
-  const marsBonus = mars === 'suppressed' || mars === 'misfit' ? 8 : 0;
-  let score = Math.min(urgency * 6 + 45 + marsBonus, 97);
-  score = Math.max(score, 48);
+  // 精密診断と同じ比例計算（urgency最大10で正規化）
+  // 範囲: 50-92（精密診断の50-97より低い上限で差別化）
+  const MAX_URGENCY = 10;
+  const score = Math.max(50, Math.min(92, Math.round((urgency / MAX_URGENCY) * 42 + 50)));
 
   const timing: TimingKey =
     urgency >= 8 ? 'now' :

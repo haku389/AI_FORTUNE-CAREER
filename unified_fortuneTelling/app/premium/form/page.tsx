@@ -84,7 +84,7 @@ export default function PrecisePage() {
   const loadTargetRef = useRef(0)
 
   useEffect(() => {
-    const target = loadActiveStep < 0 ? 5 : Math.min(95, Math.round(((loadActiveStep + 1) / LOAD_STEPS.length) * 100))
+    const target = loadActiveStep < 0 ? 0 : Math.min(95, Math.round(((loadActiveStep + 1) / LOAD_STEPS.length) * 100))
     loadTargetRef.current = target
   }, [loadActiveStep])
 
@@ -409,196 +409,200 @@ export default function PrecisePage() {
       <Stars />
       <div style={{ ...pageStyle, justifyContent: 'center' }}>
 
-        {/* LINE ログインバナー */}
         {lineErrorMsg && (
           <div style={{ background: '#1a0d0d', border: '1px solid #d4607a44', borderRadius: 10, padding: '10px 14px', marginBottom: 10, fontSize: 12, color: '#d4607a' }}>
             ⚠️ {lineErrorMsg}
           </div>
         )}
-        <div style={{ background: lineUserId ? '#0d1e14' : '#1a1230', border: `1px solid ${lineUserId ? '#06c75533' : '#a898f866'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
-          {lineUserId ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+        {/* ── LINEログイン前: ログイン画面のみ表示 ── */}
+        {!lineUserId ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+            <Image src="/assets/img/luna_mainIcon.png" alt="ルナ" width={96} height={96} style={{ borderRadius: '50%', marginBottom: 20, filter: 'drop-shadow(0 0 18px #a898f855)' }} />
+            <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0f4ff', marginBottom: 8, textAlign: 'center' }}>
+              転職占い師ルナの精密鑑定
+            </div>
+            <div style={{ fontSize: 12, color: '#7888b8', textAlign: 'center', lineHeight: 1.8, marginBottom: 28 }}>
+              精密鑑定を受けるにはLINEアカウントが必要です。<br />
+              ログイン後、あなたの占い結果に基づいて<br />定期的に転職情報をお届けします。
+            </div>
+            <a
+              href="/api/line/login"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                background: '#06c755',
+                borderRadius: 12,
+                padding: '16px 24px',
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: 700,
+                textDecoration: 'none',
+                letterSpacing: 0.5,
+                width: '100%',
+                boxSizing: 'border-box',
+                boxShadow: '0 4px 20px #06c75544',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" /></svg>
+              LINEでログインして診断を始める
+            </a>
+          </div>
+        ) : (
+          <>
+            {/* ── LINEログイン済み: 連携済みバナー + フォーム ── */}
+            <div style={{ background: '#0d1e14', border: '1px solid #06c75533', borderRadius: 12, padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
               {linePictureUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={linePictureUrl} alt="LINE" width={36} height={36} style={{ borderRadius: '50%', border: '1px solid #06c755' }} />
+                <img src={linePictureUrl} alt="LINE" width={36} height={36} style={{ borderRadius: '50%', border: '1px solid #06c755', flexShrink: 0 }} />
               )}
               <div>
                 <div style={{ fontSize: 12, color: '#06c755', fontWeight: 700 }}>LINEアカウント連携済み ✓</div>
                 <div style={{ fontSize: 11, color: '#7888b8' }}>{lineDisplayName}さん・鑑定結果をLINEでお届けします</div>
               </div>
             </div>
-          ) : (
-            <div>
-              <div style={{ fontSize: 12, color: '#a898f8', fontWeight: 700, marginBottom: 6 }}>🔒 LINEログインが必要です</div>
-              <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 12 }}>
-                精密鑑定を受けるにはLINEアカウントが必要です。ログイン後、定期的に転職情報をお届けします。
+
+            <div style={cardStyle}>
+              <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 20, fontWeight: 700, textAlign: 'center', marginBottom: 6, color: '#f0f4ff' }}>
+                あなたの星を深く読む
+              </h2>
+              <p style={{ fontSize: 12, color: '#7888b8', textAlign: 'center', marginBottom: 24 }}>
+                誕生日・ニックネームを入力してください
+              </p>
+
+              {/* ニックネーム */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+                  ✦ ニックネーム
+                </label>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={e => setNickname(e.target.value)}
+                  placeholder="普段呼ばれているお名前"
+                  maxLength={10}
+                  style={{
+                    width: '100%',
+                    background: '#111c36',
+                    border: `1px solid ${nickname ? '#c8952a' : '#2a3f72'}`,
+                    borderRadius: 8,
+                    padding: '14px 16px',
+                    color: '#f0f4ff',
+                    fontSize: 16,
+                    fontFamily: 'var(--font-sans)',
+                    outline: 'none',
+                    transition: 'border-color .2s',
+                  }}
+                />
               </div>
-              <a
-                href="/api/line/login"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  background: '#06c755',
-                  borderRadius: 8,
-                  padding: '13px 16px',
-                  color: '#fff',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  letterSpacing: 0.5,
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" /></svg>
-                LINEでログインして診断を始める
-              </a>
-            </div>
-          )}
-        </div>
 
-        <div style={cardStyle}>
-          <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 20, fontWeight: 700, textAlign: 'center', marginBottom: 6, color: '#f0f4ff' }}>
-            あなたの星を深く読む
-          </h2>
-          <p style={{ fontSize: 12, color: '#7888b8', textAlign: 'center', marginBottom: 24 }}>
-            誕生日・ニックネームを入力してください
-          </p>
+              {/* 生年月日 */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+                  ✦ 誕生日
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  <select
+                    value={year || ''}
+                    onChange={e => setYear(Number(e.target.value))}
+                    style={{ width: '100%', background: '#111c36', border: `1px solid ${year ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: year ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
+                  >
+                    <option value="">年</option>
+                    {years.map(y => <option key={y} value={y}>{y}年</option>)}
+                  </select>
+                  <select
+                    value={month || ''}
+                    onChange={e => setMonth(Number(e.target.value))}
+                    style={{ width: '100%', background: '#111c36', border: `1px solid ${month ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: month ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
+                  >
+                    <option value="">月</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{m}月</option>)}
+                  </select>
+                  <select
+                    value={day || ''}
+                    onChange={e => setDay(Number(e.target.value))}
+                    style={{ width: '100%', background: '#111c36', border: `1px solid ${day ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: day ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
+                  >
+                    <option value="">日</option>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}日</option>)}
+                  </select>
+                </div>
 
-          {/* ニックネーム */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              ✦ ニックネーム
-            </label>
-            <input
-              type="text"
-              value={nickname}
-              onChange={e => setNickname(e.target.value)}
-              placeholder="普段呼ばれているお名前"
-              maxLength={10}
-              style={{
-                width: '100%',
-                background: '#111c36',
-                border: `1px solid ${nickname ? '#c8952a' : '#2a3f72'}`,
-                borderRadius: 8,
-                padding: '14px 16px',
-                color: '#f0f4ff',
-                fontSize: 16,
-                fontFamily: 'var(--font-sans)',
-                outline: 'none',
-                transition: 'border-color .2s',
-              }}
-            />
-          </div>
+                {/* 星座表示 */}
+                {sunSign && (
+                  <div style={{ marginTop: 12, padding: '14px', background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 16, animation: 'fade-in .4s ease', width: '100%', boxSizing: 'border-box' }}>
+                    <Image src={`/assets/img/${sunSign.en}.png`} alt={sunSign.name} width={52} height={52} style={{ objectFit: 'contain', flexShrink: 0 }} priority />
+                    <div>
+                      <strong style={{ color: '#a898f8', display: 'block', fontSize: 14 }}>{sunSign.name}</strong>
+                      <span style={{ fontSize: 11, color: '#7888b8' }}>{sunSign.keyword}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-          {/* 生年月日 */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              ✦ 誕生日
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <select
-                value={year || ''}
-                onChange={e => setYear(Number(e.target.value))}
-                style={{ width: '100%', background: '#111c36', border: `1px solid ${year ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: year ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
-              >
-                <option value="">年</option>
-                {years.map(y => <option key={y} value={y}>{y}年</option>)}
-              </select>
-              <select
-                value={month || ''}
-                onChange={e => setMonth(Number(e.target.value))}
-                style={{ width: '100%', background: '#111c36', border: `1px solid ${month ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: month ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
-              >
-                <option value="">月</option>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{m}月</option>)}
-              </select>
-              <select
-                value={day || ''}
-                onChange={e => setDay(Number(e.target.value))}
-                style={{ width: '100%', background: '#111c36', border: `1px solid ${day ? '#c8952a' : '#2a3f72'}`, borderRadius: 8, padding: '13px 10px', color: day ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', cursor: 'pointer', textAlign: 'center' }}
-              >
-                <option value="">日</option>
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}日</option>)}
-              </select>
-            </div>
+              {/* 出生時間（任意） */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+                  ✦ 出生時間（任意）
+                  <span style={{ fontSize: 10, color: '#3a4870', marginLeft: 8, letterSpacing: 0 }}>月星座の精度UP</span>
+                </label>
+                <input
+                  type="time"
+                  value={birthtime}
+                  onChange={e => setBirthtime(e.target.value)}
+                  style={{ width: '100%', boxSizing: 'border-box', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 8, padding: '13px 16px', color: birthtime ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', WebkitAppearance: 'none', appearance: 'none' }}
+                />
+              </div>
 
-            {/* 星座表示 */}
-            {sunSign && (
-              <div style={{ marginTop: 12, padding: '14px', background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 16, animation: 'fade-in .4s ease', width: '100%', boxSizing: 'border-box' }}>
-                <Image src={`/assets/img/${sunSign.en}.png`} alt={sunSign.name} width={52} height={52} style={{ objectFit: 'contain', flexShrink: 0 }} priority />
-                <div>
-                  <strong style={{ color: '#a898f8', display: 'block', fontSize: 14 }}>{sunSign.name}</strong>
-                  <span style={{ fontSize: 11, color: '#7888b8' }}>{sunSign.keyword}</span>
+              {/* 性別 */}
+              <div style={{ marginBottom: 28 }}>
+                <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
+                  ✦ 性別
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  {[{ val: '男性', label: '男性' }, { val: '女性', label: '女性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setGender(val)}
+                      style={{
+                        padding: '12px 0',
+                        background: gender === val ? 'linear-gradient(135deg, #c8952a14, #7c6bdc14)' : '#111c36',
+                        border: `1px solid ${gender === val ? '#c8952a' : '#2a3f72'}`,
+                        borderRadius: 8,
+                        color: gender === val ? '#f0f4ff' : '#3a4870',
+                        fontSize: 14,
+                        fontFamily: 'var(--font-sans)',
+                        cursor: 'pointer',
+                        transition: 'all .2s',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* 出生時間（任意） */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              ✦ 出生時間（任意）
-              <span style={{ fontSize: 10, color: '#3a4870', marginLeft: 8, letterSpacing: 0 }}>月星座の精度UP</span>
-            </label>
-            <input
-              type="time"
-              value={birthtime}
-              onChange={e => setBirthtime(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 8, padding: '13px 16px', color: birthtime ? '#f0f4ff' : '#3a4870', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', WebkitAppearance: 'none', appearance: 'none' }}
-            />
-          </div>
-
-          {/* 性別 */}
-          <div style={{ marginBottom: 28 }}>
-            <label style={{ display: 'block', fontSize: 11, letterSpacing: 2, color: '#c8952a', marginBottom: 8 }}>
-              ✦ 性別
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              {[{ val: '男性', label: '男性' }, { val: '女性', label: '女性' }, { val: 'その他', label: 'その他' }].map(({ val, label }) => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setGender(val)}
-                  style={{
-                    padding: '12px 0',
-                    background: gender === val ? 'linear-gradient(135deg, #c8952a14, #7c6bdc14)' : '#111c36',
-                    border: `1px solid ${gender === val ? '#c8952a' : '#2a3f72'}`,
-                    borderRadius: 8,
-                    color: gender === val ? '#f0f4ff' : '#3a4870',
-                    fontSize: 14,
-                    fontFamily: 'var(--font-sans)',
-                    cursor: 'pointer',
-                    transition: 'all .2s',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+              <button
+                onClick={handleStartQuiz}
+                disabled={!nickname || !gender || !year || !month || !day}
+                style={{
+                  width: '100%', padding: 16,
+                  background: 'linear-gradient(135deg, #c8952a, #e0a830)',
+                  border: 'none', borderRadius: 12,
+                  color: '#1a0c00', fontSize: 15, fontWeight: 700,
+                  cursor: (!nickname || !gender || !year || !month || !day) ? 'not-allowed' : 'pointer',
+                  opacity: (!nickname || !gender || !year || !month || !day) ? 0.4 : 1,
+                  transition: 'opacity .2s', fontFamily: 'var(--font-sans)', letterSpacing: 1,
+                }}
+              >
+                26問の精密診断を始める →
+              </button>
             </div>
-          </div>
-
-          <button
-            onClick={handleStartQuiz}
-            disabled={!lineUserId || !nickname || !gender || !year || !month || !day}
-            style={{
-              width: '100%', padding: 16,
-              background: 'linear-gradient(135deg, #c8952a, #e0a830)',
-              border: 'none', borderRadius: 12,
-              color: '#1a0c00', fontSize: 15, fontWeight: 700,
-              cursor: (!lineUserId || !nickname || !gender || !year || !month || !day) ? 'not-allowed' : 'pointer',
-              opacity: (!lineUserId || !nickname || !gender || !year || !month || !day) ? 0.4 : 1,
-              transition: 'opacity .2s', fontFamily: 'var(--font-sans)', letterSpacing: 1,
-            }}
-          >
-            26問の精密診断を始める →
-          </button>
-          {!lineUserId && (
-            <p style={{ fontSize: 11, color: '#a898f8', textAlign: 'center', marginTop: 10 }}>
-              ↑ LINEログインが必要です
-            </p>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -777,7 +781,6 @@ export default function PrecisePage() {
             <div style={{ position: 'absolute', inset: 24, borderRadius: '50%', border: '1px solid transparent', borderTopColor: '#3cc4a8', animation: 'spin-fwd 3.2s linear infinite' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mincho)', fontSize: 26, fontWeight: 900, color: '#f0c060', lineHeight: 1, letterSpacing: -1 }}>{loadPct}</span>
-              <span style={{ fontSize: 10, color: '#a898f8', letterSpacing: 1, marginTop: 2 }}>%</span>
             </div>
           </div>
 

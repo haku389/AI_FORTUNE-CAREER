@@ -72,7 +72,7 @@ export default function DiagnosisPage() {
   const loadTargetRef = useRef(0)
 
   useEffect(() => {
-    const target = loadActiveStep < 0 ? 5 : Math.min(95, Math.round(((loadActiveStep + 1) / LOAD_STEPS.length) * 100))
+    const target = loadActiveStep < 0 ? 0 : Math.min(95, Math.round(((loadActiveStep + 1) / LOAD_STEPS.length) * 100))
     loadTargetRef.current = target
   }, [loadActiveStep])
 
@@ -686,7 +686,6 @@ export default function DiagnosisPage() {
             }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mincho)', fontSize: 28, fontWeight: 900, color: '#f0c060', lineHeight: 1, letterSpacing: -1 }}>{loadPct}</span>
-              <span style={{ fontSize: 10, color: '#a898f8', letterSpacing: 1, marginTop: 2 }}>%</span>
             </div>
           </div>
 
@@ -925,7 +924,7 @@ export default function DiagnosisPage() {
               もっと深く知りたい方へ
             </div>
             <div style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.7, marginBottom: 16 }}>
-              AIルナによる精密鑑定（LINEで受け取り）
+              転職占い師ルナによる精密鑑定（LINEで受け取り）
               <br />生年月日×星読み×転職運の完全版レポート
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 18, textAlign: 'left' }}>
