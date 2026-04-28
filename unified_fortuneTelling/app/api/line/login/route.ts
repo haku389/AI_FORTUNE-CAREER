@@ -19,6 +19,8 @@ export async function GET(_req: NextRequest) {
     // openid は nonce が必要なため使用しない。profile だけで十分
     scope: 'profile',
     state,
+    // ログインと同時に公式アカウントの友だち追加を促す（LINE DevelopersでLoginチャンネルとMessaging APIチャンネルをリンク済みの場合に有効）
+    bot_prompt: 'aggressive',
   })
 
   const res = NextResponse.redirect(
