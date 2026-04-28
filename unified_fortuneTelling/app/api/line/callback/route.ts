@@ -1,4 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'crypto'
+
+/**
+ * HMAC署名付きstateを検証（cookieなし）
+ * state = "timestamp.hmac" の形式
+ * 10分以内かつHMACが一致すれば有効
+ */
+function verifyState(state: string, secret: string): boolean {
+  try {
+    const dotIndex = state.lastIndexOf('.')
+    if (dotIndex === -1) return false
+    const timestamp = state.slice(0, dotIndex)
+    const receivedHmac = state.slice(dotIndex + 1)
+
+    // 10分以内かチェック
+    const ts = parseInt(timestamp, 10)
+    if (isNaN(ts) || Date.now() - ts > 10 * 60 * 1000) return false
+
+    // HMAC検証（タイミング攻撃対策でtimingSafeEqual使用）
+    const expectedHmac = createHmac('sha256', secret).update(timestamp).digest('hex').slice(0, 24)
+    return timingSafeEqual(Buffer.from(receivedHmac), Buffer.from(expectedHmac))
+  } catch {
+    return false
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -17,14 +42,15 @@ export async function GET(req: NextRequest) {
 
   const code = searchParams.get('code')
   const state = searchParams.get('state')
-  const storedState = req.cookies.get('line_state')?.value
 
-  // state 検証
   if (!code || !state) {
     return NextResponse.redirect(`${baseUrl}/premium/form?line_error=missing_params`)
   }
-  if (!storedState || state !== storedState) {
-    console.error('[LINE callback] state mismatch', { state, storedState })
+
+  // HMAC検証（cookieなし）
+  const secret = process.env.LINE_LOGIN_CHANNEL_SECRET ?? process.env.LINE_STATE_SECRET ?? 'fallback-secret'
+  if (!verifyState(state, secret)) {
+    console.error('[LINE callback] state verification failed (HMAC mismatch or expired)')
     return NextResponse.redirect(`${baseUrl}/premium/form?line_error=state_mismatch`)
   }
 
@@ -64,18 +90,18 @@ export async function GET(req: NextRequest) {
 
   const res = NextResponse.redirect(`${baseUrl}/premium/form?line_login=success`)
 
+  // SameSite=None + Secure: インアプリブラウザ(Instagram/LINE内)でも確実にcookieが設定される
   const cookieOpts = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
-    maxAge: 3600,
+    secure: true,
+    sameSite: 'none' as const,
+    maxAge: 3600 * 24 * 7, // 7日間
     path: '/',
   }
 
   res.cookies.set('line_user_id', (profile.userId as string) ?? '', cookieOpts)
   res.cookies.set('line_display_name', (profile.displayName as string) ?? '', cookieOpts)
   res.cookies.set('line_picture_url', (profile.pictureUrl as string) ?? '', cookieOpts)
-  res.cookies.delete('line_state')
 
   return res
 }

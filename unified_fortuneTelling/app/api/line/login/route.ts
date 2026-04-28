@@ -1,4 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac } from 'crypto'
+
+/**
+ * HMAC署名付きstateを生成（cookieなし）
+ * state = "timestamp.hmac" の形式
+ * cookieに依存しないためSafari/Instagram/Googleアプリ等すべてのブラウザで動作する
+ */
+function generateState(secret: string): string {
+  const timestamp = Date.now().toString()
+  const hmac = createHmac('sha256', secret).update(timestamp).digest('hex').slice(0, 24)
+  return `${timestamp}.${hmac}`
+}
 
 export async function GET(_req: NextRequest) {
   const channelId = process.env.LINE_LOGIN_CHANNEL_ID
@@ -9,30 +21,22 @@ export async function GET(_req: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/premium/form?line_error=config`)
   }
 
+  const secret = process.env.LINE_LOGIN_CHANNEL_SECRET ?? process.env.LINE_STATE_SECRET ?? 'fallback-secret'
+  const state = generateState(secret)
   const redirectUri = `${baseUrl}/api/line/callback`
-  const state = crypto.randomUUID()
 
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: channelId,
     redirect_uri: redirectUri,
-    // openid は nonce が必要なため使用しない。profile だけで十分
     scope: 'profile',
     state,
-    // ログインと同時に公式アカウントの友だち追加を促す（LINE DevelopersでLoginチャンネルとMessaging APIチャンネルをリンク済みの場合に有効）
+    // ログインと同時に公式アカウント追加を促す（LINE DevelopersでLoginチャンネルとMessaging APIチャンネルをリンク済みの場合に有効）
     bot_prompt: 'aggressive',
   })
 
-  const res = NextResponse.redirect(
+  // cookieは不要（stateはHMAC自己検証型）
+  return NextResponse.redirect(
     `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`,
   )
-  // SameSite=None + Secure: Safariの ITP によるクロスサイトcookieブロックを回避
-  res.cookies.set('line_state', state, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 600,
-    path: '/',
-  })
-  return res
 }
