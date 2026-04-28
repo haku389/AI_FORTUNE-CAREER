@@ -19,7 +19,6 @@ export async function GET(_req: NextRequest) {
     // openid は nonce が必要なため使用しない。profile だけで十分
     scope: 'profile',
     state,
-    bot_prompt: 'aggressive',
   })
 
   const res = NextResponse.redirect(
