@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { LUNA_ADVICE_SYSTEM_PROMPT, buildAdvicePrompt } from '@/lib/luna-knowledge'
+import { REIKO_ADVICE_SYSTEM_PROMPT, buildAdvicePrompt } from '@/lib/reiko-knowledge'
 import { calcMonthlyAdvice } from '@/lib/monthlyAdvice'
 import type { TimingKey } from '@/lib/scoring'
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 600,
-      system: LUNA_ADVICE_SYSTEM_PROMPT,
+      system: REIKO_ADVICE_SYSTEM_PROMPT,
       messages: [
         {
           role: 'user',

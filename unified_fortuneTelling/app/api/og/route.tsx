@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
             display: 'flex',
           }}
         >
-          ✦ 転職占い師ルナ presents
+          ✦ キャリア未来鑑定士 白石玲子 presents
         </div>
 
         {isPersonalized ? (
@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
             gap: 8,
           }}
         >
-          転職運命診断 | 転職占い師ルナ @hoshiyomi_luna
+          転職運命診断 | キャリア未来鑑定士 白石玲子 @reiko_career
         </div>
 
         {/* ゴールドボーダー */}

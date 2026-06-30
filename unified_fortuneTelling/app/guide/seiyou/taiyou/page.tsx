@@ -4,8 +4,8 @@ import Image from 'next/image'
 import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
-  title: '12星座と転職 — 太陽星座ガイド | 転職占い師ルナ',
-  description: '12星座それぞれの特性と、転職における強み・向いている仕事をルナが解説します。',
+  title: '12星座と転職 — 太陽星座ガイド | キャリア未来鑑定士 白石玲子',
+  description: '12星座それぞれの特性と、転職における強み・向いている仕事を玲子が解説します。',
 }
 
 const ZODIAC_LIST = [

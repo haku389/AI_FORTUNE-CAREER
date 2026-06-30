@@ -4,7 +4,7 @@ import Stars from '@/components/Stars'
 import { Sun, Moon, Compass, Brain } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: '3つの占いを組み合わせると — なぜ4軸の鑑定が必要なのか | 転職占い師ルナ',
+  title: '3つの占いを組み合わせると — なぜ4軸の鑑定が必要なのか | キャリア未来鑑定士 白石玲子',
   description: '太陽星座・月星座・本命星・MBTIの4軸を組み合わせることで転職の最適タイミングと方向性がわかる理由を解説。具体的な組み合わせ例付き。',
 }
 

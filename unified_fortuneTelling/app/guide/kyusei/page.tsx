@@ -4,7 +4,7 @@ import Stars from '@/components/Stars'
 import { Compass } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: '九星気学とは — 本命星が示すキャリアの方向性 | 転職占い師ルナ',
+  title: '九星気学とは — 本命星が示すキャリアの方向性 | キャリア未来鑑定士 白石玲子',
   description: '九星気学の9種類の本命星と転職への影響を解説。生まれ年で決まる運気サイクルと転職タイミングの関係がわかります。',
 }
 

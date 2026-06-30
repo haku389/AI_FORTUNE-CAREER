@@ -4,8 +4,8 @@ import Stars from '@/components/Stars'
 import { Sun, Compass, Brain } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: '占い図鑑 — ルナの鑑定で使う3つの占い | 転職占い師ルナ',
-  description: '転職占い師ルナが使う西洋占星術・九星気学・MBTIの3つの占術を詳しく解説。転職タイミングと方向性を読み解く4軸鑑定の全体像がわかります。',
+  title: '占い図鑑 — 玲子の鑑定で使う3つの占い | キャリア未来鑑定士 白石玲子',
+  description: 'キャリア未来鑑定士 白石玲子が使う西洋占星術・九星気学・MBTIの3つの占術を詳しく解説。転職タイミングと方向性を読み解く4軸鑑定の全体像がわかります。',
 }
 
 const DIVIDER = ({ label }: { label: string }) => (
@@ -100,7 +100,7 @@ export default function GuidePage() {
               letterSpacing: '0.04em',
             }}
           >
-            ルナの鑑定で使う
+            玲子の鑑定で使う
             <br />
             <span style={{ color: '#f0c060' }}>3つの占い</span>
           </h1>

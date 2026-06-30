@@ -303,10 +303,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { type } = await params
   const data = MBTI_DATA[type.toLowerCase()]
-  if (!data) return { title: 'MBTI | 転職占い師ルナ' }
+  if (!data) return { title: 'MBTI | キャリア未来鑑定士 白石玲子' }
   return {
-    title: `${data.code}（${data.name}）の転職傾向 | 転職占い師ルナ`,
-    description: `${data.code}タイプ「${data.name}」の強み・弱み・向いている職種・転職傾向を徹底解説。MBTIと星座を掛け合わせたルナの鑑定で転職運命を読み解きます。`,
+    title: `${data.code}（${data.name}）の転職傾向 | キャリア未来鑑定士 白石玲子`,
+    description: `${data.code}タイプ「${data.name}」の強み・弱み・向いている職種・転職傾向を徹底解説。MBTIと星座を掛け合わせた玲子の鑑定で転職運命を読み解きます。`,
   }
 }
 

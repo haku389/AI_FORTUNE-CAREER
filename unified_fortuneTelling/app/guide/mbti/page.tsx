@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
-  title: 'MBTIとは — 性格16タイプと転職 | 転職占い師ルナ',
+  title: 'MBTIとは — 性格16タイプと転職 | キャリア未来鑑定士 白石玲子',
   description: 'MBTIの4つの軸と16タイプを解説。あなたの性格タイプがどんな職場文化・職種に向いているか、星座と組み合わせた転職鑑定への活かし方がわかります。',
 }
 

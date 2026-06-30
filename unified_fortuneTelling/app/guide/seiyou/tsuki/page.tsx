@@ -4,8 +4,8 @@ import Image from 'next/image'
 import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
-  title: '月星座と転職 — 月星座ガイド | 転職占い師ルナ',
-  description: '月星座があなたの感情・本音・職場での心地よさに与える影響をルナが解説します。',
+  title: '月星座と転職 — 月星座ガイド | キャリア未来鑑定士 白石玲子',
+  description: '月星座があなたの感情・本音・職場での心地よさに与える影響を玲子が解説します。',
 }
 
 const MOON_ZODIAC_LIST = [

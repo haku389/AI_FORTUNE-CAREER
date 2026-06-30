@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { LUNA_SYSTEM_PROMPT, buildKansenUserPrompt } from '@/lib/luna-knowledge'
+import { REIKO_SYSTEM_PROMPT, buildKansenUserPrompt } from '@/lib/reiko-knowledge'
 
 const client = new Anthropic()
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 600,
-      system: LUNA_SYSTEM_PROMPT,
+      system: REIKO_SYSTEM_PROMPT,
       messages: [
         {
           role: 'user',

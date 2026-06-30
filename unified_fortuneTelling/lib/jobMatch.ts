@@ -146,60 +146,60 @@ const JOB_REASONS: Record<JobName, string> = {
 // ── 業界 → 推薦エージェント ──
 const INDUSTRY_AGENTS: Record<string, AgentMatch[]> = {
   it: [
-    { name: 'BIZREACH',           url: 'https://bizreach.jp',           desc: 'IT・ハイクラス・スカウト型',           luna: 'スカウトが届くから、自分の市場価値がすぐわかるよ🌙' },
-    { name: 'Green',              url: 'https://www.green-japan.com',   desc: 'IT業界特化・エンジニア・デザイナー向け', luna: 'IT職種に強い。エンジニア・デザイナーにとくにおすすめ✨' },
-    { name: 'レバテックキャリア', url: 'https://career.levtech.jp',     desc: 'エンジニア・IT職特化',                  luna: 'IT転職の専門家が揃ってる。面接対策も手厚い🔮' },
-    { name: 'doda',               url: 'https://doda.jp',               desc: '幅広いIT・Web求人も充実',                luna: 'IT以外も見たいなら、dodaで間口広く探すのもあり🌿' },
+    { name: 'BIZREACH',           url: 'https://bizreach.jp',           desc: 'IT・ハイクラス・スカウト型',           luna: 'スカウトが届くので、自分の市場価値がすぐ分かりますよ🌙' },
+    { name: 'Green',              url: 'https://www.green-japan.com',   desc: 'IT業界特化・エンジニア・デザイナー向け', luna: 'IT職種に強いです。エンジニア・デザイナーの方にとくにおすすめですよ✨' },
+    { name: 'レバテックキャリア', url: 'https://career.levtech.jp',     desc: 'エンジニア・IT職特化',                  luna: 'IT転職の専門家が揃っています。面接対策も手厚いですよ🔮' },
+    { name: 'doda',               url: 'https://doda.jp',               desc: '幅広いIT・Web求人も充実',                luna: 'IT以外も見たいなら、dodaで間口広く探すのもよいと思います🌿' },
   ],
   consulting: [
-    { name: 'BIZREACH',                url: 'https://bizreach.jp',             desc: 'ハイクラス・コンサル求人多数',    luna: 'コンサル転職はBIZREACHが圧倒的に強いよ⭐' },
-    { name: 'アクシスコンサルティング', url: 'https://www.axc.ne.jp',           desc: 'コンサル特化エージェント',        luna: 'コンサル専門の転職支援。面接対策も手厚い🌿' },
-    { name: 'JACリクルートメント',      url: 'https://www.jac-recruitment.jp', desc: 'ハイクラス・外資・コンサル',      luna: '外資やコンサルに強い老舗エージェント✨' },
+    { name: 'BIZREACH',                url: 'https://bizreach.jp',             desc: 'ハイクラス・コンサル求人多数',    luna: 'コンサル転職はBIZREACHが圧倒的に強いですよ⭐' },
+    { name: 'アクシスコンサルティング', url: 'https://www.axc.ne.jp',           desc: 'コンサル特化エージェント',        luna: 'コンサル専門の転職支援です。面接対策も手厚いですよ🌿' },
+    { name: 'JACリクルートメント',      url: 'https://www.jac-recruitment.jp', desc: 'ハイクラス・外資・コンサル',      luna: '外資やコンサルに強い老舗エージェントです✨' },
   ],
   healthcare: [
-    { name: 'doda',         url: 'https://doda.jp',             desc: '医療・ヘルスケア求人も充実',  luna: '医療系の幅広い求人が揃ってる。口コミも参考になるよ🌸' },
-    { name: 'マイナビ医療', url: 'https://iryou.mynavi.jp',     desc: '医療・ヘルスケア特化',        luna: '医療職に特化。MRや医療ITも探しやすいよ💊' },
-    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'ヘルスケア×ハイクラス',        luna: 'ヘルスケア×ハイクラス求人も意外と多いよ🌙' },
+    { name: 'doda',         url: 'https://doda.jp',             desc: '医療・ヘルスケア求人も充実',  luna: '医療系の幅広い求人が揃っています。口コミも参考になりますよ🌸' },
+    { name: 'マイナビ医療', url: 'https://iryou.mynavi.jp',     desc: '医療・ヘルスケア特化',        luna: '医療職に特化しています。MRや医療ITも探しやすいですよ💊' },
+    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'ヘルスケア×ハイクラス',        luna: 'ヘルスケア×ハイクラス求人も意外と多いですよ🌙' },
   ],
   finance: [
-    { name: 'BIZREACH',              url: 'https://bizreach.jp',             desc: '金融ハイクラス求人',         luna: '金融ならBIZREACH。年収交渉も強い💰' },
-    { name: 'JACリクルートメント',    url: 'https://www.jac-recruitment.jp', desc: '外資・金融に強い',           luna: '外資や金融に強い老舗エージェント✨' },
-    { name: 'doda',                  url: 'https://doda.jp',                 desc: '幅広い金融・保険求人',       luna: '金融系は幅広く探せるdodaも合わせてチェックして🌿' },
+    { name: 'BIZREACH',              url: 'https://bizreach.jp',             desc: '金融ハイクラス求人',         luna: '金融ならBIZREACHです。年収交渉も強いですよ💰' },
+    { name: 'JACリクルートメント',    url: 'https://www.jac-recruitment.jp', desc: '外資・金融に強い',           luna: '外資や金融に強い老舗エージェントです✨' },
+    { name: 'doda',                  url: 'https://doda.jp',                 desc: '幅広い金融・保険求人',       luna: '金融系は幅広く探せるdodaも合わせてチェックしてみてくださいね🌿' },
   ],
   creative: [
-    { name: 'doda',           url: 'https://doda.jp',                 desc: 'クリエイティブ・マーケ求人豊富',  luna: '広告・マーケ系はdodaが使いやすいよ🎨' },
-    { name: 'マスメディアン', url: 'https://www.massmedian.co.jp',    desc: '広告・マーケ・クリエイティブ特化', luna: 'マーケ・クリエイティブ専門の転職支援🌈' },
-    { name: 'BIZREACH',       url: 'https://bizreach.jp',             desc: 'クリエイティブ×ハイクラス',        luna: 'クリエイティブ職のハイクラス求人も探せるよ🌙' },
+    { name: 'doda',           url: 'https://doda.jp',                 desc: 'クリエイティブ・マーケ求人豊富',  luna: '広告・マーケ系はdodaが使いやすいですよ🎨' },
+    { name: 'マスメディアン', url: 'https://www.massmedian.co.jp',    desc: '広告・マーケ・クリエイティブ特化', luna: 'マーケ・クリエイティブ専門の転職支援です🌈' },
+    { name: 'BIZREACH',       url: 'https://bizreach.jp',             desc: 'クリエイティブ×ハイクラス',        luna: 'クリエイティブ職のハイクラス求人も探せますよ🌙' },
   ],
   education: [
-    { name: 'doda',         url: 'https://doda.jp',             desc: '教育・福祉・HR系求人',      luna: '教育系の求人も充実。働き方改善も狙えるよ📚' },
-    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: '教育・研修・HR職種あり',    luna: '教育・福祉系は条件で絞りやすいマイナビもおすすめ🌱' },
+    { name: 'doda',         url: 'https://doda.jp',             desc: '教育・福祉・HR系求人',      luna: '教育系の求人も充実しています。働き方改善も狙えますよ📚' },
+    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: '教育・研修・HR職種あり',    luna: '教育・福祉系は条件で絞りやすいマイナビもおすすめです🌱' },
   ],
   maker: [
-    { name: 'doda',         url: 'https://doda.jp',             desc: 'メーカー・製造業求人充実',    luna: 'メーカー転職はdodaが求人数多いよ🔧' },
-    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: 'メーカー・R&D求人多数',       luna: 'R&D・商品開発はマイナビも求人が揃ってるよ🏭' },
-    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'メーカー×ハイクラス',          luna: 'ハイクラスのメーカー求人はBIZREACHで探してみて✨' },
+    { name: 'doda',         url: 'https://doda.jp',             desc: 'メーカー・製造業求人充実',    luna: 'メーカー転職はdodaが求人数多いですよ🔧' },
+    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: 'メーカー・R&D求人多数',       luna: 'R&D・商品開発はマイナビも求人が揃っていますよ🏭' },
+    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'メーカー×ハイクラス',          luna: 'ハイクラスのメーカー求人はBIZREACHで探してみてくださいね✨' },
   ],
   hr: [
-    { name: 'doda',                  url: 'https://doda.jp',             desc: 'HR・人材業界求人充実',       luna: '人材業界への転職はdodaが強いよ👥' },
-    { name: 'リクルートエージェント', url: 'https://r-agent.com',         desc: '人材・HR業界の求人豊富',     luna: 'リクルート系への転職はリクルートエージェントが鉄板🌟' },
-    { name: 'BIZREACH',              url: 'https://bizreach.jp',         desc: 'HR×ハイクラス・HRBP求人',    luna: 'HRBPやHRコンサル職はBIZREACHで探してみて🌙' },
+    { name: 'doda',                  url: 'https://doda.jp',             desc: 'HR・人材業界求人充実',       luna: '人材業界への転職はdodaが強いですよ👥' },
+    { name: 'リクルートエージェント', url: 'https://r-agent.com',         desc: '人材・HR業界の求人豊富',     luna: 'リクルート系への転職はリクルートエージェントが鉄板です🌟' },
+    { name: 'BIZREACH',              url: 'https://bizreach.jp',         desc: 'HR×ハイクラス・HRBP求人',    luna: 'HRBPやHRコンサル職はBIZREACHで探してみてくださいね🌙' },
   ],
   ec: [
-    { name: 'doda',         url: 'https://doda.jp',             desc: 'EC・小売・サービス業求人多数', luna: 'EC・小売系はdodaが幅広く揃ってるよ🛒' },
-    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: 'EC・マーケ・バイヤー職あり',  luna: 'バイヤーやMD職はマイナビでも見つかるよ✨' },
-    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'EC×ハイクラス',                luna: 'EC責任者クラスはBIZREACHにスカウト来ることも🌙' },
+    { name: 'doda',         url: 'https://doda.jp',             desc: 'EC・小売・サービス業求人多数', luna: 'EC・小売系はdodaが幅広く揃っていますよ🛒' },
+    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: 'EC・マーケ・バイヤー職あり',  luna: 'バイヤーやMD職はマイナビでも見つかりますよ✨' },
+    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'EC×ハイクラス',                luna: 'EC責任者クラスはBIZREACHにスカウトが来ることもありますよ🌙' },
   ],
   other: [
-    { name: 'doda',         url: 'https://doda.jp',             desc: '幅広い業界・職種を網羅',         luna: '幅広く見るならdodaが一番使いやすいと思う🌙' },
-    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: '条件で絞れる・福利厚生情報豊富', luna: '条件で絞れるから、自分に合う求人が見つかりやすい🛡️' },
-    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'ハイクラス・スカウト型',          luna: '登録するだけで自分の市場価値がわかるよ⭐' },
+    { name: 'doda',         url: 'https://doda.jp',             desc: '幅広い業界・職種を網羅',         luna: '幅広く見るならdodaが一番使いやすいと思いますよ🌙' },
+    { name: 'マイナビ転職', url: 'https://tenshoku.mynavi.jp',  desc: '条件で絞れる・福利厚生情報豊富', luna: '条件で絞れるので、自分に合う求人が見つかりやすいですよ🛡️' },
+    { name: 'BIZREACH',     url: 'https://bizreach.jp',         desc: 'ハイクラス・スカウト型',          luna: '登録するだけで自分の市場価値が分かりますよ⭐' },
   ],
 };
 
 const DEFAULT_AGENTS: AgentMatch[] = [
-  { name: 'doda',     url: 'https://doda.jp',     desc: '幅広い業界・口コミ情報豊富', luna: '職場の雰囲気を口コミで確認できる。入社後のギャップが少ないって評判だよ✨' },
-  { name: 'BIZREACH', url: 'https://bizreach.jp', desc: 'ハイクラス・スカウト型',     luna: '登録するだけで自分の市場価値がわかるよ。見るだけでもOK🌙' },
+  { name: 'doda',     url: 'https://doda.jp',     desc: '幅広い業界・口コミ情報豊富', luna: '職場の雰囲気を口コミで確認できます。入社後のギャップが少ないと評判ですよ✨' },
+  { name: 'BIZREACH', url: 'https://bizreach.jp', desc: 'ハイクラス・スカウト型',     luna: '登録するだけで自分の市場価値が分かりますよ。見るだけでもOKです🌙' },
 ];
 
 export function calcJobMatch(

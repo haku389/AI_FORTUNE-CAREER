@@ -793,7 +793,7 @@ export default function DiagnosisPage() {
       type: r.type,
     })
     const shareUrl = `${origin}?${ogParams.toString()}`
-    const shareText = `転職占い師ルナの診断を受けました。\n\n${u.zodiac.name} × ${typeData.name}\n転職スコア ${r.score}点\n\nあなたも試してみてください。\n${shareUrl}`
+    const shareText = `キャリア未来鑑定士 白石玲子の診断を受けました。\n\n${u.zodiac.name} × ${typeData.name}\n転職スコア ${r.score}点\n\nあなたも試してみてください。\n${shareUrl}`
 
     const timingColors: Record<string, string> = {
       now: '#ffa040',
@@ -885,7 +885,7 @@ export default function DiagnosisPage() {
             background: 'linear-gradient(135deg, #1a1430, #0d1428)',
             border: '1px solid #7c6bdc44',
           }}>
-            <div style={rbHeadStyle}>✦ ルナからのメッセージ</div>
+            <div style={rbHeadStyle}>✦ 玲子からのメッセージ</div>
             <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9 }}>
               {kansenText}
             </p>
@@ -924,7 +924,7 @@ export default function DiagnosisPage() {
               もっと深く知りたい方へ
             </div>
             <div style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.7, marginBottom: 16 }}>
-              転職占い師ルナによる精密鑑定（LINEで受け取り）
+              キャリア未来鑑定士 白石玲子による精密鑑定（LINEで受け取り）
               <br />生年月日×星読み×転職運の完全版レポート
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 18, textAlign: 'left' }}>

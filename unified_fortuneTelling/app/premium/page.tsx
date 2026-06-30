@@ -4,7 +4,7 @@ import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
 
 export const metadata: Metadata = {
-  title: '精密転職鑑定 | 転職占い師ルナ',
+  title: '精密転職鑑定 | キャリア未来鑑定士 白石玲子',
   description: '太陽星座・月星座・本命星・MBTIの4軸で、あなたの転職運命を深く読み解く精密鑑定。',
 }
 
@@ -53,7 +53,7 @@ export default function PremiumLandingPage() {
             marginBottom: 20,
           }}
         >
-          ✦ 転職占い師ルナ presents
+          ✦ キャリア未来鑑定士 白石玲子 presents
         </div>
 
         {/* 見出し */}

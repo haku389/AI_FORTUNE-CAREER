@@ -427,9 +427,9 @@ export default function PrecisePage() {
         {/* ── LINEログイン前: ログイン画面のみ表示 ── */}
         {!lineUserId ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
-            <Image src="/luna_mainIcon.png" alt="ルナ" width={96} height={96} style={{ borderRadius: '50%', marginBottom: 20, filter: 'drop-shadow(0 0 18px #a898f855)' }} />
+            <Image src="/白石玲子.png" alt="白石玲子" width={96} height={96} style={{ borderRadius: '50%', marginBottom: 20, filter: 'drop-shadow(0 0 18px #a898f855)' }} />
             <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0f4ff', marginBottom: 8, textAlign: 'center' }}>
-              転職占い師ルナの精密鑑定
+              キャリア未来鑑定士 白石玲子の精密鑑定
             </div>
             <div style={{ fontSize: 12, color: '#7888b8', textAlign: 'center', lineHeight: 1.8, marginBottom: 28 }}>
               精密鑑定を受けるにはLINEアカウントが必要です。<br />
@@ -818,7 +818,7 @@ export default function PrecisePage() {
     const timingData = TIMINGS[r.timing]
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
     const shareUrl = origin + '/premium'
-    const shareText = `転職占い師ルナの精密鑑定を受けました。\n\n${u.sunSign.name} × 月星座 ${u.moonSign} × ${u.honmeiStar}\n転職スコア ${r.score_total}点\n\nあなたも鑑定を受けてみてください。\n${shareUrl}`
+    const shareText = `キャリア未来鑑定士 白石玲子の精密鑑定を受けました。\n\n${u.sunSign.name} × 月星座 ${u.moonSign} × ${u.honmeiStar}\n転職スコア ${r.score_total}点\n\nあなたも鑑定を受けてみてください。\n${shareUrl}`
 
     const timingColors: Record<string, string> = { now: '#ffa040', '3m': '#f0c060', '6m': '#a898f8', wait: '#3cc4a8' }
 
@@ -1034,16 +1034,16 @@ export default function PrecisePage() {
             </div>
           </div>
 
-          {/* ══ セクション5: ルナの鑑定メッセージ ══ */}
+          {/* ══ セクション5: 玲子の鑑定メッセージ ══ */}
           <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc44' }}>
             <div style={{ fontSize: 11, letterSpacing: 3, color: '#a898f8', marginBottom: 14, textAlign: 'center' }}>
-              ✦ ルナからの精密鑑定メッセージ
+              ✦ 玲子からの精密鑑定メッセージ
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-              <Image src="/luna_mainIcon.png" alt="ルナ" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
+              <Image src="/白石玲子.png" alt="白石玲子" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
               <div style={{ fontSize: 11, color: '#7888b8' }}>
-                <strong style={{ color: '#a898f8' }}>転職占い師◇ルナ</strong>
-                <br />@hoshiyomi_luna
+                <strong style={{ color: '#a898f8' }}>キャリア未来鑑定士◇白石玲子</strong>
+                <br />@reiko_career
               </div>
             </div>
             <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>

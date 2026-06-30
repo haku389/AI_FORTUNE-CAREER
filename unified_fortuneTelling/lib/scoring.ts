@@ -46,7 +46,7 @@ export const TYPES: Record<CareerType, TypeData> = {
     url: 'https://bizreach.jp',
     desc: 'ハイクラス・スカウト特化',
     reason: '年収・昇進を重視するあなたには、企業から直接オファーが届くスカウト型が最適です。',
-    luna: '登録するだけで自分の市場価値がわかるよ。見るだけでもOK🌙',
+    luna: '登録するだけで自分の市場価値がわかりますよ。見るだけでもOKです🌙',
   },
   env: {
     name: '環境改善型',
@@ -54,7 +54,7 @@ export const TYPES: Record<CareerType, TypeData> = {
     url: 'https://doda.jp',
     desc: '社員口コミ・職場環境情報が豊富',
     reason: '職場環境・人間関係を重視するあなたには、口コミ情報が充実したdodaが最適。',
-    luna: '職場の雰囲気の情報が多くて、入社後のギャップが少ないって評判だよ✨',
+    luna: '職場の雰囲気の情報が多く、入社後のギャップが少ないと評判ですよ✨',
   },
   calling: {
     name: '天職探し型',
@@ -62,7 +62,7 @@ export const TYPES: Record<CareerType, TypeData> = {
     url: 'https://hataractive.jp',
     desc: '丁寧な面談・方向性から一緒に考える',
     reason: 'やりたいことが見えていなくても大丈夫。アドバイザーと話すだけで方向性が見えてきます。',
-    luna: '何がやりたいかわからなくても相談できる。話すだけで気持ちが整理されるよ🌿',
+    luna: '何がやりたいか分からなくても相談できます。話すだけで気持ちが整理されますよ🌿',
   },
   stable: {
     name: '安定志向型',
@@ -70,7 +70,7 @@ export const TYPES: Record<CareerType, TypeData> = {
     url: 'https://tenshoku.mynavi.jp',
     desc: '幅広い求人・安定企業・福利厚生充実',
     reason: '安定・ワークライフバランスを重視するあなたには、条件で絞れるマイナビ転職が最適。',
-    luna: '急がなくていい。自分の条件を入力して、いい求人がくるのを待つのも正解だよ🛡️',
+    luna: '急がなくて大丈夫です。自分の条件を入力して、いい求人が来るのを待つのも正解ですよ🛡️',
   },
 };
 

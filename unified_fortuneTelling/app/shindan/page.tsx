@@ -83,7 +83,7 @@ export default function ShindanStartPage() {
             marginBottom: 20,
           }}
         >
-          ✦ 転職占い師ルナ presents
+          ✦ キャリア未来鑑定士 白石玲子 presents
         </div>
 
         {/* 見出し */}

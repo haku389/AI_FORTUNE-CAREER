@@ -7,8 +7,8 @@ import { ZODIAC } from '@/lib/zodiac'
 import { getHonmeiStarKeyword } from '@/lib/honmeiStar'
 
 export const metadata: Metadata = {
-  title: '鑑定結果 | 転職占い師ルナ',
-  description: 'ルナによる精密転職鑑定の結果ページ',
+  title: '鑑定結果 | キャリア未来鑑定士 白石玲子',
+  description: '白石玲子による精密転職鑑定の結果ページ',
 }
 
 type MonthAdvice = {
@@ -228,16 +228,16 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
-        {/* ══ ルナのメッセージ ══ */}
+        {/* ══ 玲子のメッセージ ══ */}
         {row.kansen_text && (
           <div style={{ ...card, background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc44' }}>
             <div style={{ fontSize: 11, letterSpacing: 3, color: '#a898f8', marginBottom: 14, textAlign: 'center' }}>
-              ✦ ルナからの精密鑑定メッセージ
+              ✦ 玲子からの精密鑑定メッセージ
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-              <Image src="/luna_mainIcon.png" alt="ルナ" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
+              <Image src="/白石玲子.png" alt="白石玲子" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />
               <div style={{ fontSize: 11, color: '#7888b8' }}>
-                <strong style={{ color: '#a898f8' }}>転職占い師◇ルナ</strong><br />@hoshiyomi_luna
+                <strong style={{ color: '#a898f8' }}>キャリア未来鑑定士◇白石玲子</strong><br />@reiko_career
               </div>
             </div>
             <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>

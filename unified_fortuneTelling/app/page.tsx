@@ -5,8 +5,8 @@ import { PenLine, HelpCircle, Telescope, Moon } from 'lucide-react'
 import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
-  title: '転職占い師ルナ | 星座×転職診断サービス',
-  description: '転職占い師ルナが、あなたの転職タイミングを星座で鑑定。無料の簡易占いから4軸分析の精密占いまで。',
+  title: 'キャリア未来鑑定士 白石玲子 | 星座×転職診断サービス',
+  description: 'キャリア未来鑑定士 白石玲子が、あなたの転職タイミングを星座で鑑定。無料の簡易占いから4軸分析の精密占いまで。',
 }
 
 const ICON_COLOR = '#c8952a'
@@ -70,7 +70,7 @@ export default function InfoPage() {
               letterSpacing: '0.04em',
             }}
           >
-            <span style={{ color: '#f0c060' }}>転職占い師</span>
+            <span style={{ color: '#f0c060' }}>キャリア未来鑑定士</span>
             <br />
             <span
               style={{
@@ -79,12 +79,12 @@ export default function InfoPage() {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              ルナ
+              白石玲子
             </span>
           </h1>
 
           <p style={{ fontSize: 11, letterSpacing: 4, color: '#5a6a9a', marginBottom: 28 }}>
-            Luna — Career Fortune Teller
+            Reiko Shiraishi — Career Fortune Teller
           </p>
 
           <p style={{ fontSize: 14, color: '#8898c8', lineHeight: 2, marginBottom: 36 }}>
@@ -162,8 +162,8 @@ export default function InfoPage() {
               }}
             >
               <Image
-                src="/luna_mainIcon.png"
-                alt="転職占い師ルナ"
+                src="/白石玲子.png"
+                alt="キャリア未来鑑定士 白石玲子"
                 width={60}
                 height={60}
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
@@ -171,9 +171,9 @@ export default function InfoPage() {
             </div>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff', marginBottom: 4 }}>
-                ルナ（Luna）
+                白石玲子（Reiko Shiraishi）
               </div>
-              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>星読み転職占い師</div>
+              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>星読みキャリア未来鑑定士</div>
             </div>
           </div>
 
@@ -334,7 +334,7 @@ export default function InfoPage() {
               num: '02',
               icon: <HelpCircle size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
               title: '心の声を打ち明ける',
-              desc: '今の仕事や転職への気持ちをルナに打ち明けてください。',
+              desc: '今の仕事や転職への気持ちを玲子に打ち明けてください。',
             },
             {
               num: '03',
@@ -345,8 +345,8 @@ export default function InfoPage() {
             {
               num: '04',
               icon: <Moon size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: 'ルナが星を読み解く',
-              desc: '星々の声をルナが紡ぎ、あなただけの転職運命をお伝えします。',
+              title: '玲子が星を読み解く',
+              desc: '星々の声を玲子が紡ぎ、あなただけの転職運命をお伝えします。',
             },
           ].map(({ num, icon, title, desc }, i, arr) => (
             <div key={num} style={{ display: 'flex', gap: 16 }}>
