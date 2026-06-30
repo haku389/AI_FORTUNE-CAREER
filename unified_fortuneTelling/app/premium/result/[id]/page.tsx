@@ -228,11 +228,11 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
-        {/* ══ 玲子のメッセージ ══ */}
+        {/* ══ 白石玲子のメッセージ ══ */}
         {row.kansen_text && (
           <div style={{ ...card, background: 'linear-gradient(135deg, #1a1830, #0d1428)', border: '1px solid #7c6bdc44' }}>
             <div style={{ fontSize: 11, letterSpacing: 3, color: '#a898f8', marginBottom: 14, textAlign: 'center' }}>
-              ✦ 玲子からの精密鑑定メッセージ
+              ✦ 白石玲子からの精密鑑定メッセージ
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
               <Image src="/白石玲子.png" alt="白石玲子" width={36} height={36} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #7c6bdc44' }} />

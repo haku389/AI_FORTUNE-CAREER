@@ -84,7 +84,7 @@ export default function AffiliBlock({
         <div
           style={{ fontSize: 11, color: '#7888b8', fontStyle: 'italic', lineHeight: 1.6 }}
           dangerouslySetInnerHTML={{
-            __html: `<span style="color:#f5e0a0">玲子より：</span>${typeData.luna}`,
+            __html: `<span style="color:#f5e0a0">白石玲子より：</span>${typeData.luna}`,
           }}
         />
       </div>

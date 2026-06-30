@@ -70,7 +70,7 @@ export default function InfoPage() {
               letterSpacing: '0.04em',
             }}
           >
-            <span style={{ color: '#f0c060' }}>キャリア未来鑑定士</span>
+            <span style={{ color: '#f0c060', fontSize: 'clamp(28px, 8vw, 42px)' }}>キャリア未来鑑定士</span>
             <br />
             <span
               style={{
@@ -173,7 +173,7 @@ export default function InfoPage() {
               <div style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mincho)', color: '#f0f4ff', marginBottom: 4 }}>
                 白石玲子（Reiko Shiraishi）
               </div>
-              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>星読みキャリア未来鑑定士</div>
+              <div style={{ fontSize: 11, color: '#7888b8', letterSpacing: 2 }}>キャリア未来鑑定士</div>
             </div>
           </div>
 
@@ -334,7 +334,7 @@ export default function InfoPage() {
               num: '02',
               icon: <HelpCircle size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
               title: '心の声を打ち明ける',
-              desc: '今の仕事や転職への気持ちを玲子に打ち明けてください。',
+              desc: '今の仕事や転職への気持ちを白石玲子に打ち明けてください。',
             },
             {
               num: '03',
@@ -345,8 +345,8 @@ export default function InfoPage() {
             {
               num: '04',
               icon: <Moon size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: '玲子が星を読み解く',
-              desc: '星々の声を玲子が紡ぎ、あなただけの転職運命をお伝えします。',
+              title: '白石玲子が運命を読み解く',
+              desc: '星々の声を白石玲子が手がかりに、あなただけの転職運命をお伝えします。',
             },
           ].map(({ num, icon, title, desc }, i, arr) => (
             <div key={num} style={{ display: 'flex', gap: 16 }}>

@@ -175,7 +175,7 @@ export const REIKO_ADVICE_SYSTEM_PROMPT = `
     "month": "〇月",
     "label": "〇〇の月",
     "emoji": "絵文字1文字",
-    "advice": "玲子の口調（です・ます調）で50〜80字のアドバイス",
+    "advice": "白石玲子の口調（です・ます調）で50〜80字のアドバイス",
     "highlight": true または false
   },
   { ... 2ヶ月目 ... },

@@ -5,7 +5,7 @@ import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
   title: '月星座と転職 — 月星座ガイド | キャリア未来鑑定士 白石玲子',
-  description: '月星座があなたの感情・本音・職場での心地よさに与える影響を玲子が解説します。',
+  description: '月星座があなたの感情・本音・職場での心地よさに与える影響を白石玲子が解説します。',
 }
 
 const MOON_ZODIAC_LIST = [

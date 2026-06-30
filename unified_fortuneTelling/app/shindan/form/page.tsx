@@ -729,7 +729,7 @@ export default function DiagnosisPage() {
       <div style={{ ...pageStyle, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div style={{ marginBottom: 20, height: 200 }} />
         <h2 style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 700, color: '#f0f4ff', marginBottom: 10 }}>
-          今日の星読みは終わりました
+          今日の鑑定は終わりました
         </h2>
         <p style={{ fontSize: 13, color: '#7888b8', lineHeight: 1.8, marginBottom: 28 }}>
           星は毎日、新しいメッセージを届けます。
@@ -885,7 +885,7 @@ export default function DiagnosisPage() {
             background: 'linear-gradient(135deg, #1a1430, #0d1428)',
             border: '1px solid #7c6bdc44',
           }}>
-            <div style={rbHeadStyle}>✦ 玲子からのメッセージ</div>
+            <div style={rbHeadStyle}>✦ 白石玲子からのメッセージ</div>
             <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9 }}>
               {kansenText}
             </p>
@@ -925,7 +925,7 @@ export default function DiagnosisPage() {
             </div>
             <div style={{ fontSize: 12, color: '#7888b8', lineHeight: 1.7, marginBottom: 16 }}>
               キャリア未来鑑定士 白石玲子による精密鑑定（LINEで受け取り）
-              <br />生年月日×星読み×転職運の完全版レポート
+              <br />生年月日×星座×転職運の完全版レポート
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 18, textAlign: 'left' }}>
               {['本命星・月星座まで使った深い鑑定', '転職に向く職種・業界の絞り込み', '今後3ヶ月の行動アドバイス'].map(t => (
