@@ -3,15 +3,18 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## 01_collect_trends\n情報収集ワークフローの雛形。\nデータソース（Search Console / News API / SerpAPI等）はまだ未確定のため、\nHTTP Requestノードはプレースホルダー（URL未設定）になっている。\n\n詳細: docs/workflow-design.md 2章",
-        "height": 220,
-        "width": 340
+        "content": "## 01_collect_trends\n実データ(Google Search Console + 転職・キャリア系ニュースRSS)を収集し、\nClaudeで分析してSNS投稿アイデアを4件(X/Instagram/Threads/LINE各1件)企画する。\nその後 02_generate_sns_posts をアイデアの数だけサブワークフローとして呼び出す。\n\n前提: GSC検索パフォーマンス取得ノードは、Google Service Account認証情報を\nn8nに設定するまでエラーになる(その場合もニュースのみで処理は続行する)。\nセットアップ手順: docs/google-search-console-setup.md Part B\n\nSEO記事(Workflow03)向けの競合記事リサーチは、このワークフローではなく\nWorkflow03側にAnthropicのweb_searchツールとして直接組み込む方針。\n\n詳細設計: docs/workflow-design.md 2章",
+        "height": 320,
+        "width": 420
       },
       "id": "91bc7dea-063a-41fb-91d2-0f0209662d1d",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-260, -80]
+      "position": [
+        -560,
+        -160
+      ]
     },
     {
       "parameters": {},
@@ -19,7 +22,10 @@
       "name": "手動実行",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-260, 200]
+      "position": [
+        -560,
+        260
+      ]
     },
     {
       "parameters": {
@@ -27,97 +33,170 @@
           "interval": [
             {
               "field": "hours",
-              "hoursInterval": 6
+              "hoursInterval": 24
             }
           ]
         }
       },
       "id": "e01c3a1b-bb1e-4ce8-972e-078468441ac4",
-      "name": "定期実行(6時間毎・無効化中)",
+      "name": "定期実行(24時間毎・無効化中)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-260, 340],
+      "position": [
+        -560,
+        400
+      ],
       "disabled": true
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://example.com/TODO-data-source",
-        "options": {}
+        "jsCode": "// 巡回するRSSフィード一覧（詳細: docs/workflow-design.md 2章）\n// 新しいフィードを追加する場合はここに1行足すだけでよい\nreturn [\n  { json: { url: \"https://news.yahoo.co.jp/rss/media/toyo/all.xml\", source: \"東洋経済オンライン(Yahoo)\" } },\n  { json: { url: \"https://news.yahoo.co.jp/rss/media/president/all.xml\", source: \"プレジデントオンライン(Yahoo)\" } },\n  { json: { url: \"https://news.yahoo.co.jp/rss/categories/business.xml\", source: \"Yahoo!ニュース ビジネス\" } },\n  { json: { url: \"https://news.mynavi.jp/rss/kurashi/life/career.xml\", source: \"マイナビニュース キャリア\" } },\n  { json: { url: \"https://news.mynavi.jp/rss/kurashi/jobhunting.xml\", source: \"マイナビニュース 転職\" } },\n  { json: { url: \"https://jinjibu.jp/rss/?mode=news\", source: \"日本の人事部\" } }\n];"
       },
-      "id": "a0589b03-8c41-461c-a58b-6c462fc7354e",
-      "name": "TODO: データソースAPI呼び出し",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [-40, 200],
-      "notes": "GOOGLE_SEARCH_API_KEY / SERPAPI_API_KEY / NEWS_API_KEY 等、実装するソースに応じてURL・認証を設定する"
-    },
-    {
-      "parameters": {
-        "mode": "manual",
-        "duplicateItem": false,
-        "assignments": {
-          "assignments": [
-            {
-              "id": "14ffa4e2-d649-45fb-bfe0-1a4de5ee2442",
-              "name": "source",
-              "value": "manual_test",
-              "type": "string"
-            },
-            {
-              "id": "7d8074fd-0ae2-4080-abdb-0f0560b5b5bc",
-              "name": "url",
-              "value": "https://example.com/sample",
-              "type": "string"
-            },
-            {
-              "id": "9e655d0c-35bf-47a9-933a-f6c4c0aa5945",
-              "name": "title",
-              "value": "サンプル: 転職 タイミング 占い",
-              "type": "string"
-            },
-            {
-              "id": "a6860b07-befc-4a0a-b709-51d87690e646",
-              "name": "snippet",
-              "value": "テスト用のダミーデータ。実データソース接続後にこのノードは削除してよい。",
-              "type": "string"
-            },
-            {
-              "id": "5260d69a-ccfb-4451-a3b1-61882736a4c7",
-              "name": "collected_at",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
-            }
-          ]
-        }
-      },
-      "id": "83370cbf-518c-444c-9a1b-47f9eba5b60b",
-      "name": "テスト用ダミーデータ",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [-40, 340]
-    },
-    {
-      "parameters": {
-        "jsCode": "// トピック/感情/スコアの簡易ラベリング（プレースホルダー実装）\n// 実際はLLM呼び出し or ルールベース分類に差し替える\nfor (const item of $input.all()) {\n  const text = `${item.json.title ?? ''} ${item.json.snippet ?? ''}`;\n  item.json.topic_cluster = 'unclassified';\n  item.json.emotion_label = 'unclassified';\n  item.json.pain_label = 'unclassified';\n  item.json.intent_label = 'unclassified';\n  item.json.virality_score = 0;\n  item.json.seo_score = 0;\n  item.json.memo = 'placeholder scoring - see docs/workflow-design.md §6';\n}\nreturn $input.all();"
-      },
-      "id": "3878161c-5b67-48ab-8cec-6281ad761ade",
-      "name": "スコアリング(プレースホルダー)",
+      "id": "b3f7a6c1-6e6a-4a45-9f52-9f3c2a1a2b31",
+      "name": "RSS取得先一覧",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [180, 260]
+      "position": [
+        -320,
+        180
+      ]
     },
     {
       "parameters": {
-        "content": "## TODO: 保存先\n次フェーズでSupabaseの新規テーブル(content_trends)へ保存する想定。\n実装するまではここで結果を確認するだけでよい。\n\ndocs/workflow-design.md 2章参照",
-        "height": 160,
-        "width": 300
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 6000
+        }
+      },
+      "id": "c4a8b7d2-7f7b-4b56-8a63-8a4d3b2b3c42",
+      "name": "RSSフィードを取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        180
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "診断用に一時的にHTTP Requestへ変更(6秒でタイムアウト)。原因切り分け後にRSS Feed Readへ戻すか、正式にこの形にするか決める"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fcareer-uranai.site%2F/searchAnalytics/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ startDate: $today.minus({ days: 28 }).toFormat('yyyy-MM-dd'), endDate: $today.minus({ days: 1 }).toFormat('yyyy-MM-dd'), dimensions: [\"query\"], rowLimit: 20 }) }}",
+        "options": {}
+      },
+      "id": "d5b9c8e3-8a8c-4c67-9b74-9b5e4c3c4d53",
+      "name": "GSC検索パフォーマンス取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        400
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "credential: Google Service Account（webmasters.readonlyスコープ）。設定手順: docs/google-search-console-setup.md Part B。未設定でもエラーを継続扱いにしてニュースのみで処理する"
+    },
+    {
+      "parameters": {
+        "jsCode": "// RSS全フィード分の見出し(この時点で入力item)と、\n// GSC検索パフォーマンス(別ブランチのノードを名前参照で取得)を整形し、\n// Claudeへ渡す1件のテキストブロックにまとめる\nconst rssItems = $input.all();\nconst sorted = rssItems\n  .map(i => i.json)\n  .filter(j => j && j.title)\n  .sort((a, b) => new Date(b.pubDate || b.isoDate || 0) - new Date(a.pubDate || a.isoDate || 0))\n  .slice(0, 20);\nconst news_summary = sorted.length\n  ? sorted.map(j => `- ${j.title}${j.pubDate ? `（${j.pubDate}）` : ''}`).join('\\n')\n  : 'ニュース見出しを取得できませんでした（RSS取得エラーの可能性）。';\n\nlet gsc_summary = 'GSC連携が未設定のため、今回は検索データなしで進める（automation/n8n/docs/google-search-console-setup.md Part B参照）。';\ntry {\n  const gscJson = $('GSC検索パフォーマンス取得').first().json;\n  if (gscJson && Array.isArray(gscJson.rows) && gscJson.rows.length > 0) {\n    gsc_summary = gscJson.rows\n      .slice(0, 15)\n      .map(r => `- ${(r.keys && r.keys[0]) || '(不明なクエリ)'}: クリック${r.clicks}件 / 表示${r.impressions}回 / 平均掲載順位${(r.position || 0).toFixed(1)}`)\n      .join('\\n');\n  }\n} catch (e) {\n  // GSC未連携・エラー時はニュースのみで進める\n}\n\nreturn [{ json: { gsc_summary, news_summary } }];"
+      },
+      "id": "e6cad9f4-9b9d-4d78-ac85-ac6f5d4d5e64",
+      "name": "収集データを整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-4-6\",\n  max_tokens: 1500,\n  system: \"あなたはcareer-uranai.siteのSNSコンテンツ企画担当です。実データ(Google Search Consoleの検索クエリ実績、転職・キャリア系ニュースの見出し)を根拠に、次に作るSNS投稿のアイデアを4件企画してください。プラットフォームはX・Instagram・Threads・LINEにちょうど1件ずつ割り当てること。\\n\\nキャラクター設定は「白石玲子｜キャリア未来鑑定士」（automation/n8n/docs/workflow-design.md 1章、reiko-character.md参照）に従うこと。不安を煽らず、断定しすぎない。\\n\\npost_typeは次の中から選ぶか、データに最も合う新しい分類名を考えてよい: 共感型 / 占い診断誘導型 / 転職不安解消型 / MBTIあるある型 / 日曜夜の憂鬱型 / 転職エージェント誘導型 / 診断結果シェア促進型\\n\\n以下のJSON配列を4件、そのまま出力してください（前置き・説明不要）:\\n[{ \\\"platform\\\": string, \\\"post_type\\\": string, \\\"target_persona\\\": string, \\\"source_summary\\\": string }]\\n\\nsource_summaryには、根拠にした検索クエリ名やニュース見出しを一言含めること。\",\n  messages: [\n    { role: \"user\", content: `検索クエリ実績:\\n${$json.gsc_summary}\\n\\n最近のキャリア系ニュース見出し:\\n${$json.news_summary}` }\n  ]\n}) }}"
+      },
+      "id": "f7dbea05-ac0e-4e89-bd96-bd7061e5f775",
+      "name": "Claudeでアイデア生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        180
+      ],
+      "notes": "credential: Anthropic用のHTTP Header Auth（Workflow02/03と共通のものを選択）"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeのレスポンス(content[0].text にJSON配列文字列)をパースしてitem化する\nconst raw = $input.first().json.content?.[0]?.text ?? '[]';\nlet parsed;\ntry {\n  const match = raw.match(/\\[[\\s\\S]*\\]/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  throw new Error('Claude応答のJSONパースに失敗しました: ' + raw.slice(0, 200));\n}\nreturn parsed.map(p => ({\n  json: {\n    platform: p.platform,\n    post_type: p.post_type,\n    target_persona: p.target_persona,\n    source_summary: p.source_summary\n  }\n}));"
+      },
+      "id": "08ecfb16-bd1f-4f9a-ce07-ce8172f6f886",
+      "name": "レスポンス整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "ABWwwgAyfCqMxnW7",
+          "mode": "list",
+          "cachedResultName": "02_generate_sns_posts"
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "id": "19fdac27-ce20-4a0a-df18-df9283f36997",
+      "name": "Workflow02を実行(アイデア数分)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        180
+      ],
+      "notes": "02_generate_sns_postsを、アイデア1件ごとにサブワークフローとして呼び出す。02側の「サブワークフロー実行トリガー」ノードがこの入力を受け取る"
+    },
+    {
+      "parameters": {
+        "content": "## 保存先について\n各アイデアの下書きはWorkflow02が作る(Notionの「SNS投稿下書き」DB)。\nこのワークフロー自体は中間データを保存しない(実行履歴で十分追える)。\n\nSEO記事(main_keyword等)への展開は今回のスコープ外。\n必要になったらここにmain_keyword候補の生成を追加する。",
+        "height": 200,
+        "width": 320
       },
       "id": "b0622f5c-e103-4e64-a256-a39a3a1488df",
       "name": "Sticky Note1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [420, 200]
+      "position": [
+        900,
+        -140
+      ]
     }
   ],
   "connections": {
@@ -125,40 +204,83 @@
       "main": [
         [
           {
-            "node": "テスト用ダミーデータ",
+            "node": "RSS取得先一覧",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GSC検索パフォーマンス取得",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "定期実行(6時間毎・無効化中)": {
+    "定期実行(24時間毎・無効化中)": {
       "main": [
         [
           {
-            "node": "TODO: データソースAPI呼び出し",
+            "node": "RSS取得先一覧",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GSC検索パフォーマンス取得",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "TODO: データソースAPI呼び出し": {
+    "RSS取得先一覧": {
       "main": [
         [
           {
-            "node": "スコアリング(プレースホルダー)",
+            "node": "RSSフィードを取得",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "テスト用ダミーデータ": {
+    "RSSフィードを取得": {
       "main": [
         [
           {
-            "node": "スコアリング(プレースホルダー)",
+            "node": "収集データを整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "収集データを整形": {
+      "main": [
+        [
+          {
+            "node": "Claudeでアイデア生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeでアイデア生成": {
+      "main": [
+        [
+          {
+            "node": "レスポンス整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レスポンス整形": {
+      "main": [
+        [
+          {
+            "node": "Workflow02を実行(アイデア数分)",
             "type": "main",
             "index": 0
           }

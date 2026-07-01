@@ -193,6 +193,18 @@
         360
       ],
       "notes": "credential: Notion API。事前にNotion側でこのDBをintegrationと共有しておくこと"
+    },
+    {
+      "parameters": {},
+      "id": "2f6a9c3e-8b1d-4a5f-9c7e-1d3f5a7b9c1e",
+      "name": "サブワークフロー実行トリガー",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        500
+      ],
+      "notes": "Workflow01からアイデア1件ずつ渡されて実行される場合の入口。手動実行(入力例経由)とは別の並行入口"
     }
   ],
   "connections": {
@@ -245,6 +257,17 @@
         [
           {
             "node": "Claudeで投稿案生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "サブワークフロー実行トリガー": {
+      "main": [
+        [
+          {
+            "node": "プラットフォーム別パターン選択",
             "type": "main",
             "index": 0
           }

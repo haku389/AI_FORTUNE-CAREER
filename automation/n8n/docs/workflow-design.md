@@ -90,35 +90,29 @@ NG表現（サイト本体の禁止事項と同一）:
 ファイル: [`01_collect_trends.template.json`](../workflows/01_collect_trends.template.json)
 
 ### 目的
-転職・仕事の悩み・占い・MBTI・キャリア系のトレンドを収集する。
+実データ（GSC検索クエリ実績＋転職・キャリア系ニュースの見出し）を根拠に、Workflow 02（SNS投稿案生成）の入力を自動生成する。X/TikTok/Instagramのライブ投稿を直接取得することは個人開発では現実的でないと判断し（[`sns-viral-patterns.md`](./sns-viral-patterns.md) 参照）、その代わりに「実際に検索されている・報じられている話題」を根拠にする設計にした（2026-07-01実装）。
 
-### 対象トピック（サイトの専門性から外れすぎないよう限定する）
-- 転職理由・退職理由・仕事辞めたい瞬間
-- 20代後半〜30代の転職不安
-- 星座別/MBTI別 仕事運・向いている仕事
-- 九星気学と転職時期
-- 日曜夜の憂鬱、職場ストレス
+### 処理フロー
+1. **RSS取得先一覧**（Codeノード）: 転職・キャリア系ニュースのRSSフィード6件のURLを列挙
+   - 東洋経済オンライン・プレジデントオンライン・Yahoo!ニュース ビジネス（いずれもYahoo!ニュース経由）
+   - マイナビニュース キャリア・マイナビニュース 転職
+   - 日本の人事部
+   - いずれも実際にRSSが返ることを確認済み（2026-07-01時点）。新しいフィードを足す場合はこのノードに1行追加するだけでよい
+2. **RSSフィードを取得**（RSS Feed Readノード）: 上記6件のURLを順に取得（n8nの標準動作で、入力item数＝6回実行され、結果は自動的に1つのリストにまとまる）
+3. **GSC検索パフォーマンス取得**（HTTP Request、並行ブランチ）: Search Console APIで直近28日の検索クエリ上位20件を取得。Google Service Account認証情報が未設定の間はエラーになるが、`onError: continueRegularOutput` を設定してあるため後続処理は止まらない（セットアップ手順: [`google-search-console-setup.md`](./google-search-console-setup.md) Part B）
+4. **収集データを整形**（Codeノード）: RSS見出し（直近20件、日付順）と、取得できていればGSCの検索クエリ実績を整形し、Claude用のテキストブロック2つ（`news_summary` / `gsc_summary`）にまとめる。GSC未連携の場合は「ニュースのみで進める」旨の文言に自動フォールバックする
+5. **Claudeでアイデア生成**（HTTP Request、`claude-sonnet-4-6`）: 上記データを根拠に、SNS投稿アイデアを **X/Instagram/Threads/LINEに1件ずつ、計4件** 企画させる。各アイデアは `{platform, post_type, target_persona, source_summary}` の形（Workflow 02の入力形式と同じ）
+6. **レスポンス整形**（Codeノード）: Claudeの出力（JSON配列）をitem化
+7. **Workflow02を実行(アイデア数分)**（Execute Workflowノード）: `02_generate_sns_posts` をアイデア1件につき1回、サブワークフローとして呼び出す。Workflow 02側に追加した「サブワークフロー実行トリガー」ノードがこの入力を受け取り、これまでの手動テスト用「入力例」Setノードをバイパスして直接プロンプト生成に渡す
 
-### 入力ソースの優先順位
-初期はAPI契約なしで動く範囲から始め、段階的に増やす。
+### なぜこの設計にしたか
+- **Google Custom Search API（競合記事取得用）は不採用**: 2026年時点で新規申込みが停止済み・2027年1月に完全終了予定と判明したため、SEO記事側の競合記事リサーチはAnthropicの`web_search`ツール（Workflow 03に直接組み込み、本ドキュメント4章末尾参照）に置き換えた。Workflow 01は競合記事リサーチを扱わない
+- **Workflow 02を書き換えずサブワークフロー化**: Workflow 02は「手動実行→入力例（固定値）」の経路を残したまま、「サブワークフロー実行トリガー→（入力例をバイパス）」という並行入口を追加した。これにより、Workflow 02は今まで通り単体でも手動テストでき、かつWorkflow 01から実データを渡して呼び出すこともできる
+- **SEO記事（Workflow03）向けの拡張は今回のスコープ外**: main_keyword等の候補生成は将来的にこのワークフローに追加する余地を残してあるが、現時点ではSNS投稿の入力生成のみを行う
 
-1. RSS / ニュースAPI（契約不要 or 無料枠あり）
-2. Google Search Console（自サイトの検索クエリ。既にSearch Console登録済みなら追加コストゼロ）
-3. Google Search API / SerpAPI（有料。競合記事構成の把握に使う場合のみ）
-
-**スクレイピングに関する注意**: Yahoo知恵袋・note等の非公式スクレイピングは利用規約に抵触する可能性がある。使うなら公式API・RSSを優先し、直接HTML取得は避ける。この判断は実装時に都度確認する。
-
-### 保存先（未実装・次フェーズ）
-現時点ではAPIキーが何も設定されていないため、テンプレートJSONは「収集→スコアリング→保存」のノード構成のみを用意し、実際のAPI呼び出しは空のHTTP Requestノードのプレースホルダーにしてある。
-
-保存先は、Google Sheetsではなく **Supabase（career-uranai.siteと同じプロジェクト）に新規テーブル `content_trends` を追加する案を推奨**する（新しいツールを増やさずに済むため）。実装するタイミングで別途テーブル設計・マイグレーションを行う。
-
-保存データ項目（案）:
-```text
-source, url, title, snippet, published_at, collected_at,
-keyword, topic_cluster, emotion_label, pain_label, intent_label,
-virality_score, seo_score, memo
-```
+### 未着手・既知の制約
+- GSC連携（Part B）が未設定のため、実行してもニュースのみを根拠にした結果になる（GSC設定後は自動的に反映される、コード変更は不要）
+- RSS収集結果や生成されたアイデアをSupabase等に保存する処理は現時点ではない（実行履歴で追える範囲で十分と判断し、必要になったら追加する）
 
 ---
 
@@ -184,6 +178,9 @@ API仕様の詳細は [`unified_fortuneTelling/docs/n8n-integration.md`](../../.
 
 ### 承認・公開
 n8n側では何もしない。人間が `/admin/articles` を開き、内容を確認して「公開」または「予約投稿」に切り替える。
+
+### 未着手: 競合記事リサーチ（web_search組み込み予定）
+「main_keywordに近いSEO上位記事を3〜5本参考にする」機能は、Google Custom Search APIが新規申込み停止・2027年1月終了予定と判明したため不採用にし、代わりにAnthropicの`web_search`ツール（`tools: [{type: "web_search_20260318", name: "web_search", max_uses: 5}]`）を「Claudeで記事生成」ノードのリクエストに追加する方針にした。新しい認証情報は不要（既存のAnthropic credentialをそのまま使う）。前提としてAnthropic Consoleの組織管理者が `/settings/privacy` でWeb検索を有効化しておく必要がある。まだ実装していない（2026-07-01時点、タスク管理上は別項目）。
 
 ---
 
