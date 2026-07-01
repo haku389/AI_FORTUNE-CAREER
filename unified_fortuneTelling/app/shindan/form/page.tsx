@@ -7,6 +7,9 @@ import MoonImage from '@/components/MoonImage'
 import ScoreRing from '@/components/result/ScoreRing'
 import AffiliBlock from '@/components/result/AffiliBlock'
 import ShareBlock from '@/components/result/ShareBlock'
+import RecommendedArticlesClient from '@/components/result/RecommendedArticlesClient'
+import { buildResultTags, calcAgeFromBirthday } from '@/lib/articleTags'
+import ReikoBubble from '@/components/result/ReikoBubble'
 import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
@@ -793,7 +796,7 @@ export default function DiagnosisPage() {
       type: r.type,
     })
     const shareUrl = `${origin}?${ogParams.toString()}`
-    const shareText = `キャリア未来鑑定士 白石玲子の診断を受けました。\n\n${u.zodiac.name} × ${typeData.name}\n転職スコア ${r.score}点\n\nあなたも試してみてください。\n${shareUrl}`
+    const shareText = `転職運命診断を受けました。\n\n${u.zodiac.name} × ${typeData.name}\n転職スコア ${r.score}点\n\nあなたも試してみてください。\n${shareUrl}`
 
     const timingColors: Record<string, string> = {
       now: '#ffa040',
@@ -880,16 +883,18 @@ export default function DiagnosisPage() {
           </div>
 
           {/* 鑑定文 */}
-          <div style={{
-            ...cardStyle,
-            background: 'linear-gradient(135deg, #1a1430, #0d1428)',
-            border: '1px solid #7c6bdc44',
-          }}>
-            <div style={rbHeadStyle}>✦ 白石玲子からのメッセージ</div>
-            <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9 }}>
-              {kansenText}
-            </p>
-          </div>
+          <ReikoBubble tailColor="#1a1430">
+            <div style={{
+              ...cardStyle,
+              background: 'linear-gradient(135deg, #1a1430, #0d1428)',
+              border: '1px solid #7c6bdc44',
+            }}>
+              <div style={rbHeadStyle}>✦ 白石玲子からのメッセージ</div>
+              <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9 }}>
+                {kansenText}
+              </p>
+            </div>
+          </ReikoBubble>
 
           {/* 月ブロック */}
           <div style={cardStyle}>
@@ -948,6 +953,19 @@ export default function DiagnosisPage() {
             >
               💎 精密鑑定を受ける →
             </button>
+          </div>
+
+          {/* おすすめ記事 */}
+          <div style={cardStyle}>
+            <RecommendedArticlesClient
+              tags={buildResultTags({
+                zodiac: u.zodiac.name,
+                type: typeData.name,
+                timing: r.timing,
+                age: calcAgeFromBirthday(u.year, u.month, u.day),
+                gender,
+              })}
+            />
           </div>
 
           {/* シェア */}

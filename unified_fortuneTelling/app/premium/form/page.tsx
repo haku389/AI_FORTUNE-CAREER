@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
 import ShareBlock from '@/components/result/ShareBlock'
+import RecommendedArticlesClient from '@/components/result/RecommendedArticlesClient'
+import { buildResultTags, calcAgeFromBirthday } from '@/lib/articleTags'
+import ReikoBubble from '@/components/result/ReikoBubble'
 import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'
 import { trackEvent } from '@/lib/gtag'
@@ -427,13 +430,42 @@ export default function PrecisePage() {
         {/* ── LINEログイン前: ログイン画面のみ表示 ── */}
         {!lineUserId ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
-            <Image src="/白石玲子.png" alt="白石玲子" width={96} height={96} style={{ borderRadius: '50%', marginBottom: 20, filter: 'drop-shadow(0 0 18px #a898f855)' }} />
-            <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0f4ff', marginBottom: 8, textAlign: 'center' }}>
-              キャリア未来鑑定士 白石玲子の精密鑑定
+            <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0c060', marginBottom: 28, textAlign: 'center' }}>
+              精密鑑定を受ける
             </div>
-            <div style={{ fontSize: 12, color: '#7888b8', textAlign: 'center', lineHeight: 1.8, marginBottom: 28 }}>
-              精密鑑定を受けるにはLINEアカウントが必要です。<br />
-              ログイン後、あなたの占い結果に基づいて<br />定期的に転職情報をお届けします。
+            <div style={{ position: 'relative', width: '100%', marginTop: 22, marginBottom: 28 }}>
+              {/* 案内文の吹き出し */}
+              <div
+                style={{
+                  background: '#111c36',
+                  border: '1px solid #2a3f72',
+                  borderRadius: 12,
+                  padding: '14px 16px 14px 16px',
+                  paddingTop: 22,
+                }}
+              >
+                <p style={{ fontSize: 12, color: '#dde4f8', textAlign: 'center', lineHeight: 1.8, margin: 0 }}>
+                  精密鑑定を受けるにはLINEアカウントが必要です。<br />
+                  ログイン後、あなたの占い結果に基づいて<br />定期的に転職情報をお届けします。
+                </p>
+              </div>
+              {/* アイコン+名前: 吹き出しの左上に重ねる */}
+              <div style={{ position: 'absolute', top: -20, left: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    border: '2px solid #f0f4ff',
+                    boxShadow: '0 0 10px #f0f4ff22',
+                  }}
+                >
+                  <Image src="/白石玲子.png" alt="白石玲子" width={40} height={40} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <span style={{ fontSize: 11, color: '#a898f8', whiteSpace: 'nowrap' }}>白石玲子｜キャリア未来鑑定士</span>
+              </div>
             </div>
 
             {/* インアプリブラウザのソフト警告（ブロックはしない） */}
@@ -818,7 +850,7 @@ export default function PrecisePage() {
     const timingData = TIMINGS[r.timing]
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
     const shareUrl = origin + '/premium'
-    const shareText = `キャリア未来鑑定士 白石玲子の精密鑑定を受けました。\n\n${u.sunSign.name} × 月星座 ${u.moonSign} × ${u.honmeiStar}\n転職スコア ${r.score_total}点\n\nあなたも鑑定を受けてみてください。\n${shareUrl}`
+    const shareText = `精密転職鑑定を受けました。\n\n${u.sunSign.name} × 月星座 ${u.moonSign} × ${u.honmeiStar}\n転職スコア ${r.score_total}点\n\nあなたも鑑定を受けてみてください。\n${shareUrl}`
 
     const timingColors: Record<string, string> = { now: '#ffa040', '3m': '#f0c060', '6m': '#a898f8', wait: '#3cc4a8' }
 
@@ -1046,11 +1078,33 @@ export default function PrecisePage() {
                 <br />@reiko_career
               </div>
             </div>
-            <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>
-              <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-serif)' }}>
-                {kansenText}
-              </p>
-            </div>
+            <ReikoBubble tailColor="#0a0f1e">
+              <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>
+                <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-serif)' }}>
+                  {kansenText}
+                </p>
+              </div>
+            </ReikoBubble>
+          </div>
+
+          {/* ── おすすめ記事 ── */}
+          <div style={cardStyle}>
+            <RecommendedArticlesClient
+              tags={buildResultTags({
+                zodiac: u.sunSign.name,
+                moonZodiac: u.moonSign,
+                honmeiStar: u.honmeiStar,
+                mbti: u.mbti,
+                timing: r.timing,
+                age: calcAgeFromBirthday(u.year, u.month, u.day),
+                gender,
+                industries: Array.isArray(answers[10])
+                  ? (answers[10] as number[]).map(i => QUESTIONS[10].opts[i]?.main ?? '').filter(Boolean)
+                  : typeof answers[10] === 'number'
+                    ? [QUESTIONS[10].opts[answers[10]]?.main ?? ''].filter(Boolean)
+                    : [],
+              })}
+            />
           </div>
 
           {/* ── シェア ── */}

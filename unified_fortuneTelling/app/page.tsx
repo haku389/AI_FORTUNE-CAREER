@@ -6,7 +6,7 @@ import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
   title: 'キャリア未来鑑定士 白石玲子 | 星座×転職診断サービス',
-  description: 'キャリア未来鑑定士 白石玲子が、あなたの転職タイミングを星座で鑑定。無料の簡易占いから4軸分析の精密占いまで。',
+  description: 'キャリア未来鑑定士が、あなたの転職タイミングを星座で鑑定。無料の簡易占いから4軸分析の精密占いまで。',
 }
 
 const ICON_COLOR = '#c8952a'
@@ -334,7 +334,7 @@ export default function InfoPage() {
               num: '02',
               icon: <HelpCircle size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
               title: '心の声を打ち明ける',
-              desc: '今の仕事や転職への気持ちを白石玲子に打ち明けてください。',
+              desc: '今の仕事や転職への気持ちを打ち明けてください。',
             },
             {
               num: '03',
@@ -345,8 +345,8 @@ export default function InfoPage() {
             {
               num: '04',
               icon: <Moon size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
-              title: '白石玲子が運命を読み解く',
-              desc: '星々の声を白石玲子が手がかりに、あなただけの転職運命をお伝えします。',
+              title: 'キャリア未来鑑定士が運命を読み解く',
+              desc: '星々の声を手がかりに、あなただけの転職運命をお伝えします。',
             },
           ].map(({ num, icon, title, desc }, i, arr) => (
             <div key={num} style={{ display: 'flex', gap: 16 }}>

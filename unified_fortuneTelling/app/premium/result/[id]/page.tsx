@@ -3,12 +3,17 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import AgentLink from '@/components/result/AgentLink'
+import RecommendedArticles from '@/components/result/RecommendedArticles'
+import ReikoBubble from '@/components/result/ReikoBubble'
 import { ZODIAC } from '@/lib/zodiac'
 import { getHonmeiStarKeyword } from '@/lib/honmeiStar'
+import { getRecommendedArticles } from '@/lib/articleRecommend'
+import { buildResultTags } from '@/lib/articleTags'
+import { QUESTIONS } from '@/lib/precise-questions'
 
 export const metadata: Metadata = {
   title: '鑑定結果 | キャリア未来鑑定士 白石玲子',
-  description: '白石玲子による精密転職鑑定の結果ページ',
+  description: 'キャリア未来鑑定士による精密転職鑑定の結果ページ',
 }
 
 type MonthAdvice = {
@@ -25,6 +30,9 @@ type DiagnoseRow = {
   zodiac_moon: string | null
   honmei_star: string | null
   mbti_type: string | null
+  age: number | null
+  gender: string | null
+  answers: Record<string, number | number[]> | null
   score_total: number
   score_timing: number
   kansen_text: string | null
@@ -71,7 +79,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
   const { data, error } = await supabase
     .from('precise_diagnoses')
-    .select('id, nickname, zodiac_sun, zodiac_moon, honmei_star, mbti_type, score_total, score_timing, kansen_text, monthly_advice, top_jobs, top_industries, recommended_agents, created_at')
+    .select('id, nickname, zodiac_sun, zodiac_moon, honmei_star, mbti_type, age, gender, answers, score_total, score_timing, kansen_text, monthly_advice, top_jobs, top_industries, recommended_agents, created_at')
     .eq('id', id)
     .single()
 
@@ -100,6 +108,24 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
     unknown: '未診断',
   }
   const mbtiLabel = row.mbti_type ? (MBTI_LABELS[row.mbti_type] ?? row.mbti_type) : null
+
+  const recommendedArticles = await getRecommendedArticles(
+    buildResultTags({
+      zodiac: row.zodiac_sun,
+      moonZodiac: row.zodiac_moon,
+      honmeiStar: row.honmei_star,
+      mbti: row.mbti_type,
+      timing,
+      age: row.age,
+      gender: row.gender,
+      industries: (() => {
+        const q10 = row.answers?.q10
+        if (Array.isArray(q10)) return q10.map(i => QUESTIONS[10].opts[i]?.main ?? '').filter(Boolean)
+        if (typeof q10 === 'number') return [QUESTIONS[10].opts[q10]?.main ?? ''].filter(Boolean)
+        return []
+      })(),
+    })
+  )
 
   return (
     <div style={{ background: '#060914', minHeight: '100dvh', color: '#f0f4ff' }}>
@@ -240,11 +266,20 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                 <strong style={{ color: '#a898f8' }}>キャリア未来鑑定士◇白石玲子</strong><br />@reiko_career
               </div>
             </div>
-            <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>
-              <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-serif)' }}>
-                {row.kansen_text}
-              </p>
-            </div>
+            <ReikoBubble tailColor="#0a0f1e">
+              <div style={{ background: '#0a0f1e', borderRadius: 12, padding: '16px', border: '1px solid #2a3f72' }}>
+                <p style={{ fontSize: 13, color: '#dde4f8', lineHeight: 1.9, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-serif)' }}>
+                  {row.kansen_text}
+                </p>
+              </div>
+            </ReikoBubble>
+          </div>
+        )}
+
+        {/* ══ おすすめ記事 ══ */}
+        {recommendedArticles.length > 0 && (
+          <div style={card}>
+            <RecommendedArticles articles={recommendedArticles} />
           </div>
         )}
 

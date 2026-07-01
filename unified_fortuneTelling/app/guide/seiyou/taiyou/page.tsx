@@ -5,7 +5,7 @@ import Stars from '@/components/Stars'
 
 export const metadata: Metadata = {
   title: '12星座と転職 — 太陽星座ガイド | キャリア未来鑑定士 白石玲子',
-  description: '12星座それぞれの特性と、転職における強み・向いている仕事を白石玲子が解説します。',
+  description: '12星座それぞれの特性と、転職における強み・向いている仕事をキャリア未来鑑定士が解説します。',
 }
 
 const ZODIAC_LIST = [

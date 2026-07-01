@@ -103,7 +103,7 @@ export const QUESTIONS: Question[] = [
     ],
   },
 
-  // ── BLOCK 2: 惑星が読み解く「魂の色」 ──
+  // ── BLOCK 2: キャリア未来鑑定士が読み解く「魂の色」 ──
   {
     block: 2,
     tag: '☿ 水星が映す — 思考の星型',
@@ -499,7 +499,7 @@ export const QUESTIONS: Question[] = [
 /** ブロックのメタ情報 */
 export const BLOCKS = [
   { num: 1, title: '土星が刻む「今の場所と時間」', icon: '🪐', questionCount: 4 },
-  { num: 2, title: '惑星が読み解く「魂の色」',       icon: '✨', questionCount: 6 },
+  { num: 2, title: 'キャリア未来鑑定士が読み解く「魂の色」',       icon: '✨', questionCount: 6 },
   { num: 3, title: '木星が照らす「次の場所」',         icon: '♃', questionCount: 8 },
   { num: 4, title: '月が守る「魂の居場所」',           icon: '🌙', questionCount: 4 },
   { num: 5, title: '星が映す「隠れた自分」',           icon: '☀️', questionCount: 3 },

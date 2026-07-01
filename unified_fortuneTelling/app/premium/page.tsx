@@ -70,8 +70,9 @@ export default function PremiumLandingPage() {
         >
           あなたの転職運命、
           <br />
-          <span style={{ color: '#f0c060', display: 'block' }}>星が深く</span>
-          読み解く
+          <span style={{ color: '#f0c060' }}>キャリア未来鑑定士が</span>
+          <br />
+          深く読み解く
         </h1>
 
         {/* コピー */}
