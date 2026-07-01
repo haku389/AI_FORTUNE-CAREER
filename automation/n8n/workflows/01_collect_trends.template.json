@@ -1,0 +1,174 @@
+{
+  "name": "01_collect_trends",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 01_collect_trends\n情報収集ワークフローの雛形。\nデータソース（Search Console / News API / SerpAPI等）はまだ未確定のため、\nHTTP Requestノードはプレースホルダー（URL未設定）になっている。\n\n詳細: docs/workflow-design.md 2章",
+        "height": 220,
+        "width": 340
+      },
+      "id": "91bc7dea-063a-41fb-91d2-0f0209662d1d",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-260, -80]
+    },
+    {
+      "parameters": {},
+      "id": "9015edc4-4814-4040-91d9-876f890fb0ab",
+      "name": "手動実行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-260, 200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "e01c3a1b-bb1e-4ce8-972e-078468441ac4",
+      "name": "定期実行(6時間毎・無効化中)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-260, 340],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://example.com/TODO-data-source",
+        "options": {}
+      },
+      "id": "a0589b03-8c41-461c-a58b-6c462fc7354e",
+      "name": "TODO: データソースAPI呼び出し",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-40, 200],
+      "notes": "GOOGLE_SEARCH_API_KEY / SERPAPI_API_KEY / NEWS_API_KEY 等、実装するソースに応じてURL・認証を設定する"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14ffa4e2-d649-45fb-bfe0-1a4de5ee2442",
+              "name": "source",
+              "value": "manual_test",
+              "type": "string"
+            },
+            {
+              "id": "7d8074fd-0ae2-4080-abdb-0f0560b5b5bc",
+              "name": "url",
+              "value": "https://example.com/sample",
+              "type": "string"
+            },
+            {
+              "id": "9e655d0c-35bf-47a9-933a-f6c4c0aa5945",
+              "name": "title",
+              "value": "サンプル: 転職 タイミング 占い",
+              "type": "string"
+            },
+            {
+              "id": "a6860b07-befc-4a0a-b709-51d87690e646",
+              "name": "snippet",
+              "value": "テスト用のダミーデータ。実データソース接続後にこのノードは削除してよい。",
+              "type": "string"
+            },
+            {
+              "id": "5260d69a-ccfb-4451-a3b1-61882736a4c7",
+              "name": "collected_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "83370cbf-518c-444c-9a1b-47f9eba5b60b",
+      "name": "テスト用ダミーデータ",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-40, 340]
+    },
+    {
+      "parameters": {
+        "jsCode": "// トピック/感情/スコアの簡易ラベリング（プレースホルダー実装）\n// 実際はLLM呼び出し or ルールベース分類に差し替える\nfor (const item of $input.all()) {\n  const text = `${item.json.title ?? ''} ${item.json.snippet ?? ''}`;\n  item.json.topic_cluster = 'unclassified';\n  item.json.emotion_label = 'unclassified';\n  item.json.pain_label = 'unclassified';\n  item.json.intent_label = 'unclassified';\n  item.json.virality_score = 0;\n  item.json.seo_score = 0;\n  item.json.memo = 'placeholder scoring - see docs/workflow-design.md §6';\n}\nreturn $input.all();"
+      },
+      "id": "3878161c-5b67-48ab-8cec-6281ad761ade",
+      "name": "スコアリング(プレースホルダー)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [180, 260]
+    },
+    {
+      "parameters": {
+        "content": "## TODO: 保存先\n次フェーズでSupabaseの新規テーブル(content_trends)へ保存する想定。\n実装するまではここで結果を確認するだけでよい。\n\ndocs/workflow-design.md 2章参照",
+        "height": 160,
+        "width": 300
+      },
+      "id": "b0622f5c-e103-4e64-a256-a39a3a1488df",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [420, 200]
+    }
+  ],
+  "connections": {
+    "手動実行": {
+      "main": [
+        [
+          {
+            "node": "テスト用ダミーデータ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "定期実行(6時間毎・無効化中)": {
+      "main": [
+        [
+          {
+            "node": "TODO: データソースAPI呼び出し",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TODO: データソースAPI呼び出し": {
+      "main": [
+        [
+          {
+            "node": "スコアリング(プレースホルダー)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "テスト用ダミーデータ": {
+      "main": [
+        [
+          {
+            "node": "スコアリング(プレースホルダー)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

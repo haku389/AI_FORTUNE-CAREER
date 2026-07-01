@@ -1,2 +1,6 @@
 .vercel
 .env*.local
+
+# n8n self-host (automation/n8n/)
+automation/n8n/.env
+automation/n8n/backups/

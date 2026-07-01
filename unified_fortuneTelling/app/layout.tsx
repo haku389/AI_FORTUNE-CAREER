@@ -53,6 +53,9 @@ export const metadata: Metadata = {
     description: '誕生日と5つの質問から、転職タイミングを星座で鑑定。',
     images: [`${BASE_URL}/api/og`],
   },
+  verification: {
+    google: 'WmDQaaPV6EPlATrfhbvA9rurS0OOm3akJNrrIo4TbKA',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

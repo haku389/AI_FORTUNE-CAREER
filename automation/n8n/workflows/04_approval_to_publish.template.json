@@ -1,0 +1,187 @@
+{
+  "name": "04_approval_to_publish",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 04_approval_to_publish (SNS専用)\nNotionの「SNS投稿下書き」DBを定期ポーリングし、\nStatus=approved の行を検知して status=queued に更新する。\n\nSNS各社の投稿APIは未契約のため、自動投稿はまだ行わない。\nSEO記事側はこのワークフローの対象外(既存の /admin/articles で完結する)。\n\n詳細: docs/workflow-design.md 5章",
+        "height": 260,
+        "width": 380
+      },
+      "id": "f58899eb-2e72-4459-8a57-3cf28a9e9ad8",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        -100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "51018c07-6164-4e20-8bf0-88297ad0dd03",
+      "name": "手動実行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "8c768e43-6bea-4363-a7cd-014dca5f5d63",
+      "name": "定期実行(30分毎・無効化中)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -340,
+        360
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": "2b702e64-205f-4692-b325-229e394c9748",
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Status|select",
+              "condition": "equals",
+              "selectValue": "approved"
+            }
+          ]
+        }
+      },
+      "id": "7bb376b6-289b-4c51-92ff-478b3316b7e8",
+      "name": "承認済み投稿案を取得",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        280
+      ],
+      "notes": "credential: Notion API（Workflow 02と同じもの）"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 承認済み投稿案の一覧を整理する（通知/一覧表示用に整形するだけのプレースホルダー）\n// 実際にSlack通知やLINE通知を送りたい場合は、この後段にHTTP Request等を追加する\nconst items = $input.all();\nconsole.log(`承認済み投稿案: ${items.length}件`);\nreturn items;"
+      },
+      "id": "f47554e2-f4cc-4c5f-9dc6-56ee2b1c58b1",
+      "name": "件数ログ出力",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "queued"
+            }
+          ]
+        }
+      },
+      "id": "de9436c3-2960-4476-887e-2be151f3039a",
+      "name": "Statusをqueuedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        380,
+        280
+      ],
+      "notes": "二重処理防止のため、処理済みである印としてstatusを進める"
+    },
+    {
+      "parameters": {
+        "content": "## TODO: 実際の投稿\nX/Instagram/LINEのAPIキーが揃ったら、\nここに投稿ノードを追加する。\n\n・同一文面の連投を避ける\n・自動リプライはしない\n・投稿前チェックを入れる\n(career-uranai-content-automation-design.md の方針を守ること)",
+        "height": 200,
+        "width": 320
+      },
+      "id": "d0f22840-2294-4220-96e2-e1ba519deffc",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "手動実行": {
+      "main": [
+        [
+          {
+            "node": "承認済み投稿案を取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "定期実行(30分毎・無効化中)": {
+      "main": [
+        [
+          {
+            "node": "承認済み投稿案を取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "承認済み投稿案を取得": {
+      "main": [
+        [
+          {
+            "node": "件数ログ出力",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "件数ログ出力": {
+      "main": [
+        [
+          {
+            "node": "Statusをqueuedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

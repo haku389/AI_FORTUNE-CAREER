@@ -1,0 +1,260 @@
+{
+  "name": "02_generate_sns_posts",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 02_generate_sns_posts\n収集データ(または手動入力)からSNS投稿案をClaudeで生成し、\nNotionの「SNS投稿下書き」DBへ status=draft で保存する。\n\nプラットフォーム別の「バズる型」は docs/sns-viral-patterns.md にまとめてあり、\n「プラットフォーム別パターン選択」ノードでplatformに応じて注入する。\n採用した型はpattern_usedとしてNotionにも記録される。\n\n事前準備: Notionに専用データベースを作成してNOTION_SNS_DRAFTS_DATABASE_IDを設定\n(プロパティ定義: docs/workflow-design.md §3)\n\nAnthropic/NotionのcredentialはUIから設定すること。",
+        "height": 300,
+        "width": 420
+      },
+      "id": "9cef1f1f-432a-47d1-adbd-41c51486f853",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "76fa8fad-a150-47a5-81e6-066affc81c1b",
+      "name": "手動実行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3e2acca9-d45d-45b3-8a70-9a3951a12241",
+              "name": "source_summary",
+              "value": "テスト入力: 「日曜の夜になると仕事に行きたくなくなる」という悩みが多い",
+              "type": "string"
+            },
+            {
+              "id": "f1008d74-21bf-4065-8a88-3ba5bd5de453",
+              "name": "target_persona",
+              "value": "28〜38歳・転職を迷っている女性",
+              "type": "string"
+            },
+            {
+              "id": "f6355a79-06ce-4c0b-b81d-6458cba7715b",
+              "name": "post_type",
+              "value": "日曜夜の憂鬱型",
+              "type": "string"
+            },
+            {
+              "id": "1876ff19-884a-4a3a-9d1b-1a888d0970e0",
+              "name": "platform",
+              "value": "X",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "18101f6d-3f67-4a2c-92c0-0a715efb516d",
+      "name": "入力例(Workflow01の出力に差し替え可)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -320,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// platformに応じたバズパターンガイドをitemに追加する\n// 詳細・出典: automation/n8n/docs/sns-viral-patterns.md（4媒体合計60記事以上を調査）\n// マーク: ✅そのまま使ってよい / ⚠️断定・煽り表現を柔らかい言い換えに変換してから使う / 🚫使わない\nconst guides = {\n  X: `X（Twitter）の型:\n- 数字実績×ノウハウ提示型✅: 具体的な数字＋実績＋ノウハウを組み合わせる\n- 失敗談・後悔学び型✅: Before(後悔)→After(今があるのはあの経験のおかげ)を必ずセットにする\n- ストーリー型✅: 悩み→壁→解決→今→学び、の物語構成\n- あるある・共感型✅: 読者が「わかる」と感じる日常/職業シーンの切り取り(最有力)\n- リスト・チェックリスト型✅: 「〇〇の3つのポイント」等の箇条書き\n- 権威性×親近感型✅: 専門性の提示と等身大の語りを両立させる\n- 自己開示型✅: 個人的な気づきの吐露から前向きな着地へ\n- 静かな余韻型✅: 説明を削り、間(改行)を活かして語りすぎない\n- フック→本文→問いかけ型✅: 冒頭で強いフック、末尾は柔らかい問いかけで締める(万能フレーム、迷ったらこれを土台にする)\n- 逆説型⚠️: 「実は〇〇」で常識を覆す。断定せず「かもしれません」程度に和らげる\n- 意見表明・持論型🚫: 仮想敵を作る対立構造は使わない\n締め方: 「保存して」等の直接要求より、診断への自然な導線を意識する。問いかけで終えるとリプライを誘発しやすい。`,\n  Instagram: `Instagramの型（保存率・DMシェアが重要指標）:\n- ノウハウ・HOW TO型✅: 「〇〇のやり方」「失敗しないための3つのポイント」\n- WHY型✅: 「なぜ〇〇が起きるのか」を解説する\n- STORY型✅: 象徴的な人物のビフォーアフターを物語調で\n- まとめ・〇選型✅: 「〇〇7選」「確認すべきチェックリスト」\n- ビフォーアフター比較型✅: 改善前後を並べる。過度な\"成功演出\"は避ける\n- 問いかけ型✅: 「あなたはどっち派？」。内省を促す優しい問いに\n- ターゲット指定型✅: 「〇〇な人へ」と対象を明確に絞る\n- 数字提示型✅: 「3つのコツ」等。「絶対」等の断定は避ける\n- 共感つぶやき・あるある型✅: 日常の\"あるある\"に寄り添う短い一言\n- カルーセル3部構成型✅: 表紙(フック)→本文(1枚1メッセージ)→CTA\n- 共感→解決策→CTA型✅: 悩みへの共感→解決策→行動喚起(基本フォーマット)\n- フレーミング型⚠️: 「9割が知らない」は断定的すぎるため「傾向があります」等に和らげる\n- 損失回避型⚠️: 「知らないと損」ではなく「知っておくと安心」に言い換える\n締め方: 保存・プロフィール誘導を促す一言で締める。「友達にも教えたくなる」設計だとなお良い。`,\n  Threads: `Threadsの型（情報より感情、最初の1行が全て、返信数が最重要指標）:\n- 共感・違和感フック型✅: 冒頭1行で「それ私の話だ」と思わせる問題提起\n- 結論先出し(BLUF)型✅: 結論→理由・体験→問いかけの三段構成\n- 二段構え型✅: メイン投稿で結論・共感を出し切り、コメント欄で深掘りする\n- 質問・問いかけ締め型✅: 「あなたはどう思う？」で会話のハードルを下げる\n- ストーリーテリング型✅: 過去(悩み)→変化のきっかけ→今、の時系列\n- リスト・チェックリスト型✅: 番号付きリストで情報を構造化する\n- 選択肢・仮定法型✅: 「Aタイプ？Bタイプ？」「もし〇〇だったら？」で自分ごと化(占いと好相性)\n- 短文×余白型✅: 1〜2文の短いテキストで状況・感情だけ切り取り、説明しすぎない\n- トレンド・時事便乗型✅: 話題のトピックや季節ネタに絡める\n- 逆説型⚠️: 「実は〇〇は間違い」。断定しすぎない配慮が必要\n- 否定形・警告型⚠️: 「NG」ではなく「気をつけたいポイント」に言い換える\n- PAS法⚠️: Problem→Agitation→Solutionの型。Agitationは「共感の深掘り」に置き換える\n締め方: 答えを出し切らずに終える(オープンループ)と会話が続きやすい。投稿後1時間の返信対応が重要。`,\n  LINE: `LINE公式アカウントの型（開封率平均55〜65%、セグメント配信で効果大）:\n- ベネフィット先出し型✅: 冒頭に絵文字＋ベネフィット見出し→説明→CTA\n- 情報提供・教育型✅: 課題提示→有益な知識の一部→詳細は外部リンクへ\n- ストーリーテリング型✅: ユーザーの変化・体験談をBefore/Afterで\n- 参加型・双方向型✅: アンケート・診断への参加を促す(既存の診断コンテンツと好相性)\n- 感謝・共感型✅: 登録への感謝→共感的な一言→次のアクション(最も親和性が高い基本形)\n- パーソナライズ型✅: 名前差し込み、診断結果や行動履歴の言及\n- 1吹き出し1メッセージ型✅: 1吹き出しに1訴求・1CTAのみ、300字程度(全配信共通の基礎ルール)\n- リッチメッセージ型✅: 画像で主要訴求を1つだけ、興味喚起系の文言でタップ誘導\n- ステップ配信型✅: 挨拶→育成コンテンツ→本提案→体験談、の段階設計\n- PASONA型✅: Problem→Affinity(共感)→Solution→Offer→Narrow→Action\n- 三層心理アプローチ型✅: 注意(実績)→感情(ストーリー)→理性(データ)の順で\n- 限定感・希少性型⚠️: 期限を出すとしても「今週だけの特別鑑定枠」程度に留める\n- 3つの壁型⚠️: 後押しは「あなたのペースで大丈夫」等、急かさない表現に\n締め方: 「今すぐ転職」ではなく「あなたのタイミングで」という余白を持たせる。`\n};\nreturn $input.all().map(item => ({\n  json: {\n    ...item.json,\n    platform_guide: guides[item.json.platform] || Object.values(guides).join('\\n\\n')\n  }\n}));"
+      },
+      "id": "728485f2-f0be-4283-b49f-6262dc70bd28",
+      "name": "プラットフォーム別パターン選択",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        360
+      ],
+      "notes": "詳細パターン集: automation/n8n/docs/sns-viral-patterns.md"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 600,\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。一人称は「私」。丁寧な「です・ます」調（だよ・ね等は使わない）。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない（Agitationではなく共感=Affinityを優先する）。詳細ルールは automation/n8n/docs/workflow-design.md 1章 (reiko-character.md参照) に従うこと。\\n\\n次のプラットフォーム別の「型」の中から、投稿タイプ・元ネタに最も合うものを1つ選んで書くこと。型には✅（そのまま使ってよい）⚠️（断定・煽り表現を柔らかい言い換えに変換してから使う）🚫（使わない）のマークが付いている。🚫の型は選ばないこと。⚠️の型を選ぶ場合は必ず指示どおり表現を和らげること。選んだ型の名前（マークは含めない）はpattern_usedに入れる。\\n\\n\" + $json.platform_guide + \"\\n\\n以下のJSON配列を1件だけ、そのまま出力してください（前置き・説明不要）:\\n[{ \\\"pattern_used\\\": string, \\\"hook\\\": string, \\\"body\\\": string, \\\"cta\\\": string, \\\"hashtags\\\": string[], \\\"image_prompt\\\": string }]\",\n  messages: [\n    { role: \"user\", content: `投稿タイプ: ${$json.post_type}\\nプラットフォーム: ${$json.platform}\\n想定読者: ${$json.target_persona}\\n元ネタ: ${$json.source_summary}` }\n  ]\n}) }}"
+      },
+      "id": "07de5681-b9fb-4f40-b5bd-37bf00a8c0a8",
+      "name": "Claudeで投稿案生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        360
+      ],
+      "notes": "credential: Anthropic用のHTTP Header Auth (x-api-key: ANTHROPIC_API_KEY) を作成して選択する"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeのレスポンス(content[0].text に JSON配列文字列)をパースしてitem化する\nconst results = [];\nfor (const item of $input.all()) {\n  const raw = item.json.content?.[0]?.text ?? '[]';\n  let parsed = [];\n  try {\n    const match = raw.match(/\\[[\\s\\S]*\\]/);\n    parsed = JSON.parse(match ? match[0] : raw);\n  } catch (e) {\n    parsed = [{ hook: '', body: raw, cta: '', hashtags: [], image_prompt: '' }];\n  }\n  for (const p of parsed) {\n    results.push({\n      json: {\n        name: (p.hook || p.body || '無題').slice(0, 60),\n        platform: $('入力例(Workflow01の出力に差し替え可)').first().json.platform,\n        post_type: $('入力例(Workflow01の出力に差し替え可)').first().json.post_type,\n        pattern_used: p.pattern_used ?? '',\n        hook: p.hook ?? '',\n        body: p.body ?? '',\n        cta: p.cta ?? '',\n        hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n        image_prompt: p.image_prompt ?? '',\n        target_persona: $('入力例(Workflow01の出力に差し替え可)').first().json.target_persona,\n        source_urls: '',\n        status: 'draft'\n      }\n    });\n  }\n}\nreturn results;"
+      },
+      "id": "3105048a-3f65-4798-b469-fb5806299224",
+      "name": "レスポンス整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": "2b702e64-205f-4692-b325-229e394c9748",
+        "title": "={{ $json.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Platform|select",
+              "selectValue": "={{ $json.platform }}"
+            },
+            {
+              "key": "PostType|select",
+              "selectValue": "={{ $json.post_type }}"
+            },
+            {
+              "key": "PatternUsed|rich_text",
+              "textContent": "={{ $json.pattern_used }}"
+            },
+            {
+              "key": "Hook|rich_text",
+              "textContent": "={{ $json.hook }}"
+            },
+            {
+              "key": "Body|rich_text",
+              "textContent": "={{ $json.body }}"
+            },
+            {
+              "key": "CTA|rich_text",
+              "textContent": "={{ $json.cta }}"
+            },
+            {
+              "key": "Hashtags|rich_text",
+              "textContent": "={{ $json.hashtags }}"
+            },
+            {
+              "key": "ImagePrompt|rich_text",
+              "textContent": "={{ $json.image_prompt }}"
+            },
+            {
+              "key": "TargetPersona|rich_text",
+              "textContent": "={{ $json.target_persona }}"
+            },
+            {
+              "key": "SourceURLs|rich_text",
+              "textContent": "={{ $json.source_urls }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "draft"
+            }
+          ]
+        }
+      },
+      "id": "db2642cc-f4f6-4425-93f7-0bddcaed2a2e",
+      "name": "Notionへ下書き保存",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        640,
+        360
+      ],
+      "notes": "credential: Notion API。事前にNotion側でこのDBをintegrationと共有しておくこと"
+    }
+  ],
+  "connections": {
+    "手動実行": {
+      "main": [
+        [
+          {
+            "node": "入力例(Workflow01の出力に差し替え可)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "入力例(Workflow01の出力に差し替え可)": {
+      "main": [
+        [
+          {
+            "node": "プラットフォーム別パターン選択",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeで投稿案生成": {
+      "main": [
+        [
+          {
+            "node": "レスポンス整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レスポンス整形": {
+      "main": [
+        [
+          {
+            "node": "Notionへ下書き保存",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "プラットフォーム別パターン選択": {
+      "main": [
+        [
+          {
+            "node": "Claudeで投稿案生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

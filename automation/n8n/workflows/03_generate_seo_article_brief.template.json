@@ -1,0 +1,212 @@
+{
+  "name": "03_generate_seo_article_brief",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 03_generate_seo_article_brief\nキーワードからSEO記事(本文まで)を生成し、\ncareer-uranai.siteへ status=draft でPOSTする。\n公開判断は /admin/articles を人間が操作する(このワークフローではしない)。\n\nAPI仕様: unified_fortuneTelling/docs/n8n-integration.md\n詳細設計: docs/workflow-design.md 4章",
+        "height": 240,
+        "width": 380
+      },
+      "id": "af75fcf2-fdb5-431a-b72b-3e209b05a97d",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        -100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "0bc76a82-9cfa-4774-8190-bd91f0c77e19",
+      "name": "手動実行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "685d3401-1836-42d3-84f7-6fdd4e53603e",
+              "name": "main_keyword",
+              "value": "転職 タイミング 占い",
+              "type": "string"
+            },
+            {
+              "id": "ebde85fd-8485-4bed-83a5-2e3299fa184d",
+              "name": "target_reader",
+              "value": "転職するか迷っている28〜38歳の女性",
+              "type": "string"
+            },
+            {
+              "id": "d638c655-a2a7-4a37-8853-c41889f435cf",
+              "name": "differentiation",
+              "value": "西洋占星術・九星気学・MBTIの4軸で転職タイミングを診断できる点",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "c1636835-8004-41ae-89d2-40399ac03293",
+      "name": "入力例(Workflow01の出力に差し替え可)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -380,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://career-uranai.site/api/n8n/tags",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "65855843-ab8d-4709-b2bf-f67cf3cdf807",
+      "name": "タグ語彙を取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -140,
+        360
+      ],
+      "notes": "credential: career-uranai.site用 Header Auth (Authorization: Bearer CAREER_SITE_N8N_API_KEY)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-4-6\",\n  max_tokens: 4000,\n  system: \"あなたは career-uranai.site のSEO記事作成担当です。キャラクター「白石玲子｜キャリア未来鑑定士」の一人称・口調で書く（詳細ルール: automation/n8n/docs/workflow-design.md 1章、unified_fortuneTelling/docs/reiko-character.md）。読者の悩みに寄り添い、不安を煽らず、転職を断定的に勧めない。記事末尾は無料/精密診断への自然な誘導で締める。\\n\\n以下のJSON形式で1件だけ出力してください（前置き・説明・コードブロック記法は不要、JSONのみ）:\\n{ \\\"title\\\": string, \\\"meta_description\\\": string, \\\"body_md\\\": string (Markdown, 1500字以上), \\\"tags\\\": string[] }\\n\\ntagsのルール: 次の語彙の中からのみ選ぶこと。記事の主題と最も強く関連するものだけを3〜6個選び、無理に多くのカテゴリを埋めない（幅広い読者向けの記事なら年齢層・性別は省略してよい）。語彙: \" + JSON.stringify($json.tagGroups.flatMap(g => g.options.map(o => o.value)))\n  ,\n  messages: [\n    { role: \"user\", content: `対策キーワード: ${$('入力例(Workflow01の出力に差し替え可)').first().json.main_keyword}\\n想定読者: ${$('入力例(Workflow01の出力に差し替え可)').first().json.target_reader}\\n差別化ポイント: ${$('入力例(Workflow01の出力に差し替え可)').first().json.differentiation}` }\n  ]\n}) }}"
+      },
+      "id": "84b139bd-00ff-4fe4-ab14-8306a5574719",
+      "name": "Claudeで記事生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        360
+      ],
+      "notes": "credential: Anthropic用のHTTP Header Auth (x-api-key: ANTHROPIC_API_KEY)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeのレスポンス(content[0].text にJSON文字列)をパースしてPOST用bodyを作る\nconst raw = $input.first().json.content?.[0]?.text ?? '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  throw new Error('Claude応答のJSONパースに失敗しました: ' + raw.slice(0, 200));\n}\nreturn [{\n  json: {\n    title: parsed.title,\n    meta_description: parsed.meta_description,\n    body_md: parsed.body_md,\n    tags: parsed.tags ?? [],\n    status: 'draft'\n  }\n}];"
+      },
+      "id": "7860278f-4bc6-445b-8db0-0ec98f2f3213",
+      "name": "レスポンス整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://career-uranai.site/api/n8n/articles",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "23de75a4-c5a1-41de-a1fb-139b8143676f",
+      "name": "career-uranai.siteへ下書き保存",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        580,
+        360
+      ],
+      "notes": "credential: career-uranai.site用 Header Auth。droppedTagsがレスポンスに含まれる場合はタグ語彙のずれを確認する"
+    }
+  ],
+  "connections": {
+    "手動実行": {
+      "main": [
+        [
+          {
+            "node": "入力例(Workflow01の出力に差し替え可)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "入力例(Workflow01の出力に差し替え可)": {
+      "main": [
+        [
+          {
+            "node": "タグ語彙を取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "タグ語彙を取得": {
+      "main": [
+        [
+          {
+            "node": "Claudeで記事生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeで記事生成": {
+      "main": [
+        [
+          {
+            "node": "レスポンス整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レスポンス整形": {
+      "main": [
+        [
+          {
+            "node": "career-uranai.siteへ下書き保存",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
