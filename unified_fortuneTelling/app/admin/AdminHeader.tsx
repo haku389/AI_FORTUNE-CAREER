@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export default function AdminHeader({ title }: { title: string }) {
   const router = useRouter()
+  const pathname = usePathname()
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' })
@@ -27,9 +28,28 @@ export default function AdminHeader({ title }: { title: string }) {
         <div style={{ fontSize: 11, letterSpacing: 4, color: '#c8952a', marginBottom: 4 }}>
           ✦ ADMIN
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/admin/articles" style={{ color: '#f0f4ff', fontSize: 18, fontWeight: 800, textDecoration: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Link
+            href="/admin/articles"
+            style={{
+              color: pathname?.startsWith('/admin/articles') ? '#f0f4ff' : '#7888b8',
+              fontSize: 18,
+              fontWeight: 800,
+              textDecoration: 'none',
+            }}
+          >
             記事管理
+          </Link>
+          <Link
+            href="/admin/analytics"
+            style={{
+              color: pathname?.startsWith('/admin/analytics') ? '#f0f4ff' : '#7888b8',
+              fontSize: 18,
+              fontWeight: 800,
+              textDecoration: 'none',
+            }}
+          >
+            アナリティクス
           </Link>
           {title && <span style={{ color: '#5a6a9a', fontSize: 13 }}>/ {title}</span>}
         </div>

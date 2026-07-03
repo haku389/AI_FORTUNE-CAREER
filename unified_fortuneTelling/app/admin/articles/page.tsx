@@ -3,25 +3,11 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { supabaseAdmin, type SeoArticle } from '@/lib/supabaseAdmin'
 import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
+import { getStatsByArticleId } from '@/lib/articleAnalytics'
 import AdminHeader from '../AdminHeader'
-import ArticleListTable, { type ArticleStats } from './ArticleListTable'
+import ArticleListTable from './ArticleListTable'
 
 export const dynamic = 'force-dynamic'
-
-async function getStatsByArticleId(): Promise<Record<string, ArticleStats>> {
-  const { data } = await supabaseAdmin.from('article_events').select('article_id, event_type, cta_target')
-
-  const stats: Record<string, ArticleStats> = {}
-  for (const e of data ?? []) {
-    const s = (stats[e.article_id] ??= { views: 0, scroll75: 0, scroll100: 0, quickClicks: 0, detailedClicks: 0 })
-    if (e.event_type === 'view') s.views++
-    else if (e.event_type === 'scroll_75') s.scroll75++
-    else if (e.event_type === 'scroll_100') s.scroll100++
-    else if (e.event_type === 'cta_click' && e.cta_target === 'quick_diagnosis') s.quickClicks++
-    else if (e.event_type === 'cta_click' && e.cta_target === 'detailed_diagnosis') s.detailedClicks++
-  }
-  return stats
-}
 
 export default async function AdminArticlesPage() {
   const cookieStore = await cookies()

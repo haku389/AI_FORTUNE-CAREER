@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from 'react'
 
-function track(articleId: string, eventType: string, ctaTarget?: string) {
+function track(articleId: string, eventType: string, ctaTarget?: string, value?: number) {
   fetch('/api/analytics/track', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ article_id: articleId, event_type: eventType, cta_target: ctaTarget }),
+    body: JSON.stringify({ article_id: articleId, event_type: eventType, cta_target: ctaTarget, value }),
     keepalive: true,
   }).catch(() => {})
 }
@@ -23,6 +23,14 @@ export default function ArticleAnalytics({ articleId }: { articleId: string }) {
 
   useEffect(() => {
     track(articleId, 'view')
+    const mountedAt = Date.now()
+    let dwellSent = false
+    const sendDwell = () => {
+      if (dwellSent) return
+      dwellSent = true
+      const seconds = Math.round((Date.now() - mountedAt) / 1000)
+      if (seconds > 0) track(articleId, 'dwell_time', undefined, seconds)
+    }
 
     const onScroll = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight
@@ -34,10 +42,21 @@ export default function ArticleAnalytics({ articleId }: { articleId: string }) {
         }
       }
     }
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') sendDwell()
+    }
 
     window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('pagehide', sendDwell)
     onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('pagehide', sendDwell)
+      sendDwell()
+    }
   }, [articleId])
 
   return null

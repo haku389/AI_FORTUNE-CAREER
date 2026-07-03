@@ -1,7 +1,30 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { ArticlePreview } from '@/lib/articleRecommend'
 
+function track(articleId: string, eventType: string) {
+  fetch('/api/analytics/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ article_id: articleId, event_type: eventType }),
+    keepalive: true,
+  }).catch(() => {})
+}
+
 export default function RecommendedArticles({ articles }: { articles: ArticlePreview[] }) {
+  const impressedRef = useRef<Set<string>>(new Set())
+
+  useEffect(() => {
+    for (const a of articles) {
+      if (!impressedRef.current.has(a.id)) {
+        impressedRef.current.add(a.id)
+        track(a.id, 'recommended_impression')
+      }
+    }
+  }, [articles])
+
   if (articles.length === 0) return null
 
   return (
@@ -14,6 +37,7 @@ export default function RecommendedArticles({ articles }: { articles: ArticlePre
           <Link
             key={a.slug}
             href={`/column/${a.slug}`}
+            onClick={() => track(a.id, 'recommended_click')}
             style={{
               display: 'flex',
               alignItems: 'center',

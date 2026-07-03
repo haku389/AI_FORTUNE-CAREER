@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
-const EVENT_TYPES = ['view', 'scroll_25', 'scroll_50', 'scroll_75', 'scroll_100', 'cta_click'] as const
+const EVENT_TYPES = [
+  'view',
+  'scroll_25', 'scroll_50', 'scroll_75', 'scroll_100',
+  'cta_click',
+  'dwell_time',
+  'recommended_impression',
+  'recommended_click',
+] as const
 const CTA_TARGETS = ['quick_diagnosis', 'detailed_diagnosis'] as const
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
-  const { article_id, event_type, cta_target } = body ?? {}
+  const { article_id, event_type, cta_target, value } = body ?? {}
 
   if (typeof article_id !== 'string' || !article_id) {
     return NextResponse.json({ error: 'article_id is required' }, { status: 400 })
@@ -17,11 +24,15 @@ export async function POST(req: NextRequest) {
   if (cta_target !== undefined && cta_target !== null && !CTA_TARGETS.includes(cta_target)) {
     return NextResponse.json({ error: 'invalid cta_target' }, { status: 400 })
   }
+  if (value !== undefined && value !== null && (typeof value !== 'number' || !Number.isFinite(value))) {
+    return NextResponse.json({ error: 'invalid value' }, { status: 400 })
+  }
 
   const { error } = await supabaseAdmin.from('article_events').insert({
     article_id,
     event_type,
     cta_target: cta_target ?? null,
+    value: value ?? null,
   })
 
   if (error) {

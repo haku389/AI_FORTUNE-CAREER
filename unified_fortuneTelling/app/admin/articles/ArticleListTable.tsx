@@ -3,17 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Eye } from 'lucide-react'
 import type { SeoArticle } from '@/lib/supabaseAdmin'
+import type { ArticleAnalyticsStats } from '@/lib/articleAnalytics'
 import { isoToDatetimeLocal, datetimeLocalToIso } from '@/lib/dateTimeLocal'
 import DateTimePicker from './DateTimePicker'
 
-export type ArticleStats = {
-  views: number
-  scroll75: number
-  scroll100: number
-  quickClicks: number
-  detailedClicks: number
-}
+export type ArticleStats = ArticleAnalyticsStats
 
 const STATUS_LABEL: Record<SeoArticle['status'], string> = {
   draft: '下書き',
@@ -73,36 +69,29 @@ function StatusEditor({ article, onSaved }: { article: SeoArticle; onSaved: () =
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div style={{ display: 'flex', gap: 6 }}>
-        {(['draft', 'scheduled', 'published'] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setStatus(s)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer',
-              border: `1px solid ${status === s ? '#c8952a' : '#2a3f72'}`,
-              background: status === s ? '#c8952a22' : 'transparent',
-              color: status === s ? '#f0c060' : '#7888b8',
-            }}
-          >
-            {STATUS_LABEL[s]}
-          </button>
-        ))}
-      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {(['draft', 'scheduled', 'published'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(s)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                border: `1px solid ${status === s ? '#c8952a' : '#2a3f72'}`,
+                background: status === s ? '#c8952a22' : 'transparent',
+                color: status === s ? '#f0c060' : '#7888b8',
+              }}
+            >
+              {STATUS_LABEL[s]}
+            </button>
+          ))}
+        </div>
 
-      {status === 'scheduled' && (
-        <DateTimePicker value={scheduledAt} onChange={setScheduledAt} placeholder="公開日時を選択…" />
-      )}
-      {status === 'published' && (
-        <DateTimePicker value={publishedAt} onChange={setPublishedAt} placeholder="空欄なら現在時刻" />
-      )}
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <button
           type="button"
           onClick={save}
@@ -117,12 +106,23 @@ function StatusEditor({ article, onSaved }: { article: SeoArticle; onSaved: () =
             opacity: saving ? 0.6 : 1,
             background: 'linear-gradient(135deg, #c8952a, #e0a830)',
             color: '#1a0c00',
+            flexShrink: 0,
           }}
         >
           {saving ? '保存中…' : '保存'}
         </button>
-        {message && <span style={{ fontSize: 11, color: message === '保存しました' ? '#3cc4a8' : '#ff8080' }}>{message}</span>}
       </div>
+
+      {status === 'scheduled' && (
+        <DateTimePicker value={scheduledAt} onChange={setScheduledAt} placeholder="公開日時を選択…" />
+      )}
+      {status === 'published' && (
+        <DateTimePicker value={publishedAt} onChange={setPublishedAt} placeholder="空欄なら現在時刻" />
+      )}
+
+      {message && (
+        <span style={{ fontSize: 11, color: message === '保存しました' ? '#3cc4a8' : '#ff8080' }}>{message}</span>
+      )}
     </div>
   )
 }
@@ -188,7 +188,9 @@ function ArticleRow({ article, stats }: { article: SeoArticle; stats: ArticleSta
       </Link>
 
       <div style={{ marginTop: 8, fontSize: 11, color: '#7888b8', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span>👁 {stats.views}回表示</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Eye size={13} strokeWidth={2} /> {stats.views}回表示
+        </span>
         <span>・</span>
         <span>最後まで読了 {stats.scroll100}件（75%到達 {stats.scroll75}件）</span>
         <span>・</span>
@@ -230,7 +232,19 @@ export default function ArticleListTable({
   articles: SeoArticle[]
   statsByArticleId: Record<string, ArticleStats>
 }) {
-  const emptyStats: ArticleStats = { views: 0, scroll75: 0, scroll100: 0, quickClicks: 0, detailedClicks: 0 }
+  const emptyStats: ArticleStats = {
+    views: 0,
+    scroll25: 0,
+    scroll50: 0,
+    scroll75: 0,
+    scroll100: 0,
+    quickClicks: 0,
+    detailedClicks: 0,
+    dwellTimeTotalSeconds: 0,
+    dwellTimeCount: 0,
+    recommendedImpressions: 0,
+    recommendedClicks: 0,
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

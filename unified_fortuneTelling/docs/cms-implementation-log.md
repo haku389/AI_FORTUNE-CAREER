@@ -205,4 +205,32 @@ matchPercent = round(一致したタグ数 ÷ 診断結果側のタグ数 × 100
 
 **誤りの原因**: 認証チェックの有無を確認した際、`grep -rln "verifySessionCookie|..." app/ lib/` のように `app/` と `lib/` 配下しか検索しておらず、プロジェクトルート直下の `proxy.ts` を見落とした。加えて、Next.jsの旧来の慣習である `middleware.ts` というファイル名で `find` していたため、Next.js 16で名称が変わった `proxy.ts` にヒットしなかった。「未ログインだと401/リダイレクトになる」という動作確認自体は当時も今も正しいが、それが自分で追加したページ/APIルート単位のチェックによるものだと誤認していた（`proxy.ts`が先に効いていたため、追加チェックの有無に関わらず同じ結果になっていた）。
 
-**現状**: 誤って追加した6ファイル（`app/admin/articles/page.tsx` / `[id]/page.tsx` / `new/page.tsx`、`app/api/admin/articles/route.ts` / `[id]/route.ts`、`app/api/admin/upload/route.ts`）へのチェックはそのまま残している。`proxy.ts`と処理が重複するが、多層防御（`proxy.ts`の設定ミス・matcher変更漏れ等があっても個々のルートで防げる）として実害はないため、あえて削除はしていない。
+**現状**: 誤って追加した6ファイル（`app/admin/articles/page.tsx` / `[id]/page.tsx` / `new/page.tsx`、`app/api/admin/articles/route.ts` / `[id]/route.ts`、`app/api/admin/upload/route.ts`）へのチェックはそのまま残している。`proxy.ts`と処理が重複するが、多層防御（`proxy.ts`の設定ミス・matcher変更漏れ等があっても個々のルートで防げる）として実害はないため、あえて削除はしていない。なお `/admin/analytics`（9章）は新規追加時にこの誤りを踏まえて `proxy.ts` 側のみに任せており、ページ側の重複チェックは付けていない。
+
+---
+
+## 9. 記事ごとのアナリティクス（2026-07-03）
+
+**目的**: 記事単位で「見られているか」「読まれているか」「診断への導線として機能しているか」を可視化する。サイト全体の計測はGoogle Analyticsで別途行っているため、こちらは記事単位の内訳に特化している。
+
+**データの流れ**: `article_events` テーブル（`0004_article_events.sql` で作成、`0005_article_events_extend.sql` で `value` 列とイベント種別を拡張）に、クライアント側から `/api/analytics/track`（認証不要・匿名イベント投稿用API）経由で1行ずつ記録する。集計は `lib/articleAnalytics.ts` の `getStatsByArticleId()` が `article_events` を全件読み出してJS側で集計する方式（記事数・イベント数がこの規模のブログでは十分な性能のため、DB側の集計ビュー等は作っていない）。
+
+**イベント種別と発火場所**:
+| event_type | 発火場所 | 内容 |
+| --- | --- | --- |
+| `view` | `components/column/ArticleAnalytics.tsx` | 記事ページのマウント時に1回 |
+| `scroll_25`/`50`/`75`/`100` | 同上 | スクロール到達率のしきい値を初めて超えた時に1回ずつ（ページ内で複数回は発火しない） |
+| `dwell_time`（`value`列に秒数） | 同上 | `visibilitychange`（タブが非表示になった時）または`pagehide`で、マウントからの経過秒数を送信 |
+| `cta_click`（`cta_target`列に `quick_diagnosis`/`detailed_diagnosis`） | `components/column/TrackedCtaLink.tsx` | 記事末尾の「簡易診断する」「精密診断を見る」リンクのクリック時 |
+| `recommended_impression` | `components/result/RecommendedArticles.tsx` | 診断結果画面で記事がおすすめとして表示された時（記事ごとに1回のみ） |
+| `recommended_click` | 同上 | おすすめ記事リンクのクリック時 |
+
+**管理者自身のプレビュー閲覧はカウントしない**: `app/column/[slug]/page.tsx` で `isPreview`（下書き/予約投稿を管理者が確認している状態）の時は `ArticleAnalytics` を描画しないようにしている。公開後の実アクセスのみが計測対象。
+
+**表示箇所**:
+- `/admin/articles`（一覧）: 各記事に表示回数・完読数（`scroll_100`）・75%到達数・診断遷移数を簡易表示（`ArticleListTable.tsx`）
+- `/admin/analytics`（新規ページ）: 表示回数・完読率（`scroll_100 / views`）・平均滞在時間・簡易診断/精密診断への遷移数・おすすめ表示回数・おすすめ経由クリック率を、列見出しクリックでソートできる表形式（`AnalyticsTable.tsx`）で一覧表示。GA同様「どの指標で並べ替えるか」をユーザー側で選べる設計にしており、単一の合成スコアで「一番良い記事」を決め打ちすることはしていない（何を「良い」とするかは目的次第で変わるため）。
+
+**既知の制約（意図的な割り切り）**:
+- 同一訪問者が同じ記事を複数回閲覧すると `view` がその都度加算される（セッション単位の重複排除はしていない）。プレビュー除外以外のボット・重複対策は入れていない。
+- `dwell_time` は「ページを開いていた時間」であり、タブを裏で開きっぱなしにした時間も含まれうる（厳密な「読んでいた時間」ではない）。

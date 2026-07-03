@@ -1,6 +1,7 @@
 import { supabaseAdmin, type SeoArticle } from './supabaseAdmin'
 
 export type ArticlePreview = {
+  id: string
   title: string
   slug: string
   meta_description: string | null
@@ -23,6 +24,7 @@ export type ArticlePreview = {
 
 function toPreview(a: SeoArticle, matchPercent: number): ArticlePreview {
   return {
+    id: a.id,
     title: a.title,
     slug: a.slug,
     meta_description: a.meta_description,
