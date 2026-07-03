@@ -118,7 +118,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Claudeのレスポンス(content[0].text に JSON配列文字列)をパースしてitem化する\nconst results = [];\nfor (const item of $input.all()) {\n  const raw = item.json.content?.[0]?.text ?? '[]';\n  let parsed = [];\n  try {\n    const match = raw.match(/\\[[\\s\\S]*\\]/);\n    parsed = JSON.parse(match ? match[0] : raw);\n  } catch (e) {\n    parsed = [{ hook: '', body: raw, cta: '', hashtags: [], image_prompt: '' }];\n  }\n  for (const p of parsed) {\n    results.push({\n      json: {\n        name: (p.hook || p.body || '無題').slice(0, 60),\n        platform: $('入力例(Workflow01の出力に差し替え可)').first().json.platform,\n        post_type: $('入力例(Workflow01の出力に差し替え可)').first().json.post_type,\n        pattern_used: p.pattern_used ?? '',\n        hook: p.hook ?? '',\n        body: p.body ?? '',\n        cta: p.cta ?? '',\n        hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n        image_prompt: p.image_prompt ?? '',\n        target_persona: $('入力例(Workflow01の出力に差し替え可)').first().json.target_persona,\n        source_urls: '',\n        status: 'draft'\n      }\n    });\n  }\n}\nreturn results;"
+        "jsCode": "// Claudeのレスポンス(content[0].text に JSON配列文字列)をパースしてitem化する\nconst results = [];\nfor (const item of $input.all()) {\n  const raw = item.json.content?.[0]?.text ?? '[]';\n  let parsed = [];\n  try {\n    const match = raw.match(/\\[[\\s\\S]*\\]/);\n    parsed = JSON.parse(match ? match[0] : raw);\n  } catch (e) {\n    parsed = [{ hook: '', body: raw, cta: '', hashtags: [], image_prompt: '' }];\n  }\n  for (const p of parsed) {\n    results.push({\n      json: {\n        name: (p.hook || p.body || '無題').slice(0, 60),\n        platform: $('プラットフォーム別パターン選択').first().json.platform,\n        post_type: $('プラットフォーム別パターン選択').first().json.post_type,\n        pattern_used: p.pattern_used ?? '',\n        hook: p.hook ?? '',\n        body: p.body ?? '',\n        cta: p.cta ?? '',\n        hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n        image_prompt: p.image_prompt ?? '',\n        target_persona: $('プラットフォーム別パターン選択').first().json.target_persona,\n        source_urls: '',\n        status: 'draft'\n      }\n    });\n  }\n}\nreturn results;"
       },
       "id": "3105048a-3f65-4798-b469-fb5806299224",
       "name": "レスポンス整形",
@@ -195,7 +195,9 @@
       "notes": "credential: Notion API。事前にNotion側でこのDBをintegrationと共有しておくこと"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "inputSource": "passthrough"
+      },
       "id": "2f6a9c3e-8b1d-4a5f-9c7e-1d3f5a7b9c1e",
       "name": "サブワークフロー実行トリガー",
       "type": "n8n-nodes-base.executeWorkflowTrigger",

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "unified_fortuneTelling-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "unified_fortuneTelling", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

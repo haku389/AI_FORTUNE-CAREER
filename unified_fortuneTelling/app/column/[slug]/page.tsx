@@ -1,50 +1,90 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { marked } from 'marked'
 import Stars from '@/components/Stars'
 import { supabaseAdmin, type SeoArticle } from '@/lib/supabaseAdmin'
 import { publishDueScheduledArticles } from '@/lib/publishScheduled'
+import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
 
 export const revalidate = 60
 
-async function getArticle(slug: string): Promise<SeoArticle | null> {
+async function isAdminPreview(): Promise<boolean> {
+  const cookieStore = await cookies()
+  return verifySessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value)
+}
+
+async function getArticle(slug: string): Promise<{ article: SeoArticle; isPreview: boolean } | null> {
   await publishDueScheduledArticles()
 
-  const { data } = await supabaseAdmin
+  const { data: published } = await supabaseAdmin
     .from('seo_articles')
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')
     .single()
-  return (data as SeoArticle) ?? null
+  if (published) return { article: published as SeoArticle, isPreview: false }
+
+  // 公開記事が無い場合のみ、管理者セッションがあれば下書き/予約投稿もプレビューとして表示する
+  if (await isAdminPreview()) {
+    const { data: draft } = await supabaseAdmin
+      .from('seo_articles')
+      .select('*')
+      .eq('slug', slug)
+      .in('status', ['draft', 'scheduled'])
+      .single()
+    if (draft) return { article: draft as SeoArticle, isPreview: true }
+  }
+
+  return null
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params
-  const article = await getArticle(slug)
-  if (!article) return {}
+  const result = await getArticle(slug)
+  if (!result) return {}
+  const { article, isPreview } = result
   return {
     title: `${article.title} | キャリア未来鑑定士 白石玲子`,
     description: article.meta_description ?? undefined,
     openGraph: article.eyecatch_url
       ? { images: [{ url: article.eyecatch_url }] }
       : undefined,
+    robots: isPreview ? { index: false, follow: false } : undefined,
   }
 }
 
 export default async function ColumnArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const article = await getArticle(slug)
-  if (!article) notFound()
+  const result = await getArticle(slug)
+  if (!result) notFound()
+  const { article, isPreview } = result
 
   const html = marked.parse(article.body_md, { async: false }) as string
 
   return (
     <div style={{ background: '#070c1a', color: '#f0f4ff', minHeight: '100dvh', fontFamily: 'var(--font-sans)' }}>
       <Stars />
+      {isPreview && (
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            background: '#c8952a',
+            color: '#1a0c00',
+            fontSize: 13,
+            fontWeight: 700,
+            textAlign: 'center',
+            padding: '8px 12px',
+          }}
+        >
+          プレビュー中（{article.status === 'scheduled' ? '予約投稿' : '下書き'}）— この画面は管理者にのみ表示されています
+        </div>
+      )}
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '56px 24px 80px', position: 'relative', zIndex: 1 }}>
         <Link href="/column" style={{ color: '#a898f8', fontSize: 12, textDecoration: 'none' }}>
           ← コラム一覧

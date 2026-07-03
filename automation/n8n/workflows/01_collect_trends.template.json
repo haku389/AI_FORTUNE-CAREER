@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## 01_collect_trends\n実データ(Google Search Console + 転職・キャリア系ニュースRSS)を収集し、\nClaudeで分析してSNS投稿アイデアを4件(X/Instagram/Threads/LINE各1件)企画する。\nその後 02_generate_sns_posts をアイデアの数だけサブワークフローとして呼び出す。\n\n前提: GSC検索パフォーマンス取得ノードは、Google Service Account認証情報を\nn8nに設定するまでエラーになる(その場合もニュースのみで処理は続行する)。\nセットアップ手順: docs/google-search-console-setup.md Part B\n\nSEO記事(Workflow03)向けの競合記事リサーチは、このワークフローではなく\nWorkflow03側にAnthropicのweb_searchツールとして直接組み込む方針。\n\n詳細設計: docs/workflow-design.md 2章",
+        "content": "## 01_collect_trends\n実データ(Google Search Console + 転職・キャリア系ニュースRSS)を収集し、\nClaudeで分析してSNSコンテンツの核となる中身を1つ企画し、\nX/Instagram/Threads/LINEの4媒体に同じ内容のまま(型だけ変えて)展開する。\nその後 02_generate_sns_posts を4媒体分サブワークフローとして呼び出す。\n\n前提: GSC検索パフォーマンス取得ノードは、Google Service Account認証情報を\nn8nに設定するまでエラーになる(その場合もニュースのみで処理は続行する)。\nセットアップ手順: docs/google-search-console-setup.md Part B\n\nSEO記事(Workflow03)向けの競合記事リサーチは、このワークフローではなく\nWorkflow03側にAnthropicのweb_searchツールとして直接組み込む方針。\n\n詳細設計: docs/workflow-design.md 2章",
         "height": 320,
         "width": 420
       },
@@ -63,22 +63,21 @@
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "={{ $json.url }}",
-        "options": {
-          "timeout": 6000
-        }
+        "options": {}
       },
       "id": "c4a8b7d2-7f7b-4b56-8a63-8a4d3b2b3c42",
       "name": "RSSフィードを取得",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
       "position": [
         -80,
         180
       ],
       "onError": "continueRegularOutput",
-      "notes": "診断用に一時的にHTTP Requestへ変更(6秒でタイムアウト)。原因切り分け後にRSS Feed Readへ戻すか、正式にこの形にするか決める"
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -136,7 +135,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-4-6\",\n  max_tokens: 1500,\n  system: \"あなたはcareer-uranai.siteのSNSコンテンツ企画担当です。実データ(Google Search Consoleの検索クエリ実績、転職・キャリア系ニュースの見出し)を根拠に、次に作るSNS投稿のアイデアを4件企画してください。プラットフォームはX・Instagram・Threads・LINEにちょうど1件ずつ割り当てること。\\n\\nキャラクター設定は「白石玲子｜キャリア未来鑑定士」（automation/n8n/docs/workflow-design.md 1章、reiko-character.md参照）に従うこと。不安を煽らず、断定しすぎない。\\n\\npost_typeは次の中から選ぶか、データに最も合う新しい分類名を考えてよい: 共感型 / 占い診断誘導型 / 転職不安解消型 / MBTIあるある型 / 日曜夜の憂鬱型 / 転職エージェント誘導型 / 診断結果シェア促進型\\n\\n以下のJSON配列を4件、そのまま出力してください（前置き・説明不要）:\\n[{ \\\"platform\\\": string, \\\"post_type\\\": string, \\\"target_persona\\\": string, \\\"source_summary\\\": string }]\\n\\nsource_summaryには、根拠にした検索クエリ名やニュース見出しを一言含めること。\",\n  messages: [\n    { role: \"user\", content: `検索クエリ実績:\\n${$json.gsc_summary}\\n\\n最近のキャリア系ニュース見出し:\\n${$json.news_summary}` }\n  ]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-4-6\",\n  max_tokens: 1200,\n  system: \"あなたはcareer-uranai.siteのコンテンツ企画担当です。実データ(Google Search Consoleの検索クエリ実績、転職・キャリア系ニュースの見出し)を根拠に、次の2つを企画してください。\\n\\n1. SNSコンテンツの核となる中身(sns_idea): X/Instagram/Threads/LINEの4媒体すべてに同じ内容のまま展開する。媒体を意識せず、伝えたい中身そのものだけ考えること\\n2. SEO記事のアイデア(seo_idea): career-uranai.siteのSEO記事(1日1本ペース)として書くべきキーワードと差別化ポイント\\n\\n2つは同じ話題である必要はない(それぞれ別のデータを根拠にしてよい)。\\n\\nキャラクター設定は「白石玲子｜キャリア未来鑑定士」（automation/n8n/docs/workflow-design.md 1章、reiko-character.md参照）に従うこと。不安を煽らず、断定しすぎない。\\n\\nsns_idea.post_typeは次の中から選ぶか、データに最も合う新しい分類名を考えてよい: 共感型 / 占い診断誘導型 / 転職不安解消型 / MBTIあるある型 / 日曜夜の憂鬱型 / 転職エージェント誘導型 / 診断結果シェア促進型\\n\\n以下のJSONオブジェクトを1件だけ、そのまま出力してください（前置き・説明不要）:\\n{ \\\"sns_idea\\\": { \\\"post_type\\\": string, \\\"target_persona\\\": string, \\\"source_summary\\\": string }, \\\"seo_idea\\\": { \\\"main_keyword\\\": string, \\\"target_reader\\\": string, \\\"differentiation\\\": string } }\\n\\nsource_summary・differentiationには、根拠にした検索クエリ名やニュース見出しを一言含めること。\",\n  messages: [\n    { role: \"user\", content: `検索クエリ実績:\\n${$json.gsc_summary}\\n\\n最近のキャリア系ニュース見出し:\\n${$json.news_summary}` }\n  ]\n}) }}"
       },
       "id": "f7dbea05-ac0e-4e89-bd96-bd7061e5f775",
       "name": "Claudeでアイデア生成",
@@ -147,19 +146,6 @@
         180
       ],
       "notes": "credential: Anthropic用のHTTP Header Auth（Workflow02/03と共通のものを選択）"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Claudeのレスポンス(content[0].text にJSON配列文字列)をパースしてitem化する\nconst raw = $input.first().json.content?.[0]?.text ?? '[]';\nlet parsed;\ntry {\n  const match = raw.match(/\\[[\\s\\S]*\\]/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  throw new Error('Claude応答のJSONパースに失敗しました: ' + raw.slice(0, 200));\n}\nreturn parsed.map(p => ({\n  json: {\n    platform: p.platform,\n    post_type: p.post_type,\n    target_persona: p.target_persona,\n    source_summary: p.source_summary\n  }\n}));"
-      },
-      "id": "08ecfb16-bd1f-4f9a-ce07-ce8172f6f886",
-      "name": "レスポンス整形",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        660,
-        180
-      ]
     },
     {
       "parameters": {
@@ -179,7 +165,7 @@
       "typeVersion": 1.2,
       "position": [
         900,
-        180
+        60
       ],
       "notes": "02_generate_sns_postsを、アイデア1件ごとにサブワークフローとして呼び出す。02側の「サブワークフロー実行トリガー」ノードがこの入力を受け取る"
     },
@@ -197,6 +183,54 @@
         900,
         -140
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeのレスポンス(content[0].text にJSONオブジェクト文字列)からsns_ideaを取り出し、\n// post_type/target_persona/source_summaryは共通のまま、4媒体分にファンアウトする\nconst raw = $input.first().json.content?.[0]?.text ?? '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  throw new Error('Claude応答のJSONパースに失敗しました: ' + raw.slice(0, 200));\n}\nconst idea = parsed.sns_idea;\nconst platforms = ['X', 'Instagram', 'Threads', 'LINE'];\nreturn platforms.map(platform => ({\n  json: {\n    platform,\n    post_type: idea.post_type,\n    target_persona: idea.target_persona,\n    source_summary: idea.source_summary\n  }\n}));"
+      },
+      "id": "08ecfb16-bd1f-4f9a-ce07-ce8172f6f886",
+      "name": "SNS用に整形(4媒体ファンアウト)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeのレスポンス(content[0].text にJSONオブジェクト文字列)からseo_ideaを取り出す\nconst raw = $input.first().json.content?.[0]?.text ?? '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  throw new Error('Claude応答のJSONパースに失敗しました: ' + raw.slice(0, 200));\n}\nconst idea = parsed.seo_idea;\nreturn [{\n  json: {\n    main_keyword: idea.main_keyword,\n    target_reader: idea.target_reader,\n    differentiation: idea.differentiation\n  }\n}];"
+      },
+      "id": "aee1da2a-9c0b-4c71-a071-c0cf638309d0",
+      "name": "SEO用に整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "9hHBtrRW9M9NLLMh",
+          "mode": "list",
+          "cachedResultName": "03_generate_seo_article_brief"
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "id": "1ea5dd66-43d3-414f-a84f-773dd978678f",
+      "name": "Workflow03を実行(SEO記事1本)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        320
+      ],
+      "notes": "03_generate_seo_article_briefを1日1本ペースで呼び出す。03側の「サブワークフロー実行トリガー」がこの入力を受け取る"
     }
   ],
   "connections": {
@@ -269,18 +303,34 @@
       "main": [
         [
           {
-            "node": "レスポンス整形",
+            "node": "SNS用に整形(4媒体ファンアウト)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SEO用に整形",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "レスポンス整形": {
+    "SNS用に整形(4媒体ファンアウト)": {
       "main": [
         [
           {
             "node": "Workflow02を実行(アイデア数分)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO用に整形": {
+      "main": [
+        [
+          {
+            "node": "Workflow03を実行(SEO記事1本)",
             "type": "main",
             "index": 0
           }

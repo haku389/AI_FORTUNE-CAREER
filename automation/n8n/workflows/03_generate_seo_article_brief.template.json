@@ -101,28 +101,28 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-4-6\",\n  max_tokens: 4000,\n  system: \"あなたは career-uranai.site のSEO記事作成担当です。キャラクター「白石玲子｜キャリア未来鑑定士」の一人称・口調で書く（詳細ルール: automation/n8n/docs/workflow-design.md 1章、unified_fortuneTelling/docs/reiko-character.md）。読者の悩みに寄り添い、不安を煽らず、転職を断定的に勧めない。記事末尾は無料/精密診断への自然な誘導で締める。\\n\\n以下のJSON形式で1件だけ出力してください（前置き・説明・コードブロック記法は不要、JSONのみ）:\\n{ \\\"title\\\": string, \\\"meta_description\\\": string, \\\"body_md\\\": string (Markdown, 1500字以上), \\\"tags\\\": string[] }\\n\\ntagsのルール: 次の語彙の中からのみ選ぶこと。記事の主題と最も強く関連するものだけを3〜6個選び、無理に多くのカテゴリを埋めない（幅広い読者向けの記事なら年齢層・性別は省略してよい）。語彙: \" + JSON.stringify($json.tagGroups.flatMap(g => g.options.map(o => o.value)))\n  ,\n  messages: [\n    { role: \"user\", content: `対策キーワード: ${$('入力例(Workflow01の出力に差し替え可)').first().json.main_keyword}\\n想定読者: ${$('入力例(Workflow01の出力に差し替え可)').first().json.target_reader}\\n差別化ポイント: ${$('入力例(Workflow01の出力に差し替え可)').first().json.differentiation}` }\n  ]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 8000,\n  tools: [\n    {\n      name: \"submit_article\",\n      description: \"生成したSEO記事を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          title: { type: \"string\" },\n          meta_description: { type: \"string\" },\n          body_md: { type: \"string\", description: \"Markdown, 3500〜4500字程度。[IMAGE_N]プレースホルダーを含む\" },\n          tags: { type: \"array\", items: { type: \"string\" } },\n          images: {\n            type: \"array\",\n            description: \"本文中に挿入する画像。最大3枚(別途アイキャッチ1枚と合わせて記事全体で最大4枚になるため)\",\n            items: {\n              type: \"object\",\n              properties: {\n                marker: { type: \"string\" },\n                alt_text: { type: \"string\" },\n                content_prompt: { type: \"string\" }\n              },\n              required: [\"marker\", \"alt_text\", \"content_prompt\"]\n            }\n          },\n          eyecatch_prompt: { type: \"string\", description: \"アイキャッチ画像の内容説明(記事全体を象徴する1枚。ブランドの世界観やタイトル描画の指示は不要、内容の説明のみでよい)\" }\n        },\n        required: [\"title\", \"meta_description\", \"body_md\", \"tags\", \"images\", \"eyecatch_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_article\" },\n  system: \"あなたは career-uranai.site のSEO記事作成担当です。キャラクター「白石玲子｜キャリア未来鑑定士」の一人称・口調で書く（詳細ルール: automation/n8n/docs/workflow-design.md 1章、unified_fortuneTelling/docs/reiko-character.md）。読者の悩みに寄り添い、不安を煽らず、転職を断定的に勧めない。記事末尾は無料/精密診断への自然な誘導で締める。\\n\\n事前に調べた競合記事リサーチ結果を参考に、内容が薄くならないようにすること（そのまま転載せず、差別化ポイントを踏まえて独自の切り口で書く）。\\n\\nbody_md中で強調したい語句は全角の「」または**太字**を使うこと。半角ダブルクォート(\\\")は使わないこと。\\n\\ntitleのルール: 検索結果でタイトルの先頭30文字程度しか表示されなくても「転職・キャリアに関する記事」だと伝わるよう、タイトルの最初の20文字以内に「転職」「キャリア」などのキーワードを含めること。そのうえで具体的な手法・切り口（占術名など）を続け、最後に抽象的な結論やベネフィットを置く（例:「転職タイミングを西洋占星術×九星気学×MBTIで見極める｜迷いを手放す3つの視点」）。\\n\\n画像プランのルール: 表形式で比較したい内容や、視覚的に伝えたほうがわかりやすい箇所があれば、Markdown表の代わりに [IMAGE_1] [IMAGE_2] [IMAGE_3] のようなプレースホルダーを本文中の該当箇所に単独の行として挿入し、imagesという配列でその内容を指定すること。**本文画像は最大3枚まで**（多すぎないように、本当に必要な箇所だけに絞る）。content_promptにはブランドの世界観（ゴールド×バイオレットの配色、占星術的で上品な雰囲気）は書かなくてよい（別途固定で付与されるため）。画像に含めたい日本語のラベル・数値・見出しがあれば具体的に書くこと。\\n\\neyecatch_promptのルール: 記事全体を1枚で象徴する内容を書くこと（例: 3つの占術のモチーフを組み合わせた構図、記事のテーマを一目で表すシンボリックな絵）。ブランドの世界観やタイトルの描画についてはここに書かなくてよい（別途固定で付与される）。\\n\\ntagsのルール: 次の語彙の中からのみ選ぶこと。記事の主題と最も強く関連するものだけを3〜6個選び、無理に多くのカテゴリを埋めない（幅広い読者向けの記事なら年齢層・性別は省略してよい）。語彙: \" + JSON.stringify($('タグ語彙を取得').first().json.tagGroups.flatMap(g => g.options.map(o => o.value)))\n  ,\n  messages: [\n    { role: \"user\", content: `対策キーワード: ${$('入力データ確定').first().json.main_keyword}\\n想定読者: ${$('入力データ確定').first().json.target_reader}\\n差別化ポイント: ${$('入力データ確定').first().json.differentiation}\\n\\n競合記事リサーチ結果:\\n${$json.competitor_research}` }\n  ]\n}) }}"
       },
       "id": "84b139bd-00ff-4fe4-ab14-8306a5574719",
       "name": "Claudeで記事生成",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        100,
+        560,
         360
       ],
       "notes": "credential: Anthropic用のHTTP Header Auth (x-api-key: ANTHROPIC_API_KEY)"
     },
     {
       "parameters": {
-        "jsCode": "// Claudeのレスポンス(content[0].text にJSON文字列)をパースしてPOST用bodyを作る\nconst raw = $input.first().json.content?.[0]?.text ?? '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  throw new Error('Claude応答のJSONパースに失敗しました: ' + raw.slice(0, 200));\n}\nreturn [{\n  json: {\n    title: parsed.title,\n    meta_description: parsed.meta_description,\n    body_md: parsed.body_md,\n    tags: parsed.tags ?? [],\n    status: 'draft'\n  }\n}];"
+        "jsCode": "// Claudeのtool_use出力(input)は既にパース済みオブジェクトなので、JSON.parseは不要\nconst content = $input.first().json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_article');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst parsed = toolUse.input;\nreturn [{\n  json: {\n    title: parsed.title,\n    meta_description: parsed.meta_description,\n    body_md: parsed.body_md,\n    tags: parsed.tags ?? [],\n    status: 'draft',\n    images: parsed.images ?? [],\n    eyecatch_prompt: parsed.eyecatch_prompt ?? ''\n  }\n}];"
       },
       "id": "7860278f-4bc6-445b-8db0-0ec98f2f3213",
       "name": "レスポンス整形",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        340,
+        1040,
         360
       ]
     },
@@ -141,10 +141,171 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        580,
+        2480,
         360
       ],
       "notes": "credential: career-uranai.site用 Header Auth。droppedTagsがレスポンスに含まれる場合はタグ語彙のずれを確認する"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "ef9d1a7d-5c0f-46ed-b477-8b4efa3089d8",
+      "name": "サブワークフロー実行トリガー",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -380,
+        520
+      ],
+      "notes": "Workflow01からmain_keyword等を渡されて実行される場合の入口。手動実行(入力例経由)とは別の並行入口"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 手動実行(入力例)・サブワークフロー実行トリガーのどちらから来ても、\n// main_keyword/target_reader/differentiationを持つitemをそのまま次に渡す\nreturn $input.all();"
+      },
+      "id": "c7eb8262-5de6-4f20-918f-2383b4ade915",
+      "name": "入力データ確定",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: `「${$('入力データ確定').first().json.main_keyword}」というキーワードで検索した時に上位表示されやすい記事の内容を調べ、共通して書かれていること・意外と書かれていないこと・差別化できそうな切り口を300字程度で日本語で要約してください。` }] }], tools: [{ googleSearch: {} }] }) }}",
+        "options": {}
+      },
+      "id": "6412336c-4d86-44a0-bd78-72221513987b",
+      "name": "Geminiで競合記事リサーチ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        360
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "credential: Gemini用のHTTP Header Auth（ヘッダ名 x-goog-api-key、値はAI StudioのAPIキー）。1日1500リクエストまで無料",
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 15000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Geminiのレスポンス(candidates[0].content.parts[].text)から競合記事リサーチ要約を取り出す\nconst item = $input.first().json;\nconst parts = item.candidates?.[0]?.content?.parts ?? [];\nconst competitor_research = parts.map(p => p.text ?? '').join('\\n').trim() || '（競合記事リサーチを取得できませんでした。Gemini credentialの設定を確認してください）';\nreturn [{ json: { competitor_research } }];"
+      },
+      "id": "a06a6c9e-0fc5-4932-ab2d-c726c5dab316",
+      "name": "Gemini結果を整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// レスポンス整形で得たimages[](本文用・最大3枚)とeyecatch_prompt(1枚)を、\n// 合計最大4枚のitemに展開する。\n// ブランドの世界観（配色・雰囲気）はここで固定文言として必ず付与し、\n// 記事ごとにばらつかないようにする(ユーザー要望: 全生成画像で世界観を統一する)。\n// アイキャッチのみ、タイトル文字を画像内に必ず描画するよう追加指示する(ユーザー要望)。\nconst STYLE_PREFIX = \"ゴールド×バイオレットのグラデーションを基調にした、上品で神秘的な占星術テイストのイラスト。過度に装飾せずシンプルで洗練されたデザイン。星・惑星・幾何学模様のモチーフを控えめに使用。写実的すぎないフラットまたはソフトなグラデーション調のイラストスタイル。文字を含める場合は日本語として正確に読みやすく描画すること。横長(16:9〜3:2程度)の構図。\";\n\nconst article = $input.first().json;\nconst results = [];\n\n// 本文用画像(最大3枚、念のためここでも上限を強制する)\nconst images = (Array.isArray(article.images) ? article.images : []).slice(0, 3);\nfor (const img of images) {\n  results.push({\n    json: {\n      marker: img.marker,\n      alt_text: img.alt_text,\n      is_eyecatch: false,\n      image_prompt: `${STYLE_PREFIX}\\n\\n描く内容: ${img.content_prompt}`\n    }\n  });\n}\n\n// アイキャッチ画像(1枚、タイトルを必ず描画させる)\nif (article.eyecatch_prompt) {\n  results.push({\n    json: {\n      marker: '__EYECATCH__',\n      alt_text: article.title,\n      is_eyecatch: true,\n      image_prompt: `${STYLE_PREFIX}\\n\\n描く内容: ${article.eyecatch_prompt}\\n\\nこの画像には記事タイトル「${article.title}」を、読みやすい日本語のテキストとして画像内に大きく配置すること（タイトルの描画は必須）。`\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "a3c452b2-edb8-4d7b-8bad-a69a2e2ba800",
+      "name": "画像プロンプトを展開",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"gpt-image-2\", prompt: $json.image_prompt, size: \"1536x1024\", quality: \"medium\", n: 1 }) }}",
+        "options": {}
+      },
+      "id": "0c05b24e-54ec-45ad-9c51-44f48fcac73f",
+      "name": "OpenAIで画像生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "credential: OpenAI用のHTTP Header Auth（ヘッダ名 Authorization、値は \"Bearer sk-...\"）。gpt-image-2はbase64で画像を返す"
+    },
+    {
+      "parameters": {
+        "jsCode": "// OpenAIのレスポンス(data[0].b64_json)をn8nのbinaryデータに変換する。\n// runOnceForEachItemモードのため、単一オブジェクトを直接returnする(配列でラップしない)。\n// 例外が起きた場合は原因を特定できるよう、エラー内容をそのままjsonに出力する。\nlet orig = null;\nlet origError = null;\ntry {\n  orig = $('画像プロンプトを展開').item.json;\n} catch (e) {\n  origError = String((e && e.message) || e);\n}\n\ntry {\n  const b64 = $input.item.json.data?.[0]?.b64_json;\n  if (!b64) {\n    return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: true, reason: 'no_b64_in_response', orig_error: origError } };\n  }\n  const buffer = Buffer.from(b64, 'base64');\n  const fileName = `${(orig?.marker ?? 'image').replace(/[^a-zA-Z0-9]/g, '')}.png`;\n  const binary = await this.helpers.prepareBinaryData(buffer, fileName, 'image/png');\n  return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: false }, binary: { file: binary } };\n} catch (e) {\n  return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: true, reason: 'exception', error_message: String((e && e.message) || e), orig_error: origError } };\n}",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "442176f8-c4f8-40ad-a6df-f9d17409cf4e",
+      "name": "Base64をBinaryに変換",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        200
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://career-uranai.site/api/n8n/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb47fa24-5744-4b35-87c9-183e711679af",
+      "name": "career-uranai.siteへ画像アップロード",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "credential: career-uranai.site用 Header Auth（Workflow03の他ノードと共通）。5MB以下・jpeg/png/webp/gifのみ",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "// アップロード結果(HTTP Requestのレスポンスでjsonが上書きされ、marker等は失われている)を、\n// 同じ順序で並んでいるはずの「Base64をBinaryに変換」の出力(marker/alt_textを保持)と\n// 位置(index)で突き合わせて対応づける。\n// __EYECATCH__は本文への差し込みではなくeyecatch_urlとして扱う。\nconst article = $('レスポンス整形').first().json;\nlet body = article.body_md || '';\nlet eyecatchUrl = null;\n\nconst uploadResults = $input.all();\nconst markerSource = $('Base64をBinaryに変換').all();\n\nfor (let i = 0; i < uploadResults.length; i++) {\n  const marker = markerSource[i]?.json?.marker;\n  if (!marker) continue;\n  const uploadJson = uploadResults[i]?.json || {};\n  const failed = !uploadJson.url;\n  const altText = markerSource[i]?.json?.alt_text || '';\n\n  if (marker === '__EYECATCH__') {\n    if (!failed) eyecatchUrl = uploadJson.url;\n    continue;\n  }\n  const replacement = failed ? '' : `![${altText}](${uploadJson.url})`;\n  body = body.split(marker).join(replacement);\n}\n// 念のため残った[IMAGE_N]パターンも取り除く\nbody = body.replace(/\\[IMAGE_\\d+\\]/g, '');\n\nconst result = {\n  title: article.title,\n  meta_description: article.meta_description,\n  body_md: body,\n  tags: article.tags,\n  status: 'draft'\n};\nif (eyecatchUrl) result.eyecatch_url = eyecatchUrl;\n\nreturn [{ json: result }];"
+      },
+      "id": "b51ae54d-8852-46cf-a12f-4dea6853def4",
+      "name": "本文に画像を差し込む",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        360
+      ]
     }
   ],
   "connections": {
@@ -163,7 +324,7 @@
       "main": [
         [
           {
-            "node": "タグ語彙を取得",
+            "node": "入力データ確定",
             "type": "main",
             "index": 0
           }
@@ -174,7 +335,7 @@
       "main": [
         [
           {
-            "node": "Claudeで記事生成",
+            "node": "Geminiで競合記事リサーチ",
             "type": "main",
             "index": 0
           }
@@ -193,6 +354,105 @@
       ]
     },
     "レスポンス整形": {
+      "main": [
+        [
+          {
+            "node": "画像プロンプトを展開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "サブワークフロー実行トリガー": {
+      "main": [
+        [
+          {
+            "node": "入力データ確定",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "入力データ確定": {
+      "main": [
+        [
+          {
+            "node": "タグ語彙を取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Geminiで競合記事リサーチ": {
+      "main": [
+        [
+          {
+            "node": "Gemini結果を整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini結果を整形": {
+      "main": [
+        [
+          {
+            "node": "Claudeで記事生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "画像プロンプトを展開": {
+      "main": [
+        [
+          {
+            "node": "OpenAIで画像生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAIで画像生成": {
+      "main": [
+        [
+          {
+            "node": "Base64をBinaryに変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64をBinaryに変換": {
+      "main": [
+        [
+          {
+            "node": "career-uranai.siteへ画像アップロード",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "career-uranai.siteへ画像アップロード": {
+      "main": [
+        [
+          {
+            "node": "本文に画像を差し込む",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "本文に画像を差し込む": {
       "main": [
         [
           {

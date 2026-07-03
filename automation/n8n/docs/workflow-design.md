@@ -28,14 +28,16 @@
 
 つまり **Workflow 04はSNS投稿専用**になる（SEO記事は Workflow 03 が直接CMSへPOSTして終わり、以降は人間が管理画面で操作する）。
 
-### 使用モデルはコンテンツ種別で使い分ける（2026-07-01時点）
+### 使用モデルはコンテンツ種別で使い分ける（2026-07-01時点 / 2026-07-03更新）
 
-初期は両ワークフローとも `claude-sonnet-4-6`（career-uranai.site本体と同じモデル）にしていたが、テスト運用で1日あたりのAPIコストが想定より嵩んだため、公開物かどうかで使い分ける方針に変更した。
+初期は両ワークフローとも `claude-sonnet-4-6`（career-uranai.site本体と同じモデル）にしていたが、テスト運用で1日あたりのAPIコストが想定より嵩んだため、公開物かどうかで使い分ける方針に変更した（02はHaiku）。
+
+その後、2026-07-03にユーザーの判断で**Workflow 03（SEO記事本文生成）も`claude-haiku-4-5-20251001`に変更**した。「そのまま公開されうる本文なので品質を優先しSonnetを維持する」という当初の判断から方針転換しており、コスト優先の意向が明確になったため。文章の質に懸念が出た場合はSonnetに戻すことも検討する。
 
 | ワークフロー | モデル | 理由 |
 |---|---|---|
 | 02（SNS投稿案生成） | `claude-haiku-4-5-20251001` | 短文かつ必ず人間がNotionで承認してから使うため、多少の品質差は実害が小さい。生成頻度も高くなりやすくコスト差が出やすい箇所 |
-| 03（SEO記事本文生成） | `claude-sonnet-4-6`（維持） | そのまま`/admin/articles`経由で公開されうる本文のため、文章の質・キャラクターの一貫性を優先する |
+| 03（SEO記事本文生成） | `claude-haiku-4-5-20251001`（2026-07-03変更） | コスト優先のユーザー判断。以前は「そのまま公開されうるため品質重視でSonnet」としていたが方針転換した |
 
 コストが気になる場合は `n8n UI → Overview → 対象ワークフローの実行履歴` またはAnthropic Consoleの使用量ダッシュボードで確認できる。
 
@@ -101,18 +103,36 @@ NG表現（サイト本体の禁止事項と同一）:
 2. **RSSフィードを取得**（RSS Feed Readノード）: 上記6件のURLを順に取得（n8nの標準動作で、入力item数＝6回実行され、結果は自動的に1つのリストにまとまる）
 3. **GSC検索パフォーマンス取得**（HTTP Request、並行ブランチ）: Search Console APIで直近28日の検索クエリ上位20件を取得。Google Service Account認証情報が未設定の間はエラーになるが、`onError: continueRegularOutput` を設定してあるため後続処理は止まらない（セットアップ手順: [`google-search-console-setup.md`](./google-search-console-setup.md) Part B）
 4. **収集データを整形**（Codeノード）: RSS見出し（直近20件、日付順）と、取得できていればGSCの検索クエリ実績を整形し、Claude用のテキストブロック2つ（`news_summary` / `gsc_summary`）にまとめる。GSC未連携の場合は「ニュースのみで進める」旨の文言に自動フォールバックする
-5. **Claudeでアイデア生成**（HTTP Request、`claude-sonnet-4-6`）: 上記データを根拠に、SNS投稿アイデアを **X/Instagram/Threads/LINEに1件ずつ、計4件** 企画させる。各アイデアは `{platform, post_type, target_persona, source_summary}` の形（Workflow 02の入力形式と同じ）
-6. **レスポンス整形**（Codeノード）: Claudeの出力（JSON配列）をitem化
-7. **Workflow02を実行(アイデア数分)**（Execute Workflowノード）: `02_generate_sns_posts` をアイデア1件につき1回、サブワークフローとして呼び出す。Workflow 02側に追加した「サブワークフロー実行トリガー」ノードがこの入力を受け取り、これまでの手動テスト用「入力例」Setノードをバイパスして直接プロンプト生成に渡す
+5. **Claudeでアイデア生成**（HTTP Request、`claude-sonnet-4-6`）: 上記データを根拠に、1回のClaude呼び出しで2つを同時に企画させる
+   - `sns_idea`: SNSコンテンツの**核となる中身を1つだけ**（`{post_type, target_persona, source_summary}`、媒体を意識させない）
+   - `seo_idea`: SEO記事のアイデア（`{main_keyword, target_reader, differentiation}`、Workflow 03の入力形式と同じ）
+6. **SNS用に整形(4媒体ファンアウト)**（Codeノード）: `sns_idea`を、`post_type`/`target_persona`/`source_summary`は変えずに**X/Instagram/Threads/LINEの4媒体分にファンアウト**する（`platform`だけが異なる4item）。同じ悩み・同じ結論を、媒体ごとの「型」（`sns-viral-patterns.md`）に合わせて表現だけ変える設計にするため（2026-07-01、ユーザーからの明示的な要望で「媒体ごとに内容が異なるのは良くない」との指摘を受けて、当初の「4媒体それぞれ別内容を1件ずつ企画させる」設計から変更した）
+7. **SEO用に整形**（Codeノード）: `seo_idea`をそのままWorkflow 03の入力形式で1item作る
+8. **Workflow02を実行(アイデア数分)** / **Workflow03を実行(SEO記事1本)**（どちらもExecute Workflowノード）: それぞれ `02_generate_sns_posts`（4媒体分）、`03_generate_seo_article_brief`（1本）をサブワークフローとして呼び出す。両ワークフロー側に追加した「サブワークフロー実行トリガー」ノードがこの入力を受け取り、これまでの手動テスト用「入力例」Setノードをバイパスして直接処理に渡す
 
 ### なぜこの設計にしたか
 - **Google Custom Search API（競合記事取得用）は不採用**: 2026年時点で新規申込みが停止済み・2027年1月に完全終了予定と判明したため、SEO記事側の競合記事リサーチはAnthropicの`web_search`ツール（Workflow 03に直接組み込み、本ドキュメント4章末尾参照）に置き換えた。Workflow 01は競合記事リサーチを扱わない
-- **Workflow 02を書き換えずサブワークフロー化**: Workflow 02は「手動実行→入力例（固定値）」の経路を残したまま、「サブワークフロー実行トリガー→（入力例をバイパス）」という並行入口を追加した。これにより、Workflow 02は今まで通り単体でも手動テストでき、かつWorkflow 01から実データを渡して呼び出すこともできる
-- **SEO記事（Workflow03）向けの拡張は今回のスコープ外**: main_keyword等の候補生成は将来的にこのワークフローに追加する余地を残してあるが、現時点ではSNS投稿の入力生成のみを行う
+- **Workflow 02/03を書き換えずサブワークフロー化**: どちらも「手動実行→入力例（固定値）」の経路を残したまま、「サブワークフロー実行トリガー→（入力例をバイパス）」という並行入口を追加した。これにより、単体でも今まで通り手動テストでき、かつWorkflow 01から実データを渡して呼び出すこともできる
+- **4媒体は同じ中身・型だけ変える**: 当初「媒体ごとに別々のアイデアを1件ずつ」企画させる設計にしていたが、内容がバラバラになるのは望ましくないというフィードバックを受け、「中身は1つ、表現だけ媒体の型に合わせて変える」設計に変更した。post_type/target_persona/source_summaryを4媒体で共通にすることで、Workflow 02の「プラットフォーム別パターン選択」が同じ中身を各媒体の型に翻訳するだけ、という役割分担になる
+- **SEO記事は1日1本ペースにしたい**（2026-07-01、ユーザー要望）: SNSアイデアと同じClaude呼び出しでSEO記事のアイデアも同時に生成し、`03_generate_seo_article_brief`を1回サブワークフロー呼び出しする形にした。SNSとSEOは同じ話題である必要はなく、それぞれ独立して実データから企画される
+- **SEO記事もSNSと同様に「型」で内容を一致させたい、という案は保留**: 本ドキュメント8章「今後の検討事項」を参照。具体的な設計は未確定のため今回は実装していない
 
 ### 未着手・既知の制約
 - GSC連携（Part B）が未設定のため、実行してもニュースのみを根拠にした結果になる（GSC設定後は自動的に反映される、コード変更は不要）
 - RSS収集結果や生成されたアイデアをSupabase等に保存する処理は現時点ではない（実行履歴で追える範囲で十分と判断し、必要になったら追加する）
+
+### デバッグ時の教訓（2026-07-01）
+- **サブワークフロー呼び出し先のノード参照に注意**: Workflow 02の「レスポンス整形」が `$('入力例(Workflow01の出力に差し替え可)')` を直接参照していたため、Workflow 01からサブワークフロー実行トリガー経由で呼ばれた実行では「入力例」ノードが実行されておらずエラーになった。修正: 手動実行・サブワークフロー実行トリガーのどちらの経路でも必ず通る収束点（「プラットフォーム別パターン選択」）を参照するようにした。今後、手動テスト用のSetノードを名前参照する時は、それが全ての入口経路で実行されるノードかどうかを必ず確認する
+- **Execute Workflow Triggerノードは空のparametersで作成すると検証エラーになる**: `{"inputSource": "passthrough"}` を明示的に設定する必要がある
+- **RSS Feed Readのタイムアウトは長い**: 到達できないURLがあると数分単位で固まりうる。`retryOnFail`/`onError: continueRegularOutput` を設定して1フィードの不調で全体を止めない設計にした。原因切り分け時はHTTP Requestノードに一時的に差し替えて `options.timeout` を短く設定すると速く診断できる
+- **Docker Desktop自体がハングすると"接続タイムアウト"に見える**: RSS・Anthropic API双方が同時にタイムアウトし、`docker ps`等のCLIも無応答になる場合はDocker Desktop本体の再起動を疑う（named volumeを使っていればデータは失われない）
+- **Gemini無料枠は課金アカウント未紐付けだと不安定になりうる**: 新規発行したGemini APIキーで429 (RESOURCE_EXHAUSTED) が継続する場合、Google Cloud Consoleで請求先アカウントを紐付けると解消することがある（紐付けても1日1,500件の無料枠自体は変わらないため、低頻度利用なら実際の課金は発生しない）
+- **Geminiのモデル名は廃止が速い**: `gemini-2.0-flash` は2026-07-02時点で404 (「no longer available」) になった。現行の安定版は `gemini-2.5-flash` 系（`gemini-3.x`系はpreview名が多く本番非推奨）。モデル名は https://ai.google.dev/gemini-api/docs/models で都度確認する
+- **Claudeのmax_tokensが記事本文の長さに対して不足すると、JSONが途中で切れてパースエラーになる**: 「1500字以上」という指示に対しmax_tokens=4000では本文が長い場合に打ち切られることがあった。max_tokens=8000に引き上げて解消（max_tokensは上限であって実際に生成した分だけ課金されるため、余裕を持たせて設定して問題ない）
+- **「JSON形式でテキスト出力させて手動パース」は、本文が長文かつ自由記述だと本質的に壊れやすい**: Claudeが本文中で強調のために半角ダブルクォート(`"許可"`のように)を使うと、それだけでJSON構文が壊れてパースエラーになった。プロンプトで「半角クォートを使うな」と指示するだけでは再発を防げないため、根本的に**Anthropicのtool use（`tools`+`tool_choice: {type: "tool", name: "..."}`）に切り替え、構造化出力にした**。tool_use時のレスポンスは`content`配列内の`type: "tool_use"`ブロックの`input`が既にパース済みオブジェクトとして返るため、`JSON.parse`が一切不要になり、この種のエスケープ起因のバグが構造的に発生しなくなる。同様の「Claudeに長文を含むJSONをテキストで書かせている」箇所（Workflow 02等）でも、同じ問題が起きたら同じ対処をする
+- **n8n Codeノードの`runOnceForEachItem`モードは、returnを配列でラップしてはいけない**: `return [{json: ...}]`ではなく`return {json: ...}`（単一オブジェクト）を直接returnする。配列で返すと「A 'json' property isn't an object」というエラーになる（`runOnceForAllItems`モードでは逆に配列でreturnする必要があるため、モードとreturn形式の対応を都度確認する）
+- **HTTP Requestノードを経由すると、直前のCodeノードが付与したjsonの追加フィールドは全て失われる**: 「Base64をBinaryに変換」で`marker`/`alt_text`を付与しても、次の「career-uranai.siteへ画像アップロード」（HTTP Requestノード）を通過するとjsonがレスポンス内容(`{url: ...}`)で完全に上書きされ、`marker`が消える。後続の「本文に画像を差し込む」で`item.json.marker`を直接参照しても取れず、全画像のプレースホルダーが空文字に置換されてしまうバグになった。修正: アップロード結果(`$input.all()`)と、marker/alt_textを保持している一つ手前のノード(`$('Base64をBinaryに変換').all()`)を**配列のindex位置で突き合わせる**ことで対応（n8nは1item→1item処理では順序を保持するため、位置合わせが有効）
+- **`this.helpers.prepareBinaryData`によるbase64→binary変換で原因不明のエラーが出た場合、try/catchで例外メッセージ自体をjsonに出力すると特定が速い**: 実際にはこの変換自体は正常に動作しており（API呼び出し方法は問題なかった）、真因は上記のHTTP Requestノード経由でのフィールド消失だったが、当初は「A 'json' property isn't an object」というn8n内部の検証エラーしか見えず、原因の切り分けに手間取った。例外を握りつぶさずreason/error_messageとしてjsonに含めておくと、次の実行時にすぐ原因がわかる
 
 ---
 
@@ -179,8 +199,58 @@ API仕様の詳細は [`unified_fortuneTelling/docs/n8n-integration.md`](../../.
 ### 承認・公開
 n8n側では何もしない。人間が `/admin/articles` を開き、内容を確認して「公開」または「予約投稿」に切り替える。
 
-### 未着手: 競合記事リサーチ（web_search組み込み予定）
-「main_keywordに近いSEO上位記事を3〜5本参考にする」機能は、Google Custom Search APIが新規申込み停止・2027年1月終了予定と判明したため不採用にし、代わりにAnthropicの`web_search`ツール（`tools: [{type: "web_search_20260318", name: "web_search", max_uses: 5}]`）を「Claudeで記事生成」ノードのリクエストに追加する方針にした。新しい認証情報は不要（既存のAnthropic credentialをそのまま使う）。前提としてAnthropic Consoleの組織管理者が `/settings/privacy` でWeb検索を有効化しておく必要がある。まだ実装していない（2026-07-01時点、タスク管理上は別項目）。
+### 競合記事リサーチ（Gemini APIのGoogle検索グラウンディングで実装）
+「main_keywordに近いSEO上位記事を参考にする」機能は、Google Custom Search APIが新規申込み停止・2027年1月終了予定と判明したため不採用にした。代わりに一度Anthropicの`web_search`ツールで実装したが、**利用料金を抑えたいというユーザーの要望**により、最終的にGemini APIの組み込みGoogle検索機能（Google Search grounding）に置き換えた（2026-07-01）。
+
+**採用理由（コスト比較）**: Anthropic web_searchは$10/1,000検索なのに対し、Gemini（2.0 Flash / 2.5 Flash）のGoogle Search groundingは**1日1,500リクエストまで無料**、それ以降も$35/1,000"grounded prompt"。SEO記事1日1本ペースなら実質無料枠に収まる。
+
+**処理フロー**（「タグ語彙を取得」の後、「Claudeで記事生成」の前に追加）:
+1. **Geminiで競合記事リサーチ**（HTTP Request）: `gemini-2.5-flash:generateContent` に `tools: [{ googleSearch: {} }]` を付けてリクエストし、main_keywordで上位表示されやすい記事の傾向・差別化できそうな切り口を300字程度で要約させる。`onError: continueRegularOutput` に加え `retryOnFail`（最大4回・15秒間隔）を設定し、Gemini側が不調でも記事生成自体は止めない
+2. **Gemini結果を整形**（Codeノード）: `candidates[0].content.parts[].text` を結合して `competitor_research` として取り出す（取得失敗時はその旨のフォールバック文言）
+3. **Claudeで記事生成**: システムプロンプトから「Web検索して」という指示を外し、代わりに「事前に調べた競合記事リサーチ結果を参考に」という形でユーザーメッセージに `competitor_research` を埋め込む。Anthropic側の`tools`（web_search）は削除済み
+
+**設定済み（2026-07-02完了）**: 
+1. https://aistudio.google.com/apikey でAPIキーを発行
+2. Google Cloud Consoleで請求先アカウントを紐付け（無料枠のみだと429が継続したため。紐付け後も1日1,500件無料枠は変わらず、実費は発生していない）
+3. n8nで「Header Auth」credential（ヘッダ名: `x-goog-api-key`）を作成し、「Geminiで競合記事リサーチ」ノードに設定済み
+4. モデル名は`gemini-2.0-flash`が2026-07-02付けで廃止（404）されたため`gemini-2.5-flash`に変更済み
+
+**レスポンス解析の注意点（Claude側、web_search時代の名残）**: 「レスポンス整形」ノードは念のため`content`配列から`type: "text"`のブロックだけを抽出し、**最後の**textブロックを最終回答として扱うようにしてある（現在はAnthropic側でweb_searchを使っていないため`content[0]`のみのはずだが、後方互換のため残している）。
+
+**サブワークフロー化**: Workflow 01からmain_keyword等を渡して自動実行できるよう、「サブワークフロー実行トリガー」＋「入力データ確定」（収束用の素通しCodeノード）を追加した。「Claudeで記事生成」内の`$('入力データ確定')`参照はこの収束ノードを指しており、手動実行（入力例経由）・サブワークフロー実行トリガーのどちらの入口でも正しく動く。
+
+### 本文の長さ・タイトル形式（ユーザー調整、2026-07-02）
+- 本文（body_md）は当初「1500字以上」の下限のみ→「2500〜4000字程度」の範囲指定→最終的に**「3500〜4500字程度」**に調整。max_tokensは途中で4000→8000に引き上げ済み（文字数指定を変えても、生成が長くなった場合に途中で切れないための安全マージン。max_tokensは上限であって課金は実際の生成量に応じるため、余裕を持たせて問題ない）
+- タイトルは「サブタイトル的な具体的キーワード｜メインの結論・訴求」の順（具体→抽象の順）で書くようプロンプトに明記（例:「西洋占星術・九星気学・MBTIの3軸で迷いを手放す方法｜転職タイミングを占いで見極める」）
+
+### 記事内画像の自動生成（OpenAI gpt-image-2、2026-07-02実装）
+表形式の内容など、Markdown表では見た目が崩れやすい箇所を、ブランドカラーで統一した横長イラストとして自動生成し本文に差し込む機能。
+
+**きっかけ**: 生成記事の公開ページでMarkdown表のスタイル（CSS）が未定義で見た目が崩れていたため、CSS自体は`unified_fortuneTelling/app/globals.css`に追加して直したが、それとは別に「表のような箇所は画像化したい」という要望があり実装した。
+
+**処理フロー**（「レスポンス整形」の後、「career-uranai.siteへ下書き保存」の前に追加）:
+1. **Claudeで記事生成**の出力を拡張: `body_md`内の表にしたい箇所に`[IMAGE_1]`等のプレースホルダーを挿入させ、`images`という配列（`{marker, alt_text, content_prompt}`、3〜4件目安）で各画像の内容を指定させる
+2. **画像プロンプトを展開**（Codeノード）: `images[]`を1画像1itemに展開する。**ブランドの世界観（ゴールド×バイオレットの配色・占星術的で上品な雰囲気・横長構図）はここで固定文言（`STYLE_PREFIX`）として必ず付与**し、Claudeの出力内容（`content_prompt`）と結合する。世界観を記事ごとにばらつかせないための設計（ユーザー要望: 「全ての生成画像で世界観の統一を持たせるため、プロンプトの作成は必須」）
+3. **OpenAIで画像生成**（HTTP Request）: `gpt-image-2`に`size: "1536x1024"`（横長）・`quality: "medium"`でリクエスト。gpt-image-2は常にbase64で画像を返す。`onError: continueRegularOutput`で1枚の失敗が全体を止めないようにしてある
+4. **Base64をBinaryに変換**（Codeノード、`runOnceForEachItem`モード）: `data[0].b64_json`をデコードし`this.helpers.prepareBinaryData`でn8nのbinaryデータに変換。失敗した画像は`failed: true`のフラグを立てて後段でスキップする
+5. **career-uranai.siteへ画像アップロード**（HTTP Request、multipart/form-data）: `POST /api/n8n/upload`にbinaryを`file`フィールドで送信、`{url}`を受け取る
+6. **本文に画像を差し込む**（Codeノード）: `$('レスポンス整形').first().json`で元記事を取得し、各画像のマーカーを`![alt](url)`に置換する（失敗した画像はマーカーごと削除し、壊れたリンクを残さない）。念のため残った`[IMAGE_N]`パターンも正規表現で除去する
+
+**料金（2026-07-02時点、ユーザーへ提示・承認済み）**: gpt-image-2 medium品質・1536x1024相当で1枚あたり概算$0.05〜0.06程度。1日1記事・3〜4枚ペースで年間$60〜80程度を想定（Gemini検索とは異なり無料枠なし、実費が発生する）。
+
+**必要な設定（未実施）**:
+1. https://platform.openai.com/api-keys でAPIキーを発行
+2. n8nで「Header Auth」credentialを新規作成（ヘッダ名: `Authorization`、値: `Bearer sk-...` ← 「Bearer 」込みで入力する点に注意）
+3. 「OpenAIで画像生成」ノードを開き、作成したcredentialを選択
+
+**技術的に不確実な箇所（未実機検証）**: `this.helpers.prepareBinaryData`によるbase64→binary変換、およびHTTP Requestノードの`formBinaryData`によるmultipart送信は、このプロジェクトで初めて使うn8nのbinary機能。動作確認時にエラーが出た場合は個別に調整が必要になる可能性が高い。
+
+**動作確認済み・追加調整（2026-07-02〜07-03）**:
+- Base64→Binary変換・multipartアップロードは実機で動作確認済み
+- Claude側は`gpt-image-2`と同じくコスト優先で`claude-haiku-4-5-20251001`に変更（2026-07-03、ユーザー判断）
+- アイキャッチ画像の自動生成を追加（2026-07-03）: `images`配列（本文用、上限3枚に変更）とは別に`eyecatch_prompt`（1枚）をClaudeに出力させ、「画像プロンプトを展開」ノードで`marker: "__EYECATCH__"`という特別なitemとして扱う。「本文に画像を差し込む」ノードはこのitemだけ本文への差し込みをせず、`eyecatch_url`として`/api/n8n/articles`のペイロードに追加する（このAPIは元々`eyecatch_url`フィールドに対応済み: `unified_fortuneTelling/app/api/n8n/articles/route.ts`）。記事全体の画像枚数は「本文3枚＋アイキャッチ1枚＝最大4枚」に統一
+- アイキャッチ画像には記事タイトルの文字を必ず描画させる指示を追加（ユーザー要望）。「画像プロンプトを展開」ノードでアイキャッチのプロンプトにのみ「この画像には記事タイトル「◯◯」を...画像内に大きく配置すること（必須）」という文言を機械的に付与している（Claude任せにせずコード側で強制）
+- タイトルのSEO表示対策: 検索結果でタイトル前半しか表示されなくても「転職・キャリアに関する記事」だと伝わるよう、「タイトルの最初の20文字以内に『転職』『キャリア』等のキーワードを含める」というルールを追加（以前は「具体的な手法を先に」という順序ルールのみだったが、それとは矛盾しない形で両立させている: 具体的な手法名の中に転職関連キーワードを含む書き出しにすることで両方を満たす）
 
 ---
 
@@ -226,3 +296,15 @@ career-uranai.siteの診断結果ページは、記事の`tags`と診断結果�
 
 タグの定義本体: [`unified_fortuneTelling/lib/articleTags.ts`](../../../unified_fortuneTelling/lib/articleTags.ts)
 レコメンドの仕組み: [`unified_fortuneTelling/docs/cms-implementation-log.md`](../../../unified_fortuneTelling/docs/cms-implementation-log.md) 5章
+
+---
+
+## 8. 今後の検討事項（未実装・方針未確定、2026-07-01時点でのユーザー発言を記録）
+
+以下はユーザーから出たアイデアだが、本人の言葉で「まだ正確に決まったわけではない」と明言されているため、**実装はしていない**。方針が固まった時点で着手する。
+
+- **SEO記事にも「型」の概念を入れ、内容は一致させたい**: SNS投稿（Workflow 02）で導入した「中身は共通、表現の型だけ媒体に合わせて変える」という考え方を、SEO記事側にも適用したいという意向。ただしSEO記事は媒体分岐（X/Instagram/Threads/LINE相当のもの）が無い1本の長文なので、「型」が具体的に何を指すか（記事の構成パターン: リスト形式/Q&A形式/体験談形式/比較形式など？）は未確定
+- **SNS投稿ペースの目標**: 1日1〜3件、週あたり合計10〜15投稿くらいを目安にしたい
+- **曜日・時間帯を意識した重点配置**: 特に日曜夕方〜月曜朝の時間帯に、転職を後押しするような内容の投稿を重点的に配置したい（「日曜夜の憂鬱型」パターンとの親和性が高い）
+
+これらを実装するタイミングになったら、Workflow 01のClaudeプロンプトへの重み付け指示の追加、または`定期実行`トリガーの間隔・時刻設定（`n8n-nodes-base.scheduleTrigger`は曜日・時刻を指定した複数ルールを設定できる）で対応する想定。

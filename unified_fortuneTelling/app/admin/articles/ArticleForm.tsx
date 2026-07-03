@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { SeoArticle } from '@/lib/supabaseAdmin'
 import { TAG_GROUPS, tagLabel } from '@/lib/articleTags'
+import TagGroupDropdown from './TagGroupDropdown'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -302,30 +303,15 @@ export default function ArticleForm({
       <div>
         <label style={labelStyle}>タグ（診断結果と記事を紐づけるレコメンド用）</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-          {TAG_GROUPS.map((group) => {
-            const selected = selectedByGroup[group.name] ?? ''
-            return (
-              <select
-                key={group.name}
-                value={selected}
-                onChange={(e) => addTag(group.name, e.target.value)}
-                style={{
-                  ...inputStyle,
-                  flex: '1 1 180px',
-                  width: 'auto',
-                  color: selected ? '#f0c060' : '#7888b8',
-                  borderColor: selected ? '#c8952a' : '#2a3f72',
-                }}
-              >
-                <option value="">{group.name}を選択…</option>
-                {group.options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            )
-          })}
+          {TAG_GROUPS.map((group) => (
+            <TagGroupDropdown
+              key={group.name}
+              groupName={group.name}
+              options={group.options}
+              selectedValue={selectedByGroup[group.name] ?? ''}
+              onSelect={(value) => addTag(group.name, value)}
+            />
+          ))}
         </div>
         {tags.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -443,14 +429,14 @@ export default function ArticleForm({
         )}
       </div>
 
-      {mode === 'edit' && initial?.status === 'published' && (
+      {mode === 'edit' && initial?.slug && (
         <a
           href={`/column/${initial.slug}`}
           target="_blank"
           rel="noreferrer"
           style={{ color: '#a898f8', fontSize: 12 }}
         >
-          → 公開ページを見る
+          {initial.status === 'published' ? '→ 公開ページを見る' : '→ プレビューを見る（下書きの見た目を確認）'}
         </a>
       )}
     </form>
