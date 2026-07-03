@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { SeoArticle } from '@/lib/supabaseAdmin'
 import { TAG_GROUPS, tagLabel } from '@/lib/articleTags'
 import TagGroupDropdown from './TagGroupDropdown'
+import DateTimePicker from './DateTimePicker'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -70,16 +71,18 @@ export default function ArticleForm({
   const [bodyMd, setBodyMd] = useState(initial?.body_md ?? '')
   const [eyecatchUrl, setEyecatchUrl] = useState(initial?.eyecatch_url ?? '')
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
-  const [selectedByGroup, setSelectedByGroup] = useState<Record<string, string>>(() => {
-    const map: Record<string, string> = {}
+  const [selectedByGroup, setSelectedByGroup] = useState<Record<string, string[]>>(() => {
+    const map: Record<string, string[]> = {}
     for (const t of initial?.tags ?? []) {
       const group = TAG_GROUPS.find((g) => g.options.some((o) => o.value === t))
-      if (group) map[group.name] = t
+      if (!group) continue
+      map[group.name] = [...(map[group.name] ?? []), t]
     }
     return map
   })
   const [status, setStatus] = useState<'draft' | 'scheduled' | 'published'>(initial?.status ?? 'draft')
   const [scheduledAt, setScheduledAt] = useState(isoToDatetimeLocal(initial?.scheduled_at ?? null))
+  const [publishedAt, setPublishedAt] = useState(isoToDatetimeLocal(initial?.published_at ?? null))
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -88,17 +91,21 @@ export default function ArticleForm({
 
   const bodyTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const addTag = (groupName: string, value: string) => {
-    setSelectedByGroup((prev) => ({ ...prev, [groupName]: value }))
-    if (!value || tags.includes(value)) return
-    setTags((prev) => [...prev, value])
+  const toggleTag = (groupName: string, value: string) => {
+    const isSelected = tags.includes(value)
+    setTags((prev) => (isSelected ? prev.filter((t) => t !== value) : [...prev, value]))
+    setSelectedByGroup((prev) => {
+      const current = prev[groupName] ?? []
+      const next = isSelected ? current.filter((v) => v !== value) : [...current, value]
+      return { ...prev, [groupName]: next }
+    })
   }
   const removeTag = (value: string) => {
     setTags((prev) => prev.filter((t) => t !== value))
     setSelectedByGroup((prev) => {
-      const next = { ...prev }
-      for (const [groupName, v] of Object.entries(next)) {
-        if (v === value) delete next[groupName]
+      const next: Record<string, string[]> = {}
+      for (const [groupName, values] of Object.entries(prev)) {
+        next[groupName] = values.filter((v) => v !== value)
       }
       return next
     })
@@ -165,6 +172,7 @@ export default function ArticleForm({
       tags,
       status,
       scheduled_at: status === 'scheduled' ? datetimeLocalToIso(scheduledAt) : null,
+      published_at: status === 'published' ? datetimeLocalToIso(publishedAt) : null,
     }
 
     try {
@@ -302,14 +310,14 @@ export default function ArticleForm({
 
       <div>
         <label style={labelStyle}>タグ（診断結果と記事を紐づけるレコメンド用）</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
           {TAG_GROUPS.map((group) => (
             <TagGroupDropdown
               key={group.name}
               groupName={group.name}
               options={group.options}
-              selectedValue={selectedByGroup[group.name] ?? ''}
-              onSelect={(value) => addTag(group.name, value)}
+              selectedValues={selectedByGroup[group.name] ?? []}
+              onToggle={(value) => toggleTag(group.name, value)}
             />
           ))}
         </div>
@@ -373,16 +381,19 @@ export default function ArticleForm({
         {status === 'scheduled' && (
           <div style={{ marginTop: 10 }}>
             <label style={labelStyle}>公開日時</label>
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-              min={isoToDatetimeLocal(new Date().toISOString())}
-              style={inputStyle}
-              required
-            />
+            <DateTimePicker value={scheduledAt} onChange={setScheduledAt} placeholder="公開日時を選択…" />
             <div style={hintStyle}>
               指定した日時を過ぎると自動で公開されます。サイトへのアクセスが発生した時点で反映されるほか、1日1回のバッチ処理でも取りこぼしを回収します。
+            </div>
+          </div>
+        )}
+
+        {status === 'published' && (
+          <div style={{ marginTop: 10 }}>
+            <label style={labelStyle}>公開日時（記事ページに表示される日付）</label>
+            <DateTimePicker value={publishedAt} onChange={setPublishedAt} placeholder="現在時刻を使用" />
+            <div style={hintStyle}>
+              空欄のまま保存すると現在時刻が使われます。過去の日時を指定すると、その日付で公開されたように表示されます（バックデート）。
             </div>
           </div>
         )}

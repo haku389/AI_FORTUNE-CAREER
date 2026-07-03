@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'invalid body' }, { status: 400 })
 
-  const { title, slug, meta_description, body_md, eyecatch_url, tags, status, scheduled_at } = body
+  const { title, slug, meta_description, body_md, eyecatch_url, tags, status, scheduled_at, published_at } = body
 
   if (slug !== undefined && !/^[a-z0-9-]+$/.test(slug)) {
     return NextResponse.json(
@@ -31,20 +31,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (eyecatch_url !== undefined) update.eyecatch_url = eyecatch_url
   if (tags !== undefined) update.tags = Array.isArray(tags) ? tags : []
   if (status !== undefined) {
-    const resolved = resolveArticleStatus(status, scheduled_at)
+    const resolved = resolveArticleStatus(status, scheduled_at, published_at)
     if (!resolved.ok) {
       return NextResponse.json({ error: resolved.error }, { status: 400 })
     }
     update.status = resolved.status
     update.scheduled_at = resolved.scheduledAt
     if (resolved.status === 'published') {
-      const { data: current } = await supabaseAdmin
-        .from('seo_articles')
-        .select('published_at')
-        .eq('id', id)
-        .single()
-      if (!current?.published_at) {
-        update.published_at = new Date().toISOString()
+      if (resolved.publishedAt) {
+        // フォームで明示的に指定された日時（バックデート含む）をそのまま使う
+        update.published_at = resolved.publishedAt
+      } else {
+        const { data: current } = await supabaseAdmin
+          .from('seo_articles')
+          .select('published_at')
+          .eq('id', id)
+          .single()
+        if (!current?.published_at) {
+          update.published_at = new Date().toISOString()
+        }
       }
     }
   }
