@@ -104,7 +104,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 600,\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。一人称は「私」。丁寧な「です・ます」調（だよ・ね等は使わない）。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない（Agitationではなく共感=Affinityを優先する）。詳細ルールは automation/n8n/docs/workflow-design.md 1章 (reiko-character.md参照) に従うこと。\\n\\n次のプラットフォーム別の「型」の中から、投稿タイプ・元ネタに最も合うものを1つ選んで書くこと。型には✅（そのまま使ってよい）⚠️（断定・煽り表現を柔らかい言い換えに変換してから使う）🚫（使わない）のマークが付いている。🚫の型は選ばないこと。⚠️の型を選ぶ場合は必ず指示どおり表現を和らげること。選んだ型の名前（マークは含めない）はpattern_usedに入れる。\\n\\n\" + $json.platform_guide + \"\\n\\n以下のJSON配列を1件だけ、そのまま出力してください（前置き・説明不要）:\\n[{ \\\"pattern_used\\\": string, \\\"hook\\\": string, \\\"body\\\": string, \\\"cta\\\": string, \\\"hashtags\\\": string[], \\\"image_prompt\\\": string }]\",\n  messages: [\n    { role: \"user\", content: `投稿タイプ: ${$json.post_type}\\nプラットフォーム: ${$json.platform}\\n想定読者: ${$json.target_persona}\\n元ネタ: ${$json.source_summary}` }\n  ]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 1500,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"生成したSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          pattern_used: { type: \"string\", description: \"採用した型の名前（マークは含めない）\" },\n          hook: { type: \"string\" },\n          body: { type: \"string\" },\n          cta: { type: \"string\" },\n          hashtags: { type: \"array\", items: { type: \"string\" } },\n          image_prompt: { type: \"string\" }\n        },\n        required: [\"pattern_used\", \"hook\", \"body\", \"cta\", \"hashtags\", \"image_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。一人称は「私」。丁寧な「です・ます」調（だよ・ね等は使わない）。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない（Agitationではなく共感=Affinityを優先する）。詳細ルールは automation/n8n/docs/workflow-design.md 1章 (reiko-character.md参照) に従うこと。\\n\\n次のプラットフォーム別の「型」の中から、投稿タイプ・元ネタに最も合うものを1つ選んで書くこと。型には✅（そのまま使ってよい）⚠️（断定・煽り表現を柔らかい言い換えに変換してから使う）🚫（使わない）のマークが付いている。🚫の型は選ばないこと。⚠️の型を選ぶ場合は必ず指示どおり表現を和らげること。\\n\\n\" + $json.platform_guide,\n  messages: [\n    { role: \"user\", content: `投稿タイプ: ${$json.post_type}\\nプラットフォーム: ${$json.platform}\\n想定読者: ${$json.target_persona}\\n元ネタ: ${$json.source_summary}` }\n  ]\n}) }}"
       },
       "id": "07de5681-b9fb-4f40-b5bd-37bf00a8c0a8",
       "name": "Claudeで投稿案生成",
@@ -118,7 +118,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Claudeのレスポンス(content[0].text に JSON配列文字列)をパースしてitem化する\nconst results = [];\nfor (const item of $input.all()) {\n  const raw = item.json.content?.[0]?.text ?? '[]';\n  let parsed = [];\n  try {\n    const match = raw.match(/\\[[\\s\\S]*\\]/);\n    parsed = JSON.parse(match ? match[0] : raw);\n  } catch (e) {\n    parsed = [{ hook: '', body: raw, cta: '', hashtags: [], image_prompt: '' }];\n  }\n  for (const p of parsed) {\n    results.push({\n      json: {\n        name: (p.hook || p.body || '無題').slice(0, 60),\n        platform: $('プラットフォーム別パターン選択').first().json.platform,\n        post_type: $('プラットフォーム別パターン選択').first().json.post_type,\n        pattern_used: p.pattern_used ?? '',\n        hook: p.hook ?? '',\n        body: p.body ?? '',\n        cta: p.cta ?? '',\n        hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n        image_prompt: p.image_prompt ?? '',\n        target_persona: $('プラットフォーム別パターン選択').first().json.target_persona,\n        source_urls: '',\n        status: 'draft'\n      }\n    });\n  }\n}\nreturn results;"
+        "jsCode": "// Claudeのtool_use出力(input)は既にパース済みオブジェクトなので、JSON.parseは不要\nconst results = [];\nfor (const item of $input.all()) {\n  const content = item.json.content ?? [];\n  const toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\n  if (!toolUse) {\n    throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n  }\n  const p = toolUse.input;\n  const src = $('プラットフォーム別パターン選択').first().json;\n  results.push({\n    json: {\n      name: (p.hook || p.body || '無題').slice(0, 60),\n      platform: src.platform,\n      post_type: src.post_type,\n      pattern_used: p.pattern_used ?? '',\n      hook: p.hook ?? '',\n      body: p.body ?? '',\n      cta: p.cta ?? '',\n      hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n      image_prompt: p.image_prompt ?? '',\n      target_persona: src.target_persona,\n      source_urls: '',\n      status: 'draft',\n      // Workflow01から渡された場合のみ値が入る（手動テスト時は空でよい）\n      article_image_url: src.article_image_url ?? '',\n      scheduled_post_datetime: src.suggested_post_datetime ?? ''\n    }\n  });\n}\nreturn results;"
       },
       "id": "3105048a-3f65-4798-b469-fb5806299224",
       "name": "レスポンス整形",
@@ -180,6 +180,16 @@
             {
               "key": "Status|select",
               "selectValue": "draft"
+            },
+            {
+              "key": "ArticleImageURL|rich_text",
+              "textContent": "={{ $json.article_image_url }}"
+            },
+            {
+              "key": "ScheduledPostDate|date",
+              "date": "={{ $json.scheduled_post_datetime }}",
+              "includeTime": true,
+              "timezone": "default"
             }
           ]
         }

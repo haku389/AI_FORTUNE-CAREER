@@ -196,3 +196,24 @@ matchPercent = round(一致したタグ数 ÷ 診断結果側のタグ数 × 100
 ユーザー方針: n8nでの自動情報収集をもとに、SEO記事とSNS投稿文を**並行して**生成する。記事をSNSに転用するのではなく、同じ元情報から媒体ごとに最適化した別コンテンツ（記事はSEO意識、SNSは各プラットフォームのアルゴリズム意識）を作る設計。
 
 現状のCMSはブラウザ経由の手動投稿のみ対応（Cookie認証のフォーム送信）。n8nから直接記事を投稿したくなった場合は、別途トークン認証のAPI（例: `Authorization` ヘッダでのAPIキー照合）を `/api/admin/articles` とは別経路で用意するのが安全。現時点では未実装・未着手。
+
+---
+
+## 8. 管理画面のCookie認証チェック欠落を修正（2026-07-03）
+
+上記7章で「ブラウザ経由はCookie認証のフォーム送信」と書いていた前提が、実装上は成立していなかった不具合を発見・修正した。
+
+**問題**: `lib/adminAuth.ts`（パスワード照合・セッションCookie発行検証）と `/admin/login` のログインフォーム自体は存在し正しく動作していたが、それを実際に呼び出すガード処理が以下のページ・APIルートに一切入っておらず、**ログインしていない状態でも記事の閲覧・新規作成・編集・公開（バックデート含む）・削除・画像アップロードが全て可能**だった。
+
+- `app/admin/articles/page.tsx`（記事一覧、`supabaseAdmin`を直接クエリ）
+- `app/admin/articles/[id]/page.tsx`（編集画面、同上）
+- `app/admin/articles/new/page.tsx`（新規作成画面）
+- `app/api/admin/articles/route.ts`（GET一覧・POST新規作成）
+- `app/api/admin/articles/[id]/route.ts`（GET単体・PATCH更新/公開・DELETE削除）
+- `app/api/admin/upload/route.ts`（画像アップロード）
+
+n8n連携用の `/api/n8n/*`（APIキーヘッダ照合）はこの問題の影響を受けていない（元々別経路で保護されていた）。
+
+**修正**: 上記6ファイルすべてに、`app/column/[slug]/page.tsx` の下書きプレビュー機能で既に使っていたのと同じパターン（`cookies()` で `ADMIN_COOKIE_NAME` を取得し `verifySessionCookie()` で検証）を追加した。ページ側は未認証なら `redirect('/admin/login')`、APIルート側は未認証なら `401 { error: 'unauthorized' }` を返す。`lib/adminAuth.ts` 自体の実装は変更していない（元々正しく動作していたため）。
+
+修正後、開発サーバー上で未ログイン状態からの直接アクセスが全てブロックされる（ページはログイン画面へリダイレクト、APIは401）ことを確認済み。

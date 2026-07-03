@@ -95,7 +95,7 @@ select { -webkit-appearance: none; appearance: none; }
 .column-article-body ol { margin: 0 0 18px; padding-left: 22px; }
 .column-article-body li { margin-bottom: 8px; }
 .column-article-body a { color: var(--color-violet-light); }
-.column-article-body strong { color: var(--color-soft); }
+.column-article-body strong { color: var(--color-gold-light); font-weight: 700; }
 .column-article-body blockquote {
   border-left: 3px solid var(--color-rim2);
   color: var(--color-mid);

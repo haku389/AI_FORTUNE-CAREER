@@ -1,10 +1,18 @@
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
 
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
 export async function POST(req: NextRequest) {
+  const cookieStore = await cookies()
+  const authed = await verifySessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value)
+  if (!authed) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const formData = await req.formData().catch(() => null)
   const file = formData?.get('file')
 

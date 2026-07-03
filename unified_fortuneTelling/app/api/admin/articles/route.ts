@@ -1,8 +1,19 @@
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { resolveArticleStatus } from '@/lib/articleStatus'
+import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
+
+async function isAuthed(): Promise<boolean> {
+  const cookieStore = await cookies()
+  return verifySessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value)
+}
 
 export async function GET() {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { data, error } = await supabaseAdmin
     .from('seo_articles')
     .select('*')
@@ -15,6 +26,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'invalid body' }, { status: 400 })
 

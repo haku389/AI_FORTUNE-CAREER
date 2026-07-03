@@ -1,8 +1,19 @@
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { resolveArticleStatus } from '@/lib/articleStatus'
+import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
+
+async function isAuthed(): Promise<boolean> {
+  const cookieStore = await cookies()
+  return verifySessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value)
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { id } = await params
   const { data, error } = await supabaseAdmin.from('seo_articles').select('*').eq('id', id).single()
   if (error) return NextResponse.json({ error: error.message }, { status: 404 })
@@ -10,6 +21,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { id } = await params
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'invalid body' }, { status: 400 })
@@ -72,6 +87,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await isAuthed())) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { id } = await params
   const { error } = await supabaseAdmin.from('seo_articles').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
