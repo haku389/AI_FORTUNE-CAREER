@@ -4,8 +4,24 @@ import Link from 'next/link'
 import { supabaseAdmin, type SeoArticle } from '@/lib/supabaseAdmin'
 import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
 import AdminHeader from '../AdminHeader'
+import ArticleListTable, { type ArticleStats } from './ArticleListTable'
 
 export const dynamic = 'force-dynamic'
+
+async function getStatsByArticleId(): Promise<Record<string, ArticleStats>> {
+  const { data } = await supabaseAdmin.from('article_events').select('article_id, event_type, cta_target')
+
+  const stats: Record<string, ArticleStats> = {}
+  for (const e of data ?? []) {
+    const s = (stats[e.article_id] ??= { views: 0, scroll75: 0, scroll100: 0, quickClicks: 0, detailedClicks: 0 })
+    if (e.event_type === 'view') s.views++
+    else if (e.event_type === 'scroll_75') s.scroll75++
+    else if (e.event_type === 'scroll_100') s.scroll100++
+    else if (e.event_type === 'cta_click' && e.cta_target === 'quick_diagnosis') s.quickClicks++
+    else if (e.event_type === 'cta_click' && e.cta_target === 'detailed_diagnosis') s.detailedClicks++
+  }
+  return stats
+}
 
 export default async function AdminArticlesPage() {
   const cookieStore = await cookies()
@@ -14,10 +30,10 @@ export default async function AdminArticlesPage() {
     redirect('/admin/login')
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('seo_articles')
-    .select('*')
-    .order('updated_at', { ascending: false })
+  const [{ data, error }, statsByArticleId] = await Promise.all([
+    supabaseAdmin.from('seo_articles').select('*').order('updated_at', { ascending: false }),
+    getStatsByArticleId(),
+  ])
 
   const articles = (data ?? []) as SeoArticle[]
 
@@ -53,61 +69,7 @@ export default async function AdminArticlesPage() {
           まだ記事がありません。
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {articles.map((a) => (
-            <Link
-              key={a.id}
-              href={`/admin/articles/${a.id}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                background: '#0d1428',
-                border: '1px solid #2a3f72',
-                borderRadius: 10,
-                padding: '14px 16px',
-                textDecoration: 'none',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                {a.eyecatch_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={a.eyecatch_url}
-                    alt=""
-                    style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
-                  />
-                )}
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ color: '#f0f4ff', fontSize: 14, fontWeight: 700, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {a.title}
-                  </div>
-                  <div style={{ color: '#5a6a9a', fontSize: 11 }}>
-                    /column/{a.slug} ・ 更新: {new Date(a.updated_at).toLocaleString('ja-JP')}
-                    {a.status === 'scheduled' && a.scheduled_at && ` ・ 公開予定: ${new Date(a.scheduled_at).toLocaleString('ja-JP')}`}
-                    {a.tags.length > 0 && ` ・ ${a.tags.join(', ')}`}
-                  </div>
-                </div>
-              </div>
-              <span
-                style={{
-                  flexShrink: 0,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '4px 10px',
-                  borderRadius: 4,
-                  letterSpacing: 1,
-                  background: a.status === 'published' ? '#3cc4a822' : a.status === 'scheduled' ? '#a898f822' : '#7888b822',
-                  color: a.status === 'published' ? '#3cc4a8' : a.status === 'scheduled' ? '#a898f8' : '#7888b8',
-                  border: `1px solid ${a.status === 'published' ? '#3cc4a855' : a.status === 'scheduled' ? '#a898f855' : '#7888b855'}`,
-                }}
-              >
-                {a.status === 'published' ? '公開中' : a.status === 'scheduled' ? '予約中' : '下書き'}
-              </span>
-            </Link>
-          ))}
-        </div>
+        <ArticleListTable articles={articles} statsByArticleId={statsByArticleId} />
       )}
     </div>
   )

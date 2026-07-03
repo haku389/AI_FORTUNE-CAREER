@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { SeoArticle } from '@/lib/supabaseAdmin'
 import { TAG_GROUPS, tagLabel } from '@/lib/articleTags'
+import { isoToDatetimeLocal, datetimeLocalToIso } from '@/lib/dateTimeLocal'
 import TagGroupDropdown from './TagGroupDropdown'
 import DateTimePicker from './DateTimePicker'
 
@@ -40,21 +41,6 @@ async function uploadImage(file: File): Promise<string> {
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error ?? '画像のアップロードに失敗しました')
   return data.url as string
-}
-
-// ISO文字列 <-> <input type="datetime-local"> (YYYY-MM-DDTHH:mm, ブラウザのローカル時刻) の相互変換
-function isoToDatetimeLocal(iso: string | null): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-function datetimeLocalToIso(value: string): string | null {
-  if (!value) return null
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return null
-  return d.toISOString()
 }
 
 export default function ArticleForm({

@@ -199,21 +199,10 @@ matchPercent = round(一致したタグ数 ÷ 診断結果側のタグ数 × 100
 
 ---
 
-## 8. 管理画面のCookie認証チェック欠落を修正（2026-07-03）
+## 8. 管理画面の認証チェックについて（2026-07-03、当初の記載を訂正）
 
-上記7章で「ブラウザ経由はCookie認証のフォーム送信」と書いていた前提が、実装上は成立していなかった不具合を発見・修正した。
+**当初、この章に「Cookie認証チェックが全ページ・APIルートに欠落しており、未ログインでも記事の閲覧・編集・公開・削除が可能だった」という重大な脆弱性を発見・修正したと記録していたが、これは誤りだった。** 実際にはプロジェクトルートの `proxy.ts`（Next.js 16のmiddleware相当。`config.matcher: ['/admin/:path*', '/api/admin/:path*']`）が、`app/admin/articles/page.tsx` 等の個別ページ・APIルートとは独立に、`/admin/*` と `/api/admin/*` 配下を**まとめて** `verifySessionCookie()` でガードしており、当初から未認証アクセスは全てブロックされていた（未認証時: ページは `/admin/login?next=...` へリダイレクト、APIは401）。
 
-**問題**: `lib/adminAuth.ts`（パスワード照合・セッションCookie発行検証）と `/admin/login` のログインフォーム自体は存在し正しく動作していたが、それを実際に呼び出すガード処理が以下のページ・APIルートに一切入っておらず、**ログインしていない状態でも記事の閲覧・新規作成・編集・公開（バックデート含む）・削除・画像アップロードが全て可能**だった。
+**誤りの原因**: 認証チェックの有無を確認した際、`grep -rln "verifySessionCookie|..." app/ lib/` のように `app/` と `lib/` 配下しか検索しておらず、プロジェクトルート直下の `proxy.ts` を見落とした。加えて、Next.jsの旧来の慣習である `middleware.ts` というファイル名で `find` していたため、Next.js 16で名称が変わった `proxy.ts` にヒットしなかった。「未ログインだと401/リダイレクトになる」という動作確認自体は当時も今も正しいが、それが自分で追加したページ/APIルート単位のチェックによるものだと誤認していた（`proxy.ts`が先に効いていたため、追加チェックの有無に関わらず同じ結果になっていた）。
 
-- `app/admin/articles/page.tsx`（記事一覧、`supabaseAdmin`を直接クエリ）
-- `app/admin/articles/[id]/page.tsx`（編集画面、同上）
-- `app/admin/articles/new/page.tsx`（新規作成画面）
-- `app/api/admin/articles/route.ts`（GET一覧・POST新規作成）
-- `app/api/admin/articles/[id]/route.ts`（GET単体・PATCH更新/公開・DELETE削除）
-- `app/api/admin/upload/route.ts`（画像アップロード）
-
-n8n連携用の `/api/n8n/*`（APIキーヘッダ照合）はこの問題の影響を受けていない（元々別経路で保護されていた）。
-
-**修正**: 上記6ファイルすべてに、`app/column/[slug]/page.tsx` の下書きプレビュー機能で既に使っていたのと同じパターン（`cookies()` で `ADMIN_COOKIE_NAME` を取得し `verifySessionCookie()` で検証）を追加した。ページ側は未認証なら `redirect('/admin/login')`、APIルート側は未認証なら `401 { error: 'unauthorized' }` を返す。`lib/adminAuth.ts` 自体の実装は変更していない（元々正しく動作していたため）。
-
-修正後、開発サーバー上で未ログイン状態からの直接アクセスが全てブロックされる（ページはログイン画面へリダイレクト、APIは401）ことを確認済み。
+**現状**: 誤って追加した6ファイル（`app/admin/articles/page.tsx` / `[id]/page.tsx` / `new/page.tsx`、`app/api/admin/articles/route.ts` / `[id]/route.ts`、`app/api/admin/upload/route.ts`）へのチェックはそのまま残している。`proxy.ts`と処理が重複するが、多層防御（`proxy.ts`の設定ミス・matcher変更漏れ等があっても個々のルートで防げる）として実害はないため、あえて削除はしていない。

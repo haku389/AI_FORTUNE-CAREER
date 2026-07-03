@@ -213,7 +213,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// レスポンス整形で得たimages[](本文用・最大3枚)とeyecatch_prompt(1枚)を、\n// 合計最大4枚のitemに展開する。\n// ブランドの世界観（配色・雰囲気）はここで固定文言として必ず付与し、\n// 記事ごとにばらつかないようにする(ユーザー要望: 全生成画像で世界観を統一する)。\n// アイキャッチのみ、タイトル文字を画像内に必ず描画するよう追加指示する(ユーザー要望)。\nconst STYLE_PREFIX = \"ゴールド×バイオレットのグラデーションを基調にした、上品で神秘的な占星術テイストのイラスト。過度に装飾せずシンプルで洗練されたデザイン。星・惑星・幾何学模様のモチーフを控えめに使用。写実的すぎないフラットまたはソフトなグラデーション調のイラストスタイル。文字を含める場合は日本語として正確に読みやすく描画すること。横長(16:9〜3:2程度)の構図。\";\n\nconst article = $input.first().json;\nconst results = [];\n\n// 本文用画像(最大3枚、念のためここでも上限を強制する)\nconst images = (Array.isArray(article.images) ? article.images : []).slice(0, 3);\nfor (const img of images) {\n  results.push({\n    json: {\n      marker: img.marker,\n      alt_text: img.alt_text,\n      is_eyecatch: false,\n      image_prompt: `${STYLE_PREFIX}\\n\\n描く内容: ${img.content_prompt}`\n    }\n  });\n}\n\n// アイキャッチ画像(1枚、タイトルを必ず描画させる)\nif (article.eyecatch_prompt) {\n  results.push({\n    json: {\n      marker: '__EYECATCH__',\n      alt_text: article.title,\n      is_eyecatch: true,\n      image_prompt: `${STYLE_PREFIX}\\n\\n描く内容: ${article.eyecatch_prompt}\\n\\nこの画像には記事タイトル「${article.title}」を、読みやすい日本語のテキストとして画像内に大きく配置すること（タイトルの描画は必須）。`\n    }\n  });\n}\n\nreturn results;"
+        "jsCode": "// レスポンス整形で得たimages[](本文用・最大3枚)を、itemに展開する。\n// アイキャッチは独立したチェーン(アイキャッチプロンプト作成〜アイキャッチをアップロード)で\n// NG時の再生成ループつきで別途処理されるため、ここでは本文用画像のみを扱う。\n// ブランドの世界観（配色・雰囲気）はここで固定文言として必ず付与し、\n// 記事ごとにばらつかないようにする(ユーザー要望: 全生成画像で世界観を統一する)。\n//\n// このノードの直接の上流(グラフ上の$input)はアイキャッチをアップロードであり\n// (本文用画像の生成をアイキャッチ確定後に開始させるための順序制御)、\n// レスポンス整形ではないため、記事データは名前参照で取得する。\nconst STYLE_PREFIX = \"ゴールド×バイオレットのグラデーションを基調にした、上品で神秘的な占星術テイストのイラスト。過度に装飾せずシンプルで洗練されたデザイン。星・惑星・幾何学模様のモチーフを控えめに使用。写実的すぎないフラットまたはソフトなグラデーション調のイラストスタイル。文字を含める場合は日本語として正確に読みやすく描画すること。横長(16:9〜3:2程度)の構図。\";\n\nconst article = $('レスポンス整形').first().json;\nconst results = [];\n\n// 本文用画像(最大3枚、念のためここでも上限を強制する)\nconst images = (Array.isArray(article.images) ? article.images : []).slice(0, 3);\nfor (const img of images) {\n  results.push({\n    json: {\n      marker: img.marker,\n      alt_text: img.alt_text,\n      is_eyecatch: false,\n      image_prompt: `${STYLE_PREFIX}\\n\\n描く内容: ${img.content_prompt}`\n    }\n  });\n}\n\nreturn results;"
       },
       "id": "a3c452b2-edb8-4d7b-8bad-a69a2e2ba800",
       "name": "画像プロンプトを展開",
@@ -296,7 +296,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// アップロード結果(HTTP Requestのレスポンスでjsonが上書きされ、marker等は失われている)を、\n// 同じ順序で並んでいるはずの「Base64をBinaryに変換」の出力(marker/alt_textを保持)と\n// 位置(index)で突き合わせて対応づける。\n// __EYECATCH__は本文への差し込みではなくeyecatch_urlとして扱う。\nconst article = $('レスポンス整形').first().json;\nlet body = article.body_md || '';\nlet eyecatchUrl = null;\n\nconst uploadResults = $input.all();\nconst markerSource = $('Base64をBinaryに変換').all();\n\nfor (let i = 0; i < uploadResults.length; i++) {\n  const marker = markerSource[i]?.json?.marker;\n  if (!marker) continue;\n  const uploadJson = uploadResults[i]?.json || {};\n  const failed = !uploadJson.url;\n  const altText = markerSource[i]?.json?.alt_text || '';\n\n  if (marker === '__EYECATCH__') {\n    if (!failed) eyecatchUrl = uploadJson.url;\n    continue;\n  }\n  const replacement = failed ? '' : `![${altText}](${uploadJson.url})`;\n  body = body.split(marker).join(replacement);\n}\n// 念のため残った[IMAGE_N]パターンも取り除く\nbody = body.replace(/\\[IMAGE_\\d+\\]/g, '');\n\nconst result = {\n  title: article.title,\n  meta_description: article.meta_description,\n  body_md: body,\n  tags: article.tags,\n  status: 'draft'\n};\nif (eyecatchUrl) result.eyecatch_url = eyecatchUrl;\n\nreturn [{ json: result }];"
+        "jsCode": "// アップロード結果(HTTP Requestのレスポンスでjsonが上書きされ、marker等は失われている)を、\n// 同じ順序で並んでいるはずの「Base64をBinaryに変換」の出力(marker/alt_textを保持)と\n// 位置(index)で突き合わせて対応づける(本文用画像、最大3枚)。\n// アイキャッチは独立チェーンで確定済みのため、名前参照でURLを取得する。\nconst article = $('レスポンス整形').first().json;\nlet body = article.body_md || '';\n\nconst uploadResults = $input.all();\nconst markerSource = $('Base64をBinaryに変換').all();\n\nfor (let i = 0; i < uploadResults.length; i++) {\n  const marker = markerSource[i]?.json?.marker;\n  if (!marker) continue;\n  const uploadJson = uploadResults[i]?.json || {};\n  const failed = !uploadJson.url;\n  const altText = markerSource[i]?.json?.alt_text || '';\n  const replacement = failed ? '' : `![${altText}](${uploadJson.url})`;\n  body = body.split(marker).join(replacement);\n}\n// 念のため残った[IMAGE_N]パターンも取り除く\nbody = body.replace(/\\[IMAGE_\\d+\\]/g, '');\n\nlet eyecatchUrl = null;\ntry {\n  const eu = $('アイキャッチをアップロード').first().json.url;\n  if (eu) eyecatchUrl = eu;\n} catch (e) {\n  // アイキャッチチェーンが未実行・失敗していても本文保存自体は続行する\n}\n\nconst result = {\n  title: article.title,\n  meta_description: article.meta_description,\n  body_md: body,\n  tags: article.tags,\n  status: 'draft'\n};\nif (eyecatchUrl) result.eyecatch_url = eyecatchUrl;\n\nreturn [{ json: result }];"
       },
       "id": "b51ae54d-8852-46cf-a12f-4dea6853def4",
       "name": "本文に画像を差し込む",
@@ -328,6 +328,182 @@
       ],
       "onError": "continueRegularOutput",
       "notes": "credential: Gemini用のHTTP Header Auth（Geminiで競合記事リサーチと共通）。チェック自体が失敗してもOK扱いにする（QAは付加的なものであり、必須の関門にはしない）"
+    },
+    {
+      "parameters": {
+        "jsCode": "// アイキャッチ専用のプロンプトを組み立てる(本文用画像とは切り離して単独で扱う)。\n// 独立チェーンにしているのは、NG時に再生成ループさせるため\n// (本文用画像は最大3枚・リトライなしのまま、これまで通りNGなら削除するだけ)。\nconst STYLE_PREFIX = \"ゴールド×バイオレットのグラデーションを基調にした、上品で神秘的な占星術テイストのイラスト。過度に装飾せずシンプルで洗練されたデザイン。星・惑星・幾何学模様のモチーフを控えめに使用。写実的すぎないフラットまたはソフトなグラデーション調のイラストスタイル。文字を含める場合は日本語として正確に読みやすく描画すること。横長(16:9〜3:2程度)の構図。\";\n\nconst article = $input.first().json;\nconst basePrompt = `${STYLE_PREFIX}\\n\\n描く内容: ${article.eyecatch_prompt}\\n\\nこの画像には記事タイトル「${article.title}」を、読みやすい日本語のテキストとして画像内に大きく配置すること（タイトルの描画は必須）。`;\n\nreturn [{\n  json: {\n    alt_text: article.title,\n    image_prompt: basePrompt,\n    attempt: 1\n  }\n}];"
+      },
+      "id": "c378d506-bf5e-46c7-9f25-bea777b56bf7",
+      "name": "アイキャッチプロンプト作成",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// アイキャッチプロンプト作成(初回)またはIFノードのループバック(再試行時)、\n// どちらから来ても同じ形({image_prompt, attempt, alt_text})を持つ。\n// アイキャッチ画像生成の直前にある、名前参照で安定して辿れる合流ポイントとして機能する\n// (OpenAI呼び出し後はjsonが上書きされてattempt等が失われるため、\n// このノードを経由して$('アイキャッチ生成準備')から復元できるようにしている)。\nreturn [{ json: $input.first().json }];"
+      },
+      "id": "79dfbe24-f9f5-4d99-92a4-e12ed869b28d",
+      "name": "アイキャッチ生成準備",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"gpt-image-2\", prompt: $json.image_prompt, size: \"1280x672\", quality: \"medium\", n: 1 }) }}",
+        "options": {}
+      },
+      "id": "f2477c5b-95f4-483c-9476-ea5a6d491141",
+      "name": "アイキャッチ画像生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        -80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "V4JMomtU070QmWea",
+          "name": "Header Auth account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ { text: \"この画像はAIで生成されたイラストです。指の本数がおかしい、体の一部が不自然に歪んでいる、文字が意味不明に崩れている等、見て明らかにおかしい部分がありますか？あれば「NG」、問題なければ「OK」とだけ一言で答えてください。\" }, { inline_data: { mime_type: \"image/png\", data: $json.data[0].b64_json } } ] }] }) }}",
+        "options": {}
+      },
+      "id": "33d1c134-6c8c-4ff6-97ba-73770f8b13a7",
+      "name": "アイキャッチ品質チェック",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1720,
+        -80
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XOMme1Kx0AATD9Vv",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gemini品質チェックの結果を見て、再試行するか確定するかを判定する。\n// 最大MAX_ATTEMPTS回まで試し、それでもNGなら諦めて「アイキャッチ無し」で確定する\n// (3本指のような目に見える破綻の方が、アイキャッチが無いことより印象が悪いと判断したため)。\nconst MAX_ATTEMPTS = 3;\n\nconst qaJson = $input.first().json;\nconst qaText = (qaJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\nconst isNG = qaText.includes('NG');\n\nconst prep = $('アイキャッチ生成準備').first().json;\nconst attempt = prep.attempt || 1;\nconst b64 = $('アイキャッチ画像生成').first().json.data?.[0]?.b64_json ?? null;\n\nif (!isNG) {\n  return [{ json: { retry: false, gave_up: false, alt_text: prep.alt_text, b64 } }];\n}\n\nif (attempt >= MAX_ATTEMPTS) {\n  return [{ json: { retry: false, gave_up: true, alt_text: prep.alt_text, b64: null } }];\n}\n\n// 再試行: 手足・指の本数や身体バランスに関する補足指示を追記して精度を上げる\nconst correctivePrompt = `${prep.image_prompt}\\n\\n(${attempt}回目の生成で不自然な点が見つかったため再生成中。特に手と指は必ず片手5本ずつの自然な形で描き、体のパーツ数・比率が写実的に正しくなるよう細心の注意を払うこと。)`;\n\nreturn [{\n  json: {\n    retry: true,\n    image_prompt: correctivePrompt,\n    attempt: attempt + 1,\n    alt_text: prep.alt_text\n  }\n}];"
+      },
+      "id": "866dc4b0-a3b9-452c-ab9b-f5e627cb8d96",
+      "name": "アイキャッチ再試行判定",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d614b760-00ff-4be8-ba4f-db68fa09a9e0",
+              "leftValue": "={{ $json.retry }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d6915a25-fe33-4181-af72-0ab1a855206c",
+      "name": "アイキャッチ再試行が必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2120,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.first().json;\nif (!item.b64) {\n  return { json: { alt_text: item.alt_text, failed: true, reason: item.gave_up ? 'gemini_qa_ng_max_retries' : 'no_b64' } };\n}\nconst buffer = Buffer.from(item.b64, 'base64');\nconst binary = await this.helpers.prepareBinaryData(buffer, 'eyecatch.png', 'image/png');\nreturn { json: { alt_text: item.alt_text, failed: false }, binary: { file: binary } };"
+      },
+      "id": "81d17db1-13ad-4524-9aca-473c380d9de3",
+      "name": "アイキャッチをBinaryに変換",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        -160
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://career-uranai.site/api/n8n/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "85f315df-79eb-4441-87b2-4b9359b6e2d7",
+      "name": "アイキャッチをアップロード",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2520,
+        -160
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SKjEBIefVpEJsxAL",
+          "name": "Header Auth account 2"
+        }
+      }
     }
   ],
   "connections": {
@@ -379,7 +555,7 @@
       "main": [
         [
           {
-            "node": "画像プロンプトを展開",
+            "node": "アイキャッチプロンプト作成",
             "type": "main",
             "index": 0
           }
@@ -490,6 +666,101 @@
         [
           {
             "node": "Base64をBinaryに変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチプロンプト作成": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチ生成準備",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチ生成準備": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチ画像生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチ画像生成": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチ品質チェック",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチ品質チェック": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチ再試行判定",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチ再試行判定": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチ再試行が必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチ再試行が必要か": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチ生成準備",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "アイキャッチをBinaryに変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチをBinaryに変換": {
+      "main": [
+        [
+          {
+            "node": "アイキャッチをアップロード",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "アイキャッチをアップロード": {
+      "main": [
+        [
+          {
+            "node": "画像プロンプトを展開",
             "type": "main",
             "index": 0
           }

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { marked } from 'marked'
 import Stars from '@/components/Stars'
+import ArticleAnalytics from '@/components/column/ArticleAnalytics'
+import TrackedCtaLink from '@/components/column/TrackedCtaLink'
 import { supabaseAdmin, type SeoArticle } from '@/lib/supabaseAdmin'
 import { publishDueScheduledArticles } from '@/lib/publishScheduled'
 import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
@@ -68,6 +70,7 @@ export default async function ColumnArticlePage({ params }: { params: Promise<{ 
   return (
     <div style={{ background: '#070c1a', color: '#f0f4ff', minHeight: '100dvh', fontFamily: 'var(--font-sans)' }}>
       <Stars />
+      {!isPreview && <ArticleAnalytics articleId={article.id} />}
       {isPreview && (
         <div
           style={{
@@ -134,7 +137,9 @@ export default async function ColumnArticlePage({ params }: { params: Promise<{ 
             あなたの転職タイミング、星はどう示しているでしょうか。
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link
+            <TrackedCtaLink
+              articleId={article.id}
+              ctaTarget="quick_diagnosis"
               href="/shindan"
               style={{
                 display: 'block',
@@ -150,8 +155,10 @@ export default async function ColumnArticlePage({ params }: { params: Promise<{ 
               }}
             >
               ✨ 無料で簡易診断する →
-            </Link>
-            <Link
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              articleId={article.id}
+              ctaTarget="detailed_diagnosis"
               href="/premium"
               style={{
                 display: 'block',
@@ -168,7 +175,7 @@ export default async function ColumnArticlePage({ params }: { params: Promise<{ 
               }}
             >
               💎 精密診断を見る →
-            </Link>
+            </TrackedCtaLink>
           </div>
         </div>
       </div>
