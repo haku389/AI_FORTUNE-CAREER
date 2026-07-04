@@ -285,22 +285,37 @@ n8n側では何もしない。人間が `/admin/articles` を開き、内容を�
 
 ---
 
-## 5. Workflow 04: SNS投稿の承認検知（SNS専用）
+## 5. Workflow 04: SNS投稿の承認・修正検知（SNS専用）
 
 ファイル: [`04_approval_to_publish.template.json`](../workflows/04_approval_to_publish.template.json)
 
 ### 目的
-Notionの「SNS投稿下書き」データベースで `Status = approved` になった行を検知し、実際の投稿準備を整える。
+SNS投稿の最終承認・修正指示をNotion上のボタンで完結させ、n8n側は5分間隔のポーリングだけで検知・反映する（2026-07-04実装）。
+
+### 承認・修正のUI設計
+Notion「SNS投稿下書き」DBに以下のプロパティ・ボタンを追加している。
+
+- **内容OK（ボタン）**: 押すと `Status` を `approved` に変更するだけ（Edit propertyアクション）
+- **RevisionMemo（テキスト）**: 修正したい内容を先に書く
+- **RequestRevision（ボタン）**: 押すと `Status` を `revision_requested` に変更するだけ
+- **AddDiagnosisLink（チェックリスト）**: X/Threadsで、返信ポストにさらに診断誘導リンクを追加するかどうかのフラグ（投稿ロジック実装時に使う予定、Workflow 04自体はまだ参照していない）
+
+Notionの「Webhookを送る」自動化アクションは有料プラン限定のため使わず、**ボタンは`Status`プロパティを変更するだけに留め、変化の検知は全部n8n側のポーリングで行う**設計にしている。GASでのWebhook自作も技術的には可能だが、ポーリングだけで完結する方が構成がシンプルなためGASは不採用。
+
+### 処理フロー
+1. `定期実行(5分毎)`（または手動実行）→ Notion `getAll` で全行取得
+2. `処理対象を絞り込み`: `property_status` が `approved` または `revision_requested` の行だけ残す
+3. `Statusで分岐`（IF）
+   - **true（approved）**: `プラットフォームへ投稿(未実装)`（現状はログ出力のみのプレースホルダー）→ `Status:queuedに更新`
+   - **false（revision_requested）**: `パターンガイド付与`（Workflow 02と同じ`guides`オブジェクトを再利用）→ `Claudeで再生成`（`RevisionMemo`の内容を修正指示としてプロンプトに埋め込み、tool-useで`submit_post`を呼ばせる）→ `再生成結果を整形`→ `Notion内容を更新`（Pattern/Hook/Body/CTA/Hashtags/ImagePromptを上書きし、`RevisionMemo`をクリア、`Status`を`draft`に戻す）→ `修正完了を通知`（Discord bot経由で再通知、ユーザーは同じ流れをもう一度繰り返せる）
 
 ### 現時点のスコープ
-SNS各社のAPI（X/Instagram/LINE）は未契約のため、**自動投稿は行わない**。このワークフローは以下までを担当する。
+SNS各社のAPI（X/Instagram/LINE）は未契約のため、**実際の自動投稿は行わない**（`プラットフォームへ投稿(未実装)`はプレースホルダー）。承認・修正のループ自体は完全に動作確認済み。
 
-1. Notion DBを定期ポーリング（例: 30分間隔）し `Status = approved` の行を抽出
-2. 投稿予定日時（`ScheduledPostDate`）が近いものを整理
-3. 承認済みリストの通知（Slack/LINE Notify/メール等、任意）
-4. `Status` を `queued` 等に更新して二重処理を防ぐ
+SNS APIキーが揃い、実際の自動投稿を実装する段階になったら、このワークフローに投稿ノードを追加する。その際も「同一文面の連投を避ける」「自動リプライはしない」という[設計書](../../../unified_fortuneTelling/docs/career-uranai-content-automation-design.md)の方針を守ること。X/Threadsは本文投稿の後に返信ポストで補足し、`AddDiagnosisLink`がチェックされている場合はさらにその返信への返信で診断導線を貼る構成を予定。Instagramは画像/ショート動画メインでプロフィール誘導を意識した単一投稿構成を予定。
 
-SNS APIキーが揃い、実際の自動投稿を実装する段階になったら、このワークフローに投稿ノードを追加する。その際も「同一文面の連投を避ける」「自動リプライはしない」という[設計書](../../../unified_fortuneTelling/docs/career-uranai-content-automation-design.md)の方針を守ること。
+### デバッグ時の教訓（2026-07-04）
+- **n8nのNotion `getAll`が返すプロパティ名は、Notion上の表示名そのままではない**。実際には `property_` プレフィックス+snake_caseに変換される（例: Notion上の表示名`Status`は`property_status`、`RevisionMemo`は`property_revision_memo`、`Platform`は`property_platform`として`json`に入る）。`id`や`name`など一部フィールドはプレフィックスなしでそのまま出る。これに気づかず`$json.Status`のような参照で組んだため、`処理対象を絞り込み`のフィルタが常に0件になり、3回分のポーリング実行が無駄になった。実行結果のraw JSONを直接ダンプして初めて気づけたので、Notionノードを新しく使うときは想定で書かず、まず1回実行してoutputの実データを確認すること。
 
 ---
 

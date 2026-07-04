@@ -3,28 +3,28 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## 04_approval_to_publish (SNS専用)\nNotionの「SNS投稿下書き」DBを定期ポーリングし、\nStatus=approved の行を検知して status=queued に更新する。\n\nSNS各社の投稿APIは未契約のため、自動投稿はまだ行わない。\nSEO記事側はこのワークフローの対象外(既存の /admin/articles で完結する)。\n\n詳細: docs/workflow-design.md 5章",
-        "height": 260,
-        "width": 380
+        "content": "## 04_approval_to_publish (SNS専用)\n\nNotionの「SNS投稿下書き」DBを5分ごとにポーリングし、\nStatus=approved / revision_requested の行を検知して処理する。\n\n- ApproveContent(内容OK)ボタンを押す → StatusがEdit propertyアクションで\n  \"approved\"になる → このワークフローが検知して投稿(現状はプレースホルダー)\n- RequestRevision(投稿修正)ボタンを押す → Statusが\"revision_requested\"になる\n  → RevisionMemoの内容を反映して再生成 → 同じ行を更新 → Statusをdraftに戻す\n  → Discordに再通知\n\nNotionの「Webhookアクション」は有料プラン限定のため使わず、\nn8n側からのポーリングのみで完結させる設計にしている(2026-07-04)。\n\nX/Instagram/ThreadsのSNS投稿APIキーは未契約のため、\n投稿ノードは現時点ではプレースホルダー。\n\n詳細: docs/workflow-design.md 5章",
+        "height": 360,
+        "width": 440
       },
-      "id": "f58899eb-2e72-4459-8a57-3cf28a9e9ad8",
+      "id": "821378fd-b5a2-407a-8dae-0b6a0d72ae14",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -340,
-        -100
+        -460,
+        -220
       ]
     },
     {
       "parameters": {},
-      "id": "51018c07-6164-4e20-8bf0-88297ad0dd03",
+      "id": "b2c8c8eb-dd3d-4637-90d9-c23c2fd8badf",
       "name": "手動実行",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -340,
-        220
+        -460,
+        40
       ]
     },
     {
@@ -33,60 +33,99 @@
           "interval": [
             {
               "field": "minutes",
-              "minutesInterval": 30
+              "minutesInterval": 5
             }
           ]
         }
       },
-      "id": "8c768e43-6bea-4363-a7cd-014dca5f5d63",
-      "name": "定期実行(30分毎・無効化中)",
+      "id": "a10b3ca0-21b5-405f-aea2-c087dbe3ed5f",
+      "name": "定期実行(5分毎)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -340,
-        360
-      ],
-      "disabled": true
+        -460,
+        200
+      ]
     },
     {
       "parameters": {
         "resource": "databasePage",
         "operation": "getAll",
         "databaseId": "2b702e64-205f-4692-b325-229e394c9748",
-        "returnAll": true,
-        "filterType": "manual",
-        "matchType": "allFilters",
-        "filters": {
-          "conditions": [
-            {
-              "key": "Status|select",
-              "condition": "equals",
-              "selectValue": "approved"
-            }
-          ]
-        }
+        "returnAll": true
       },
-      "id": "7bb376b6-289b-4c51-92ff-478b3316b7e8",
-      "name": "承認済み投稿案を取得",
+      "id": "a62434c2-4e85-451a-8295-a6b7f169f565",
+      "name": "全SNS投稿案を取得",
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
-        -100,
-        280
+        -240,
+        120
       ],
-      "notes": "credential: Notion API（Workflow 02と同じもの）"
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "// 承認済み投稿案の一覧を整理する（通知/一覧表示用に整形するだけのプレースホルダー）\n// 実際にSlack通知やLINE通知を送りたい場合は、この後段にHTTP Request等を追加する\nconst items = $input.all();\nconsole.log(`承認済み投稿案: ${items.length}件`);\nreturn items;"
+        "jsCode": "// approved(投稿承認) / revision_requested(修正依頼) の行だけに絞り込む。\n// それ以外(draft/rejected/queued/posted)はこのポーリングでは何もしない。\nreturn $input.all().filter(item => item.json.property_status === 'approved' || item.json.property_status === 'revision_requested');"
       },
-      "id": "f47554e2-f4cc-4c5f-9dc6-56ee2b1c58b1",
-      "name": "件数ログ出力",
+      "id": "4a02f6b0-8429-4fe7-90c6-a83c403ab049",
+      "name": "処理対象を絞り込み",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        140,
-        280
+        -20,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5d61e8de-ba79-4c19-846c-093c60c5fe77",
+              "leftValue": "={{ $json.property_status }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2fdac213-e689-4a5a-af6e-509d5a295563",
+      "name": "Statusで分岐",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        200,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// [プレースホルダー] X/Instagram/ThreadsのAPIキーが揃うまでは実際には投稿しない。\nconsole.log(`[プレースホルダー] ${$json.property_platform}へ投稿予定: ${$json.property_name}`);\nreturn [{ json: $json }];"
+      },
+      "id": "1455b731-4073-4b43-b4d0-c3d096ca55fc",
+      "name": "プラットフォームへ投稿(未実装)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        -20
       ]
     },
     {
@@ -107,30 +146,164 @@
           ]
         }
       },
-      "id": "de9436c3-2960-4476-887e-2be151f3039a",
-      "name": "Statusをqueuedに更新",
+      "id": "67f6641b-36d1-4ea8-b942-21c85bfbc44f",
+      "name": "Status:queuedに更新",
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
-        380,
-        280
+        620,
+        -20
       ],
-      "notes": "二重処理防止のため、処理済みである印としてstatusを進める"
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
     },
     {
       "parameters": {
-        "content": "## TODO: 実際の投稿\nX/Instagram/LINEのAPIキーが揃ったら、\nここに投稿ノードを追加する。\n\n・同一文面の連投を避ける\n・自動リプライはしない\n・投稿前チェックを入れる\n(career-uranai-content-automation-design.md の方針を守ること)",
-        "height": 200,
-        "width": 320
+        "jsCode": "// platformに応じたバズパターンガイドをitemに追加する\n// 詳細・出典: automation/n8n/docs/sns-viral-patterns.md（4媒体合計60記事以上を調査）\n// マーク: ✅そのまま使ってよい / ⚠️断定・煽り表現を柔らかい言い換えに変換してから使う / 🚫使わない\nconst guides = {\n  X: `X（Twitter）の型:\n- 数字実績×ノウハウ提示型✅: 具体的な数字＋実績＋ノウハウを組み合わせる\n- 失敗談・後悔学び型✅: Before(後悔)→After(今があるのはあの経験のおかげ)を必ずセットにする\n- ストーリー型✅: 悩み→壁→解決→今→学び、の物語構成\n- あるある・共感型✅: 読者が「わかる」と感じる日常/職業シーンの切り取り(最有力)\n- リスト・チェックリスト型✅: 「〇〇の3つのポイント」等の箇条書き\n- 権威性×親近感型✅: 専門性の提示と等身大の語りを両立させる\n- 自己開示型✅: 個人的な気づきの吐露から前向きな着地へ\n- 静かな余韻型✅: 説明を削り、間(改行)を活かして語りすぎない\n- フック→本文→問いかけ型✅: 冒頭で強いフック、末尾は柔らかい問いかけで締める(万能フレーム、迷ったらこれを土台にする)\n- 逆説型⚠️: 「実は〇〇」で常識を覆す。断定せず「かもしれません」程度に和らげる\n- 意見表明・持論型🚫: 仮想敵を作る対立構造は使わない\n締め方: 「保存して」等の直接要求より、診断への自然な導線を意識する。問いかけで終えるとリプライを誘発しやすい。`,\n  Instagram: `Instagramの型（保存率・DMシェアが重要指標）:\n- ノウハウ・HOW TO型✅: 「〇〇のやり方」「失敗しないための3つのポイント」\n- WHY型✅: 「なぜ〇〇が起きるのか」を解説する\n- STORY型✅: 象徴的な人物のビフォーアフターを物語調で\n- まとめ・〇選型✅: 「〇〇7選」「確認すべきチェックリスト」\n- ビフォーアフター比較型✅: 改善前後を並べる。過度な\"成功演出\"は避ける\n- 問いかけ型✅: 「あなたはどっち派？」。内省を促す優しい問いに\n- ターゲット指定型✅: 「〇〇な人へ」と対象を明確に絞る\n- 数字提示型✅: 「3つのコツ」等。「絶対」等の断定は避ける\n- 共感つぶやき・あるある型✅: 日常の\"あるある\"に寄り添う短い一言\n- カルーセル3部構成型✅: 表紙(フック)→本文(1枚1メッセージ)→CTA\n- 共感→解決策→CTA型✅: 悩みへの共感→解決策→行動喚起(基本フォーマット)\n- フレーミング型⚠️: 「9割が知らない」は断定的すぎるため「傾向があります」等に和らげる\n- 損失回避型⚠️: 「知らないと損」ではなく「知っておくと安心」に言い換える\n締め方: 保存・プロフィール誘導を促す一言で締める。「友達にも教えたくなる」設計だとなお良い。`,\n  Threads: `Threadsの型（情報より感情、最初の1行が全て、返信数が最重要指標）:\n- 共感・違和感フック型✅: 冒頭1行で「それ私の話だ」と思わせる問題提起\n- 結論先出し(BLUF)型✅: 結論→理由・体験→問いかけの三段構成\n- 二段構え型✅: メイン投稿で結論・共感を出し切り、コメント欄で深掘りする\n- 質問・問いかけ締め型✅: 「あなたはどう思う？」で会話のハードルを下げる\n- ストーリーテリング型✅: 過去(悩み)→変化のきっかけ→今、の時系列\n- リスト・チェックリスト型✅: 番号付きリストで情報を構造化する\n- 選択肢・仮定法型✅: 「Aタイプ？Bタイプ？」「もし〇〇だったら？」で自分ごと化(占いと好相性)\n- 短文×余白型✅: 1〜2文の短いテキストで状況・感情だけ切り取り、説明しすぎない\n- トレンド・時事便乗型✅: 話題のトピックや季節ネタに絡める\n- 逆説型⚠️: 「実は〇〇は間違い」。断定しすぎない配慮が必要\n- 否定形・警告型⚠️: 「NG」ではなく「気をつけたいポイント」に言い換える\n- PAS法⚠️: Problem→Agitation→Solutionの型。Agitationは「共感の深掘り」に置き換える\n締め方: 答えを出し切らずに終える(オープンループ)と会話が続きやすい。投稿後1時間の返信対応が重要。`,\n  LINE: `LINE公式アカウントの型（開封率平均55〜65%、セグメント配信で効果大）:\n- ベネフィット先出し型✅: 冒頭に絵文字＋ベネフィット見出し→説明→CTA\n- 情報提供・教育型✅: 課題提示→有益な知識の一部→詳細は外部リンクへ\n- ストーリーテリング型✅: ユーザーの変化・体験談をBefore/Afterで\n- 参加型・双方向型✅: アンケート・診断への参加を促す(既存の診断コンテンツと好相性)\n- 感謝・共感型✅: 登録への感謝→共感的な一言→次のアクション(最も親和性が高い基本形)\n- パーソナライズ型✅: 名前差し込み、診断結果や行動履歴の言及\n- 1吹き出し1メッセージ型✅: 1吹き出しに1訴求・1CTAのみ、300字程度(全配信共通の基礎ルール)\n- リッチメッセージ型✅: 画像で主要訴求を1つだけ、興味喚起系の文言でタップ誘導\n- ステップ配信型✅: 挨拶→育成コンテンツ→本提案→体験談、の段階設計\n- PASONA型✅: Problem→Affinity(共感)→Solution→Offer→Narrow→Action\n- 三層心理アプローチ型✅: 注意(実績)→感情(ストーリー)→理性(データ)の順で\n- 限定感・希少性型⚠️: 期限を出すとしても「今週だけの特別鑑定枠」程度に留める\n- 3つの壁型⚠️: 後押しは「あなたのペースで大丈夫」等、急かさない表現に\n締め方: 「今すぐ転職」ではなく「あなたのタイミングで」という余白を持たせる。`\n};\nconst item = $input.first().json;\nreturn [{\n  json: {\n    ...item,\n    platform_guide: guides[item.property_platform] || Object.values(guides).join('\\n\\n')\n  }\n}];"
       },
-      "id": "d0f22840-2294-4220-96e2-e1ba519deffc",
-      "name": "Sticky Note1",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
+      "id": "3109ed0b-0dc4-4b61-9190-6997583c8a3c",
+      "name": "パターンガイド付与",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 1500,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"修正版のSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          pattern_used: { type: \"string\" },\n          hook: { type: \"string\" },\n          body: { type: \"string\" },\n          cta: { type: \"string\" },\n          hashtags: { type: \"array\", items: { type: \"string\" } },\n          image_prompt: { type: \"string\" }\n        },\n        required: [\"pattern_used\", \"hook\", \"body\", \"cta\", \"hashtags\", \"image_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」等）。** 一人称は「私」。丁寧な「です・ます」調。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない。\\n\\n以前作成した投稿案に対して、担当者から修正指示が来ている。指示を反映して書き直すこと。プラットフォーム別の「型」も踏まえること(✅そのまま/⚠️和らげて使う/🚫使わない)。\\n\\n\" + $json.platform_guide,\n  messages: [\n    { role: \"user\", content: `プラットフォーム: ${$json.property_platform}\\n投稿タイプ: ${$json.property_post_type}\\n想定読者: ${$json.property_target_persona}\\n\\n---以前の投稿案---\\nHook: ${$json.property_hook}\\nBody: ${$json.property_body}\\nCTA: ${$json.property_cta}\\nHashtags: ${$json.property_hashtags}\\n\\n---修正指示---\\n${$json.property_revision_memo}` }\n  ]\n}) }}"
+      },
+      "id": "141a7ca2-0972-42ac-abc6-3eadf7d85d31",
+      "name": "Claudeで再生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         620,
         260
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "d7cseTHsEiAVSIr0",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = $json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst p = toolUse.input;\nconst src = $('パターンガイド付与').first().json;\nreturn [{\n  json: {\n    page_id: src.id,\n    pattern_used: p.pattern_used ?? '',\n    hook: p.hook ?? '',\n    body: p.body ?? '',\n    cta: p.cta ?? '',\n    hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n    image_prompt: p.image_prompt ?? '',\n    platform: src.property_platform,\n    name: src.property_name\n  }\n}];"
+      },
+      "id": "fe33d192-d17d-40cd-af76-87552226527b",
+      "name": "再生成結果を整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        260
       ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.page_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "PatternUsed|rich_text",
+              "textContent": "={{ $json.pattern_used }}"
+            },
+            {
+              "key": "Hook|rich_text",
+              "textContent": "={{ $json.hook }}"
+            },
+            {
+              "key": "Body|rich_text",
+              "textContent": "={{ $json.body }}"
+            },
+            {
+              "key": "CTA|rich_text",
+              "textContent": "={{ $json.cta }}"
+            },
+            {
+              "key": "Hashtags|rich_text",
+              "textContent": "={{ $json.hashtags }}"
+            },
+            {
+              "key": "ImagePrompt|rich_text",
+              "textContent": "={{ $json.image_prompt }}"
+            },
+            {
+              "key": "RevisionMemo|rich_text",
+              "textContent": ""
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "draft"
+            }
+          ]
+        }
+      },
+      "id": "270d2268-8517-4cfe-9f68-b8ea9d5d36bb",
+      "name": "Notion内容を更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        260
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://discord-bot:3100/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: '投稿内容を修正しました。再確認をお願いします', message: `${$json.platform}: ${$json.name}`, url: 'https://app.notion.com/p/2b702e64205f4692b325229e394c9748' }) }}",
+        "options": {}
+      },
+      "id": "845cdcda-59e4-48a3-827c-0a22d66117aa",
+      "name": "修正完了を通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1220,
+        260
+      ],
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -138,40 +311,113 @@
       "main": [
         [
           {
-            "node": "承認済み投稿案を取得",
+            "node": "全SNS投稿案を取得",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "定期実行(30分毎・無効化中)": {
+    "定期実行(5分毎)": {
       "main": [
         [
           {
-            "node": "承認済み投稿案を取得",
+            "node": "全SNS投稿案を取得",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "承認済み投稿案を取得": {
+    "全SNS投稿案を取得": {
       "main": [
         [
           {
-            "node": "件数ログ出力",
+            "node": "処理対象を絞り込み",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "件数ログ出力": {
+    "処理対象を絞り込み": {
       "main": [
         [
           {
-            "node": "Statusをqueuedに更新",
+            "node": "Statusで分岐",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Statusで分岐": {
+      "main": [
+        [
+          {
+            "node": "プラットフォームへ投稿(未実装)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "パターンガイド付与",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "プラットフォームへ投稿(未実装)": {
+      "main": [
+        [
+          {
+            "node": "Status:queuedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "パターンガイド付与": {
+      "main": [
+        [
+          {
+            "node": "Claudeで再生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeで再生成": {
+      "main": [
+        [
+          {
+            "node": "再生成結果を整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成結果を整形": {
+      "main": [
+        [
+          {
+            "node": "Notion内容を更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion内容を更新": {
+      "main": [
+        [
+          {
+            "node": "修正完了を通知",
             "type": "main",
             "index": 0
           }
