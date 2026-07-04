@@ -101,7 +101,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 8000,\n  tools: [\n    {\n      name: \"submit_article\",\n      description: \"生成したSEO記事を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          title: { type: \"string\" },\n          meta_description: { type: \"string\" },\n          body_md: { type: \"string\", description: \"Markdown, 2000字以上（上限は気にしなくてよいが、不自然に間延びさせない）。[IMAGE_N]プレースホルダーを含む\" },\n          tags: { type: \"array\", items: { type: \"string\" } },\n          images: {\n            type: \"array\",\n            description: \"本文中に挿入する画像。最大3枚(別途アイキャッチ1枚と合わせて記事全体で最大4枚になるため)\",\n            items: {\n              type: \"object\",\n              properties: {\n                marker: { type: \"string\" },\n                alt_text: { type: \"string\" },\n                content_prompt: { type: \"string\" }\n              },\n              required: [\"marker\", \"alt_text\", \"content_prompt\"]\n            }\n          },\n          eyecatch_prompt: { type: \"string\", description: \"アイキャッチ画像の内容説明(記事全体を象徴する1枚。ブランドの世界観やタイトル描画の指示は不要、内容の説明のみでよい)\" }\n        },\n        required: [\"title\", \"meta_description\", \"body_md\", \"tags\", \"images\", \"eyecatch_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_article\" },\n  system: \"あなたは career-uranai.site のSEO記事作成担当です。キャラクター「白石玲子｜キャリア未来鑑定士」の一人称・口調で書く（詳細ルール: automation/n8n/docs/workflow-design.md 1章、unified_fortuneTelling/docs/reiko-character.md）。読者の悩みに寄り添い、不安を煽らず、転職を断定的に勧めない。記事末尾は無料/精密診断への自然な誘導で締める。\\n\\n事前に調べた競合記事リサーチ結果を参考に、内容が薄くならないようにすること（そのまま転載せず、差別化ポイントを踏まえて独自の切り口で書く）。\\n\\nbody_md中で強調したい語句は全角の「」または**太字**を使うこと。半角ダブルクォート(\\\")は使わないこと。\\n\\n見出し構成のルール: 本文をMarkdownの`##`(H2)だけで書かず、`###`(H3)も併用して階層化すること。目安として、記事全体を3〜5個ほどの`##`セクションに分け、それぞれのセクション内で内容がさらに分けられる場合は`###`の小見出しを2〜4個程度使う（比較項目・手順・パターン紹介など、リスト的に整理できる内容は特にH3向き）。H2の直下にH3を挟まず長文を書き連ねるだけの構成は避ける（SEO上、階層的な見出し構造が評価されるため）。\\n\\ntitleのルール: 検索結果でタイトルの先頭30文字程度しか表示されなくても「転職・キャリアに関する記事」だと伝わるよう、タイトルの最初の20文字以内に「転職」「キャリア」などのキーワードを含めること。そのうえで具体的な手法・切り口（占術名など）を続け、最後に抽象的な結論やベネフィットを置く（例:「転職タイミングを西洋占星術×九星気学×MBTIで見極める｜迷いを手放す3つの視点」）。\\n\\n画像プランのルール: 表形式で比較したい内容や、視覚的に伝えたほうがわかりやすい箇所があれば、Markdown表の代わりに [IMAGE_1] [IMAGE_2] [IMAGE_3] のようなプレースホルダーを本文中の該当箇所に単独の行として挿入し、imagesという配列でその内容を指定すること。**本文画像は最大3枚まで**（多すぎないように、本当に必要な箇所だけに絞る）。content_promptにはブランドの世界観（ゴールド×バイオレットの配色、占星術的で上品な雰囲気）は書かなくてよい（別途固定で付与されるため）。画像に含めたい日本語のラベル・数値・見出しがあれば具体的に書くこと。\\n\\neyecatch_promptのルール: 記事全体を1枚で象徴する内容を書くこと（例: 3つの占術のモチーフを組み合わせた構図、記事のテーマを一目で表すシンボリックな絵）。ブランドの世界観やタイトルの描画についてはここに書かなくてよい（別途固定で付与される）。\\n\\ntagsのルール: 次の語彙の中からのみ選ぶこと。記事のターゲット・内容に合っているものを選ぶ（個数の上限は気にしなくてよいが、内容と無関係なものは選ばない）。語彙: \" + JSON.stringify($('タグ語彙を取得').first().json.tagGroups.flatMap(g => g.options.map(o => o.value)))\n  ,\n  messages: [\n    { role: \"user\", content: `対策キーワード: ${$('入力データ確定').first().json.main_keyword}\\n想定読者: ${$('入力データ確定').first().json.target_reader}\\n差別化ポイント: ${$('入力データ確定').first().json.differentiation}\\n\\n競合記事リサーチ結果:\\n${$json.competitor_research}` }\n  ]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 8000,\n  tools: [\n    {\n      name: \"submit_article\",\n      description: \"生成したSEO記事を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          title: { type: \"string\" },\n          meta_description: { type: \"string\" },\n          body_md: { type: \"string\", description: \"Markdown, 2000字以上（上限は気にしなくてよいが、不自然に間延びさせない）。[IMAGE_N]プレースホルダーを含む\" },\n          tags: { type: \"array\", items: { type: \"string\" } },\n          images: {\n            type: \"array\",\n            description: \"本文中に挿入する画像。最大3枚(別途アイキャッチ1枚と合わせて記事全体で最大4枚になるため)\",\n            items: {\n              type: \"object\",\n              properties: {\n                marker: { type: \"string\" },\n                alt_text: { type: \"string\" },\n                content_prompt: { type: \"string\" }\n              },\n              required: [\"marker\", \"alt_text\", \"content_prompt\"]\n            }\n          },\n          eyecatch_prompt: { type: \"string\", description: \"アイキャッチ画像の内容説明(記事全体を象徴する1枚。ブランドの世界観やタイトル描画の指示は不要、内容の説明のみでよい)\" }\n        },\n        required: [\"title\", \"meta_description\", \"body_md\", \"tags\", \"images\", \"eyecatch_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_article\" },\n  system: \"あなたは career-uranai.site のSEO記事作成担当です。キャラクター「白石玲子｜キャリア未来鑑定士」の一人称・口調で書く（詳細ルール: automation/n8n/docs/workflow-design.md 1章、unified_fortuneTelling/docs/reiko-character.md）。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」「Reiko Shiraishi」等。本文中は常に日本語表記のみ使うこと）。**読者の悩みに寄り添い、不安を煽らず、転職を断定的に勧めない。記事末尾は無料/精密診断への自然な誘導で締める。\\n\\n事前に調べた競合記事リサーチ結果を参考に、内容が薄くならないようにすること（そのまま転載せず、差別化ポイントを踏まえて独自の切り口で書く）。\\n\\nbody_md中で強調したい語句は全角の「」または**太字**を使うこと。半角ダブルクォート(\\\")は使わないこと。\\n\\n見出し構成のルール: 本文をMarkdownの`##`(H2)だけで書かず、`###`(H3)も併用して階層化すること。目安として、記事全体を3〜5個ほどの`##`セクションに分け、それぞれのセクション内で内容がさらに分けられる場合は`###`の小見出しを2〜4個程度使う（比較項目・手順・パターン紹介など、リスト的に整理できる内容は特にH3向き）。H2の直下にH3を挟まず長文を書き連ねるだけの構成は避ける（SEO上、階層的な見出し構造が評価されるため）。\\n\\ntitleのルール: 検索結果でタイトルの先頭30文字程度しか表示されなくても「転職・キャリアに関する記事」だと伝わるよう、タイトルの最初の20文字以内に「転職」「キャリア」などのキーワードを含めること。そのうえで具体的な手法・切り口（占術名など）を続け、最後に抽象的な結論やベネフィットを置く（例:「転職タイミングを西洋占星術×九星気学×MBTIで見極める｜迷いを手放す3つの視点」）。\\n\\n画像プランのルール: 表形式で比較したい内容や、視覚的に伝えたほうがわかりやすい箇所があれば、Markdown表の代わりに [IMAGE_1] [IMAGE_2] [IMAGE_3] のようなプレースホルダーを本文中の該当箇所に単独の行として挿入し、imagesという配列でその内容を指定すること。**本文画像は最大3枚まで**（多すぎないように、本当に必要な箇所だけに絞る）。content_promptにはブランドの世界観（ゴールド×バイオレットの配色、占星術的で上品な雰囲気）は書かなくてよい（別途固定で付与されるため）。画像に含めたい日本語のラベル・数値・見出しがあれば具体的に書くこと。\\n\\neyecatch_promptのルール: 記事全体を1枚で象徴する内容を書くこと（例: 3つの占術のモチーフを組み合わせた構図、記事のテーマを一目で表すシンボリックな絵）。ブランドの世界観やタイトルの描画についてはここに書かなくてよい（別途固定で付与される）。\\n\\ntagsのルール: 次の語彙の中からのみ選ぶこと。記事のターゲット・内容に合っているものを選ぶ（個数の上限は気にしなくてよいが、内容と無関係なものは選ばない）。語彙: \" + JSON.stringify($('タグ語彙を取得').first().json.tagGroups.flatMap(g => g.options.map(o => o.value)))\n  ,\n  messages: [\n    { role: \"user\", content: `対策キーワード: ${$('入力データ確定').first().json.main_keyword}\\n想定読者: ${$('入力データ確定').first().json.target_reader}\\n差別化ポイント: ${$('入力データ確定').first().json.differentiation}\\n\\n競合記事リサーチ結果:\\n${$json.competitor_research}` }\n  ]\n}) }}"
       },
       "id": "84b139bd-00ff-4fe4-ab14-8306a5574719",
       "name": "Claudeで記事生成",
@@ -244,15 +244,18 @@
         200
       ],
       "onError": "continueRegularOutput",
-      "notes": "credential: OpenAI用のHTTP Header Auth（ヘッダ名 Authorization、値は \"Bearer sk-...\"）。gpt-image-2はbase64で画像を返す"
+      "notes": "credential: OpenAI用のHTTP Header Auth（ヘッダ名 Authorization、値は \"Bearer sk-...\"）。gpt-image-2はbase64で画像を返す",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "jsCode": "// OpenAIのレスポンス(data[0].b64_json)をn8nのbinaryデータに変換する。\n// runOnceForEachItemモードのため、単一オブジェクトを直接returnする(配列でラップしない)。\n// Gemini画像品質チェックでNGと判定された場合もfailedとして扱う(本文への差し込みをスキップする)。\nlet orig = null;\nlet origError = null;\ntry {\n  orig = $('画像プロンプトを展開').item.json;\n} catch (e) {\n  origError = String((e && e.message) || e);\n}\n\nlet qaFailed = false;\ntry {\n  const qaJson = $('Geminiで画像品質チェック').item.json;\n  const qaText = (qaJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\n  if (qaText.includes('NG')) qaFailed = true;\n} catch (e) {\n  // チェック自体が失敗した場合はスキップしない(付加的なチェックのため)\n}\n\ntry {\n  const b64 = $('OpenAIで画像生成').item.json.data?.[0]?.b64_json;\n  if (!b64) {\n    return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: true, reason: 'no_b64_in_response', orig_error: origError } };\n  }\n  if (qaFailed) {\n    return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: true, reason: 'gemini_qa_ng' } };\n  }\n  const buffer = Buffer.from(b64, 'base64');\n  const fileName = `${(orig?.marker ?? 'image').replace(/[^a-zA-Z0-9]/g, '')}.png`;\n  const binary = await this.helpers.prepareBinaryData(buffer, fileName, 'image/png');\n  return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: false }, binary: { file: binary } };\n} catch (e) {\n  return { json: { marker: orig?.marker ?? null, alt_text: orig?.alt_text ?? null, failed: true, reason: 'exception', error_message: String((e && e.message) || e), orig_error: origError } };\n}",
+        "jsCode": "// Gemini品質チェックの結果を、後段の集約処理と共通のフォーマットに正規化する。\n// (このノードではアップロードは行わない。全画像のレビューが確定してから最後にまとめてアップロードする)\nconst qaJson = $json;\nconst qaText = (qaJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\nconst isNG = qaText.includes('NG');\n\nconst orig = $('画像プロンプトを展開').item.json;\nconst b64 = $('OpenAIで画像生成').item.json.data?.[0]?.b64_json ?? null;\n\n// OpenAI側がエラーを返した場合(b64が無い)は、Geminiのテキストに「NG」が含まれていなくても\n// 明示的に失敗扱いにする(空文字列には「NG」が含まれないため、素通りしてしまうのを防ぐ)。\nif (!b64) {\n  return { json: { item_key: orig.marker, image_type: 'body', ok: false, alt_text: orig.alt_text, b64: null, error_reason: '画像生成自体に失敗しました(OpenAI APIエラー)', image_prompt: orig.image_prompt } };\n}\n\nreturn { json: { item_key: orig.marker, image_type: 'body', ok: !isNG, alt_text: orig.alt_text, b64, error_reason: isNG ? qaText : null, image_prompt: orig.image_prompt } };",
         "mode": "runOnceForEachItem"
       },
       "id": "442176f8-c4f8-40ad-a6df-f9d17409cf4e",
-      "name": "Base64をBinaryに変換",
+      "name": "本文画像結果を整理",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -296,7 +299,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// アップロード結果(HTTP Requestのレスポンスでjsonが上書きされ、marker等は失われている)を、\n// 同じ順序で並んでいるはずの「Base64をBinaryに変換」の出力(marker/alt_textを保持)と\n// 位置(index)で突き合わせて対応づける(本文用画像、最大3枚)。\n// アイキャッチは独立チェーンで確定済みのため、名前参照でURLを取得する。\nconst article = $('レスポンス整形').first().json;\nlet body = article.body_md || '';\n\nconst uploadResults = $input.all();\nconst markerSource = $('Base64をBinaryに変換').all();\n\nfor (let i = 0; i < uploadResults.length; i++) {\n  const marker = markerSource[i]?.json?.marker;\n  if (!marker) continue;\n  const uploadJson = uploadResults[i]?.json || {};\n  const failed = !uploadJson.url;\n  const altText = markerSource[i]?.json?.alt_text || '';\n  const replacement = failed ? '' : `![${altText}](${uploadJson.url})`;\n  body = body.split(marker).join(replacement);\n}\n// 念のため残った[IMAGE_N]パターンも取り除く\nbody = body.replace(/\\[IMAGE_\\d+\\]/g, '');\n\nlet eyecatchUrl = null;\ntry {\n  const eu = $('アイキャッチをアップロード').first().json.url;\n  if (eu) eyecatchUrl = eu;\n} catch (e) {\n  // アイキャッチチェーンが未実行・失敗していても本文保存自体は続行する\n}\n\nconst result = {\n  title: article.title,\n  meta_description: article.meta_description,\n  body_md: body,\n  tags: article.tags,\n  status: 'draft'\n};\nif (eyecatchUrl) result.eyecatch_url = eyecatchUrl;\n\nreturn [{ json: result }];"
+        "jsCode": "// アップロード結果(HTTP Requestのレスポンスでjsonが上書きされ、item_key等は失われている)を、\n// 同じ順序で並んでいるはずの「最終Binary変換」の出力(item_key/alt_text/image_typeを保持)と\n// 位置(index)で突き合わせて対応づける(アイキャッチ・本文画像すべてをこの1つのアップロード工程で処理する)。\nconst article = $('レスポンス整形').first().json;\nlet body = article.body_md || '';\nlet eyecatchUrl = null;\n\nconst uploadResults = $input.all();\nconst itemSource = $('最終Binary変換').all();\n\nfor (let i = 0; i < uploadResults.length; i++) {\n  const meta = itemSource[i]?.json;\n  if (!meta) continue;\n  const uploadJson = uploadResults[i]?.json || {};\n  const url = uploadJson.url;\n\n  if (meta.image_type === 'eyecatch') {\n    if (url) eyecatchUrl = url;\n    continue;\n  }\n\n  if (url) {\n    body = body.split(meta.item_key).join(`![${meta.alt_text}](${url})`);\n  } else {\n    body = body.split(meta.item_key).join('');\n  }\n}\n// 念のため残った[IMAGE_N]パターンも取り除く\nbody = body.replace(/\\[IMAGE_\\d+\\]/g, '');\n\nconst result = {\n  title: article.title,\n  meta_description: article.meta_description,\n  body_md: body,\n  tags: article.tags,\n  status: 'draft'\n};\nif (eyecatchUrl) result.eyecatch_url = eyecatchUrl;\n\nreturn [{ json: result }];"
       },
       "id": "b51ae54d-8852-46cf-a12f-4dea6853def4",
       "name": "本文に画像を差し込む",
@@ -410,7 +413,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Gemini品質チェックの結果を見て、再試行するか確定するかを判定する。\n// 最大MAX_ATTEMPTS回まで試し、それでもNGなら諦めて「アイキャッチ無し」で確定する\n// (3本指のような目に見える破綻の方が、アイキャッチが無いことより印象が悪いと判断したため)。\nconst MAX_ATTEMPTS = 3;\n\nconst qaJson = $input.first().json;\nconst qaText = (qaJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\nconst isNG = qaText.includes('NG');\n\nconst prep = $('アイキャッチ生成準備').first().json;\nconst attempt = prep.attempt || 1;\nconst b64 = $('アイキャッチ画像生成').first().json.data?.[0]?.b64_json ?? null;\n\nif (!isNG) {\n  return [{ json: { retry: false, gave_up: false, alt_text: prep.alt_text, b64 } }];\n}\n\nif (attempt >= MAX_ATTEMPTS) {\n  return [{ json: { retry: false, gave_up: true, alt_text: prep.alt_text, b64: null } }];\n}\n\n// 再試行: 手足・指の本数や身体バランスに関する補足指示を追記して精度を上げる\nconst correctivePrompt = `${prep.image_prompt}\\n\\n(${attempt}回目の生成で不自然な点が見つかったため再生成中。特に手と指は必ず片手5本ずつの自然な形で描き、体のパーツ数・比率が写実的に正しくなるよう細心の注意を払うこと。)`;\n\nreturn [{\n  json: {\n    retry: true,\n    image_prompt: correctivePrompt,\n    attempt: attempt + 1,\n    alt_text: prep.alt_text\n  }\n}];"
+        "jsCode": "// Gemini品質チェックの結果を見て、再試行するか確定するかを判定する。\n// 最大MAX_ATTEMPTS回まで試し、それでもNGなら人間のDiscordレビューに回す\n// (b64は常に保持しておき、NGのまま確定してもレビュー用に表示できるようにする)。\nconst MAX_ATTEMPTS = 3;\n\nconst qaJson = $input.first().json;\nconst qaText = (qaJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\nconst isNG = qaText.includes('NG');\n\nconst prep = $('アイキャッチ生成準備').first().json;\nconst attempt = prep.attempt || 1;\nconst b64 = $('アイキャッチ画像生成').first().json.data?.[0]?.b64_json ?? null;\n\nif (!isNG) {\n  return [{ json: { retry: false, item_key: 'eyecatch', image_type: 'eyecatch', ok: true, alt_text: prep.alt_text, b64, error_reason: null, image_prompt: prep.image_prompt } }];\n}\n\nif (attempt >= MAX_ATTEMPTS) {\n  return [{ json: { retry: false, item_key: 'eyecatch', image_type: 'eyecatch', ok: false, alt_text: prep.alt_text, b64, error_reason: qaText || '3回試行しても改善しませんでした', image_prompt: prep.image_prompt } }];\n}\n\n// 再試行: 手足・指の本数や身体バランスに関する補足指示を追記して精度を上げる\nconst correctivePrompt = `${prep.image_prompt}\\n\\n(${attempt}回目の生成で不自然な点が見つかったため再生成中。特に手と指は必ず片手5本ずつの自然な形で描き、体のパーツ数・比率が写実的に正しくなるよう細心の注意を払うこと。)`;\n\nreturn [{\n  json: {\n    retry: true,\n    image_prompt: correctivePrompt,\n    attempt: attempt + 1,\n    alt_text: prep.alt_text\n  }\n}];"
       },
       "id": "866dc4b0-a3b9-452c-ab9b-f5e627cb8d96",
       "name": "アイキャッチ再試行判定",
@@ -456,54 +459,344 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const item = $input.first().json;\nif (!item.b64) {\n  return { json: { alt_text: item.alt_text, failed: true, reason: item.gave_up ? 'gemini_qa_ng_max_retries' : 'no_b64' } };\n}\nconst buffer = Buffer.from(item.b64, 'base64');\nconst binary = await this.helpers.prepareBinaryData(buffer, 'eyecatch.png', 'image/png');\nreturn { json: { alt_text: item.alt_text, failed: false }, binary: { file: binary } };"
+        "jsCode": "// アイキャッチ再試行ループの最終確定結果を、そのまま次工程に渡す安定した参照ポイント。\nreturn [{ json: $input.first().json }];"
       },
-      "id": "81d17db1-13ad-4524-9aca-473c380d9de3",
-      "name": "アイキャッチをBinaryに変換",
+      "id": "57a6667f-248e-46a6-a943-1ddb1de8daf1",
+      "name": "アイキャッチ確定",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2320,
-        -160
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// アイキャッチ(名前参照、常に1件確定済み)と本文画像(直接の入力、0〜3件)を1つの配列にまとめる。\nconst bodyImages = $input.all().map(i => i.json);\nconst eyecatch = $('アイキャッチ確定').first().json;\nreturn [{ json: { images: [eyecatch, ...bodyImages] } }];"
+      },
+      "id": "7d91a446-02c4-43a5-85af-b21a715f50c0",
+      "name": "全画像を集約",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2a4a3ccc-2afb-4c38-8230-f7b9e71e1f82",
+              "leftValue": "={{ $json.images.some(i => !i.ok) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1b948123-31e5-4b40-809e-a2ff531dc64c",
+      "name": "レビューが必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2280,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const agg = $input.first().json;\nconst batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;\nreturn [{ json: { batchId, images: agg.images } }];"
+      },
+      "id": "65089d38-6891-45a0-b519-c36a125579dd",
+      "name": "Discordレビュー用に整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2280,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://discord-bot:3100/review-batch",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ batchId: $json.batchId, articleTitle: $('レスポンス整形').first().json.title, items: $json.images.filter(i => !i.ok).map(i => ({ itemKey: i.item_key, imageType: i.image_type, errorReason: i.error_reason, imageBase64: i.b64 })) }) }}",
+        "options": {}
+      },
+      "id": "7503145b-6bcd-4026-9d38-02184957fb47",
+      "name": "Discordへレビュー依頼",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2480,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "5b2c151f-b961-4874-b07c-f72db4bd751f",
+      "name": "Wait 30秒",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2680,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Discord botから届いた判定結果を、レビュー前の全画像配列にマージする。\n// 承認(approve)はNGフラグのまま使う(ok:trueにする)。修正/やり直しはneeds_regenを立てて後段の再生成対象にする。\nconst allImages = $('Discordレビュー用に整形').first().json.images;\nconst decisions = $json.decisions ?? [];\nconst decisionByKey = Object.fromEntries(decisions.map(d => [d.itemKey, d]));\n\nconst updated = allImages.map(img => {\n  const decision = decisionByKey[img.item_key];\n  if (!decision) return img;\n  if (decision.action === 'approve') return { ...img, ok: true };\n  return { ...img, needs_regen: true, correction_text: decision.action === 'revise' ? decision.correctionText : null };\n});\n\nreturn [{ json: { images: updated } }];"
+      },
+      "id": "9571170d-b598-4491-9bfc-d139ee3b81ac",
+      "name": "レビュー結果を反映",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a53d6122-9c76-4b08-872c-41044b65000b",
+              "leftValue": "={{ $json.images.some(i => i.needs_regen) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "dc7f2a81-e2c1-48bd-a292-4d351210977c",
+      "name": "再生成が必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3080,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const agg = $input.first().json;\nconst toRegen = agg.images.filter(i => i.needs_regen);\nreturn toRegen.map(i => ({\n  json: {\n    item_key: i.item_key,\n    image_type: i.image_type,\n    alt_text: i.alt_text,\n    image_prompt: i.correction_text ? `${i.image_prompt}\\n\\n(追加の修正指示: ${i.correction_text})` : i.image_prompt,\n  }\n}));"
+      },
+      "id": "a71cdd89-a02a-43e4-bbb0-8ff755049853",
+      "name": "再生成対象を展開",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"gpt-image-2\", prompt: $json.image_prompt, size: $json.image_type === \"eyecatch\" ? \"1280x672\" : \"1536x1024\", quality: \"medium\", n: 1 }) }}",
+        "options": {}
+      },
+      "id": "5ec5fcf0-841d-4dfa-bd26-bab2981fac23",
+      "name": "再生成:OpenAIで画像生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        700
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "V4JMomtU070QmWea",
+          "name": "Header Auth account 4"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ { text: \"この画像はAIで生成されたイラストです。指の本数がおかしい、体の一部が不自然に歪んでいる、文字が意味不明に崩れている等、見て明らかにおかしい部分がありますか？あれば「NG」、問題なければ「OK」とだけ一言で答えてください。\" }, { inline_data: { mime_type: \"image/png\", data: $json.data[0].b64_json } } ] }] }) }}",
+        "options": {}
+      },
+      "id": "9003353f-5d38-407e-83cb-2a0bdc922153",
+      "name": "再生成:Geminiで画像品質チェック",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3480,
+        700
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XOMme1Kx0AATD9Vv",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const geminiJson = $json;\nconst qaText = (geminiJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\nconst isNG = qaText.includes('NG');\n\nconst orig = $('再生成対象を展開').item.json;\nconst b64 = $('再生成:OpenAIで画像生成').item.json.data?.[0]?.b64_json ?? null;\n\nif (!b64) {\n  return { json: { item_key: orig.item_key, image_type: orig.image_type, ok: false, alt_text: orig.alt_text, b64: null, error_reason: '画像生成自体に失敗しました(OpenAI APIエラー)', image_prompt: orig.image_prompt } };\n}\n\nreturn { json: { item_key: orig.item_key, image_type: orig.image_type, ok: !isNG, alt_text: orig.alt_text, b64, error_reason: isNG ? qaText : null, image_prompt: orig.image_prompt } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "2081b88b-4d36-4f3e-af7a-7413d9b95902",
+      "name": "再生成結果を整理",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3680,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const regenerated = $input.all().map(i => i.json);\nconst allBefore = $('レビュー結果を反映').first().json.images;\nconst regenByKey = Object.fromEntries(regenerated.map(r => [r.item_key, r]));\nconst merged = allBefore.map(img => regenByKey[img.item_key] ?? img);\nreturn [{ json: { images: merged } }];"
+      },
+      "id": "facee34e-966b-48a7-8f0a-e5959409d5bb",
+      "name": "再生成結果をマージ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3880,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const agg = $input.first().json;\nreturn agg.images.map(img => ({ json: img }));"
+      },
+      "id": "6f669851-ad5c-475e-9b75-b07378264147",
+      "name": "最終アップロード準備",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $json;\nif (!item.b64) {\n  return { json: { item_key: item.item_key, image_type: item.image_type, alt_text: item.alt_text, failed: true } };\n}\nconst buffer = Buffer.from(item.b64, 'base64');\nconst fileName = `${(item.item_key ?? 'image').replace(/[^a-zA-Z0-9]/g, '')}.png`;\nconst binary = await this.helpers.prepareBinaryData(buffer, fileName, 'image/png');\nreturn { json: { item_key: item.item_key, image_type: item.image_type, alt_text: item.alt_text, failed: false }, binary: { file: binary } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "e14ca94d-4e29-43f0-ab0c-d94454dcd830",
+      "name": "最終Binary変換",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://discord-bot:3100/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: '記事を下書き保存しました', message: $json.article.title, url: `https://career-uranai.site/admin/articles/${$json.article.id}` }) }}",
+        "options": {}
+      },
+      "id": "436f9648-08e1-4f6d-89f3-60aac4ee59b6",
+      "name": "完了通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2840,
+        360
       ],
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://career-uranai.site/api/n8n/upload",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "parameterType": "formBinaryData",
-              "name": "file",
-              "inputDataFieldName": "file"
-            }
-          ]
-        },
+        "method": "GET",
+        "url": "=http://discord-bot:3100/review-batch/{{ $('Discordレビュー用に整形').first().json.batchId }}/status",
         "options": {}
       },
-      "id": "85f315df-79eb-4441-87b2-4b9359b6e2d7",
-      "name": "アイキャッチをアップロード",
+      "id": "900ad0de-de32-4dff-a504-f5707104c356",
+      "name": "レビュー状態を確認",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2520,
-        -160
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "SKjEBIefVpEJsxAL",
-          "name": "Header Auth account 2"
-        }
-      }
+        2780,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "489203de-26cf-41be-9d84-4869c5942834",
+              "leftValue": "={{ $json.resolved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a8d478f5-aca3-4d91-a807-687e24f532e2",
+      "name": "レビューが完了したか",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2880,
+        560
+      ]
     }
   ],
   "connections": {
@@ -523,39 +816,6 @@
         [
           {
             "node": "入力データ確定",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "タグ語彙を取得": {
-      "main": [
-        [
-          {
-            "node": "Geminiで競合記事リサーチ",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Claudeで記事生成": {
-      "main": [
-        [
-          {
-            "node": "レスポンス整形",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "レスポンス整形": {
-      "main": [
-        [
-          {
-            "node": "アイキャッチプロンプト作成",
             "type": "main",
             "index": 0
           }
@@ -584,6 +844,17 @@
         ]
       ]
     },
+    "タグ語彙を取得": {
+      "main": [
+        [
+          {
+            "node": "Geminiで競合記事リサーチ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Geminiで競合記事リサーチ": {
       "main": [
         [
@@ -606,66 +877,22 @@
         ]
       ]
     },
-    "画像プロンプトを展開": {
+    "Claudeで記事生成": {
       "main": [
         [
           {
-            "node": "OpenAIで画像生成",
+            "node": "レスポンス整形",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAIで画像生成": {
+    "レスポンス整形": {
       "main": [
         [
           {
-            "node": "Geminiで画像品質チェック",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Base64をBinaryに変換": {
-      "main": [
-        [
-          {
-            "node": "career-uranai.siteへ画像アップロード",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "career-uranai.siteへ画像アップロード": {
-      "main": [
-        [
-          {
-            "node": "本文に画像を差し込む",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "本文に画像を差し込む": {
-      "main": [
-        [
-          {
-            "node": "career-uranai.siteへ下書き保存",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Geminiで画像品質チェック": {
-      "main": [
-        [
-          {
-            "node": "Base64をBinaryに変換",
+            "node": "アイキャッチプロンプト作成",
             "type": "main",
             "index": 0
           }
@@ -738,29 +965,292 @@
         ],
         [
           {
-            "node": "アイキャッチをBinaryに変換",
+            "node": "アイキャッチ確定",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "アイキャッチをBinaryに変換": {
-      "main": [
-        [
-          {
-            "node": "アイキャッチをアップロード",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "アイキャッチをアップロード": {
+    "アイキャッチ確定": {
       "main": [
         [
           {
             "node": "画像プロンプトを展開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "画像プロンプトを展開": {
+      "main": [
+        [
+          {
+            "node": "OpenAIで画像生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAIで画像生成": {
+      "main": [
+        [
+          {
+            "node": "Geminiで画像品質チェック",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Geminiで画像品質チェック": {
+      "main": [
+        [
+          {
+            "node": "本文画像結果を整理",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "本文画像結果を整理": {
+      "main": [
+        [
+          {
+            "node": "全画像を集約",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "全画像を集約": {
+      "main": [
+        [
+          {
+            "node": "レビューが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レビューが必要か": {
+      "main": [
+        [
+          {
+            "node": "Discordレビュー用に整形",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "最終アップロード準備",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discordレビュー用に整形": {
+      "main": [
+        [
+          {
+            "node": "Discordへレビュー依頼",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discordへレビュー依頼": {
+      "main": [
+        [
+          {
+            "node": "Wait 30秒",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レビュー結果を反映": {
+      "main": [
+        [
+          {
+            "node": "再生成が必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成が必要か": {
+      "main": [
+        [
+          {
+            "node": "再生成対象を展開",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "レビューが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成対象を展開": {
+      "main": [
+        [
+          {
+            "node": "再生成:OpenAIで画像生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成:OpenAIで画像生成": {
+      "main": [
+        [
+          {
+            "node": "再生成:Geminiで画像品質チェック",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成:Geminiで画像品質チェック": {
+      "main": [
+        [
+          {
+            "node": "再生成結果を整理",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成結果を整理": {
+      "main": [
+        [
+          {
+            "node": "再生成結果をマージ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再生成結果をマージ": {
+      "main": [
+        [
+          {
+            "node": "レビューが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "最終アップロード準備": {
+      "main": [
+        [
+          {
+            "node": "最終Binary変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "最終Binary変換": {
+      "main": [
+        [
+          {
+            "node": "career-uranai.siteへ画像アップロード",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "career-uranai.siteへ画像アップロード": {
+      "main": [
+        [
+          {
+            "node": "本文に画像を差し込む",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "本文に画像を差し込む": {
+      "main": [
+        [
+          {
+            "node": "career-uranai.siteへ下書き保存",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "career-uranai.siteへ下書き保存": {
+      "main": [
+        [
+          {
+            "node": "完了通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30秒": {
+      "main": [
+        [
+          {
+            "node": "レビュー状態を確認",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レビュー状態を確認": {
+      "main": [
+        [
+          {
+            "node": "レビューが完了したか",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レビューが完了したか": {
+      "main": [
+        [
+          {
+            "node": "レビュー結果を反映",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30秒",
             "type": "main",
             "index": 0
           }

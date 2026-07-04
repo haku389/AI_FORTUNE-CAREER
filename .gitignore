@@ -4,3 +4,9 @@
 # n8n self-host (automation/n8n/)
 automation/n8n/.env
 automation/n8n/backups/
+
+# Discord review bot (automation/discord-bot/)
+automation/discord-bot/.env
+automation/discord-bot/node_modules/
+automation/discord-bot/dist/
+automation/discord-bot/data/

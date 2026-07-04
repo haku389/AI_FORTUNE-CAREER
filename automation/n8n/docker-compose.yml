@@ -53,6 +53,22 @@ services:
       postgres:
         condition: service_healthy
 
+  discord-bot:
+    build:
+      context: ../discord-bot
+    restart: unless-stopped
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      DISCORD_CHANNEL_ID: ${DISCORD_CHANNEL_ID}
+      MENTION_USER_IDS: ${MENTION_USER_IDS}
+      PORT: 3100
+      DB_PATH: /data/review.db
+    volumes:
+      - discord_bot_data:/data
+    # n8nのHTTP Requestノードからは http://discord-bot:3100/... で到達できる
+    # (同じdocker-composeネットワーク内なのでポート公開は不要)
+
 volumes:
   n8n_data:
   postgres_data:
+  discord_bot_data:
