@@ -3,8 +3,8 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## 04_approval_to_publish (SNS専用)\n\nNotionの「SNS投稿下書き」DBを5分ごとにポーリングし、\nStatus=approved / revision_requested の行を検知して処理する。\n\n- ApproveContent(内容OK)ボタンを押す → StatusがEdit propertyアクションで\n  \"approved\"になる → このワークフローが検知して投稿(現状はプレースホルダー)\n- RequestRevision(投稿修正)ボタンを押す → Statusが\"revision_requested\"になる\n  → RevisionMemoの内容を反映して再生成 → 同じ行を更新 → Statusをdraftに戻す\n  → Discordに再通知\n\nNotionの「Webhookアクション」は有料プラン限定のため使わず、\nn8n側からのポーリングのみで完結させる設計にしている(2026-07-04)。\n\nX/Instagram/ThreadsのSNS投稿APIキーは未契約のため、\n投稿ノードは現時点ではプレースホルダー。\n\n詳細: docs/workflow-design.md 5章",
-        "height": 360,
+        "content": "## 04_approval_to_publish (SNS専用)\n\nNotionの「SNS投稿下書き」DBを5分ごとにポーリングし、\nStatus=approved / revision_requested の行を検知して処理する。\n\n- ApproveContent(内容OK)ボタンを押す → StatusがEdit propertyアクションで\n  \"approved\"になる → このワークフローが検知して投稿(現状はプレースホルダー)\n- RequestRevision(投稿修正)ボタンを押す → Statusが\"revision_requested\"になる\n  → RevisionMemoの内容を反映して再生成 → 同じ行を更新 → Statusをdraftに戻す\n  → Notionページ本文に修正前後の比較を追記 → Discordに再通知(SNS投稿内容完了通知スレッド)\n\nNotionの「Webhookアクション」は有料プラン限定のため使わず、\nn8n側からのポーリングのみで完結させる設計にしている(2026-07-04)。\n\nX/Instagram/ThreadsのSNS投稿APIキーは未契約のため、\n投稿ノードは現時点ではプレースホルダー。\n\n詳細: docs/workflow-design.md 5章",
+        "height": 400,
         "width": 440
       },
       "id": "821378fd-b5a2-407a-8dae-0b6a0d72ae14",
@@ -195,7 +195,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 1500,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"修正版のSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          pattern_used: { type: \"string\" },\n          hook: { type: \"string\" },\n          body: { type: \"string\" },\n          cta: { type: \"string\" },\n          hashtags: { type: \"array\", items: { type: \"string\" } },\n          image_prompt: { type: \"string\" }\n        },\n        required: [\"pattern_used\", \"hook\", \"body\", \"cta\", \"hashtags\", \"image_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」等）。** 一人称は「私」。丁寧な「です・ます」調。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない。\\n\\n以前作成した投稿案に対して、担当者から修正指示が来ている。指示を反映して書き直すこと。プラットフォーム別の「型」も踏まえること(✅そのまま/⚠️和らげて使う/🚫使わない)。\\n\\n\" + $json.platform_guide,\n  messages: [\n    { role: \"user\", content: `プラットフォーム: ${$json.property_platform}\\n投稿タイプ: ${$json.property_post_type}\\n想定読者: ${$json.property_target_persona}\\n\\n---以前の投稿案---\\nHook: ${$json.property_hook}\\nBody: ${$json.property_body}\\nCTA: ${$json.property_cta}\\nHashtags: ${$json.property_hashtags}\\n\\n---修正指示---\\n${$json.property_revision_memo}` }\n  ]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 1500,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"修正版のSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          pattern_used: { type: \"string\" },\n          hook: { type: \"string\" },\n          body: { type: \"string\" },\n          cta: { type: \"string\" },\n          hashtags: { type: \"array\", items: { type: \"string\" } },\n          image_prompt: { type: \"string\" }\n        },\n        required: [\"pattern_used\", \"hook\", \"body\", \"cta\", \"hashtags\", \"image_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」等）。** 一人称は「私」。丁寧な「です・ます」調。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない。\\n\\n固有名詞化の禁止: 元ネタに具体的な企業名・サービス名・ニュース名（例:「シャープ、アリババのAI戦略シフト」等）が含まれていても、本文中でそれらの固有名詞をそのまま列挙しない。一般読者はその企業名・ニュースを知らない/覚えていないことが多く、話がピンとこなくなるため。固有名詞は「大手企業のAI活用が進むニュース」のように、誰でもわかる一般化した言い方に変換してから使うこと。\\n\\n以前作成した投稿案に対して、担当者から修正指示が来ている。指示を反映して書き直すこと。プラットフォーム別の「型」も踏まえること(✅そのまま/⚠️和らげて使う/🚫使わない)。\\n\\n\" + $json.platform_guide,\n  messages: [\n    { role: \"user\", content: `プラットフォーム: ${$json.property_platform}\\n投稿タイプ: ${$json.property_post_type}\\n想定読者: ${$json.property_target_persona}\\n\\n---以前の投稿案---\\nHook: ${$json.property_hook}\\nBody: ${$json.property_body}\\nCTA: ${$json.property_cta}\\nHashtags: ${$json.property_hashtags}\\n\\n---修正指示---\\n${$json.property_revision_memo}` }\n  ]\n}) }}"
       },
       "id": "141a7ca2-0972-42ac-abc6-3eadf7d85d31",
       "name": "Claudeで再生成",
@@ -214,7 +214,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const content = $json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst p = toolUse.input;\nconst src = $('パターンガイド付与').first().json;\nreturn [{\n  json: {\n    page_id: src.id,\n    pattern_used: p.pattern_used ?? '',\n    hook: p.hook ?? '',\n    body: p.body ?? '',\n    cta: p.cta ?? '',\n    hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n    image_prompt: p.image_prompt ?? '',\n    platform: src.property_platform,\n    name: src.property_name\n  }\n}];"
+        "jsCode": "const content = $json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst p = toolUse.input;\nconst src = $('パターンガイド付与').first().json;\n\nconst JST_OFFSET_MS = 9 * 60 * 60 * 1000;\nconst nowJST = new Date(Date.now() + JST_OFFSET_MS);\nconst pad = (v) => String(v).padStart(2, '0');\nconst revisedAtJst = `${nowJST.getUTCFullYear()}-${pad(nowJST.getUTCMonth() + 1)}-${pad(nowJST.getUTCDate())} ${pad(nowJST.getUTCHours())}:${pad(nowJST.getUTCMinutes())}`;\n\nreturn [{\n  json: {\n    page_id: src.id,\n    pattern_used: p.pattern_used ?? '',\n    hook: p.hook ?? '',\n    body: p.body ?? '',\n    cta: p.cta ?? '',\n    hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n    image_prompt: p.image_prompt ?? '',\n    platform: src.property_platform,\n    name: src.property_name,\n    // 修正前の内容(Notionページ本文への履歴追記用。プロパティ上書き前の値をここで保持しておく)\n    previous_pattern_used: src.property_pattern_used ?? '',\n    previous_hook: src.property_hook ?? '',\n    previous_body: src.property_body ?? '',\n    previous_cta: src.property_cta ?? '',\n    previous_hashtags: src.property_hashtags ?? '',\n    previous_image_prompt: src.property_image_prompt ?? '',\n    revision_memo: src.property_revision_memo ?? '',\n    revised_at_jst: revisedAtJst\n  }\n}];"
       },
       "id": "fe33d192-d17d-40cd-af76-87552226527b",
       "name": "再生成結果を整形",
@@ -231,34 +231,34 @@
         "operation": "update",
         "pageId": {
           "__rl": true,
-          "value": "={{ $json.page_id }}",
+          "value": "={{ $('再生成結果を整形').first().json.page_id }}",
           "mode": "id"
         },
         "propertiesUi": {
           "propertyValues": [
             {
               "key": "PatternUsed|rich_text",
-              "textContent": "={{ $json.pattern_used }}"
+              "textContent": "={{ $('再生成結果を整形').first().json.pattern_used }}"
             },
             {
               "key": "Hook|rich_text",
-              "textContent": "={{ $json.hook }}"
+              "textContent": "={{ $('再生成結果を整形').first().json.hook }}"
             },
             {
               "key": "Body|rich_text",
-              "textContent": "={{ $json.body }}"
+              "textContent": "={{ $('再生成結果を整形').first().json.body }}"
             },
             {
               "key": "CTA|rich_text",
-              "textContent": "={{ $json.cta }}"
+              "textContent": "={{ $('再生成結果を整形').first().json.cta }}"
             },
             {
               "key": "Hashtags|rich_text",
-              "textContent": "={{ $json.hashtags }}"
+              "textContent": "={{ $('再生成結果を整形').first().json.hashtags }}"
             },
             {
               "key": "ImagePrompt|rich_text",
-              "textContent": "={{ $json.image_prompt }}"
+              "textContent": "={{ $('再生成結果を整形').first().json.image_prompt }}"
             },
             {
               "key": "RevisionMemo|rich_text",
@@ -292,7 +292,7 @@
         "url": "http://discord-bot:3100/notify",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ title: '投稿内容を修正しました。再確認をお願いします', message: `${$json.platform}: ${$json.name}`, url: 'https://app.notion.com/p/2b702e64205f4692b325229e394c9748' }) }}",
+        "jsonBody": "={{ JSON.stringify({ title: '投稿内容を修正しました。再確認をお願いします', message: `${$('再生成結果を整形').first().json.platform}: ${$('再生成結果を整形').first().json.name}`, url: 'https://app.notion.com/p/2b702e64205f4692b325229e394c9748', thread: 'sns' }) }}",
         "options": {}
       },
       "id": "845cdcda-59e4-48a3-827c-0a22d66117aa",
@@ -304,6 +304,95 @@
         260
       ],
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "operation": "append",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $json.page_id }}",
+          "mode": "id"
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "heading_3",
+              "richText": false,
+              "textContent": "={{ '🔁 修正履歴（' + $json.revised_at_jst + ' JST）' }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ '修正指示：' + $json.revision_memo }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "▼ 変更前"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'Hook: ' + $json.previous_hook }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'Body: ' + $json.previous_body }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'CTA: ' + $json.previous_cta }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'Hashtags: ' + $json.previous_hashtags }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "▼ 変更後"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'Hook: ' + $json.hook }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'Body: ' + $json.body }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'CTA: ' + $json.cta }}"
+            },
+            {
+              "type": "paragraph",
+              "richText": false,
+              "textContent": "={{ 'Hashtags: ' + $json.hashtags }}"
+            }
+          ]
+        }
+      },
+      "id": "ed03201f-72ad-4849-b994-99ffa2f7cf5f",
+      "name": "修正履歴をページに追記",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        820,
+        260
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
     }
   ],
   "connections": {
@@ -406,7 +495,7 @@
       "main": [
         [
           {
-            "node": "Notion内容を更新",
+            "node": "修正履歴をページに追記",
             "type": "main",
             "index": 0
           }
@@ -418,6 +507,17 @@
         [
           {
             "node": "修正完了を通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "修正履歴をページに追記": {
+      "main": [
+        [
+          {
+            "node": "Notion内容を更新",
             "type": "main",
             "index": 0
           }

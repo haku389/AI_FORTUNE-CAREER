@@ -27,7 +27,8 @@ import {
   type ReviewItemInput,
 } from './db.js'
 
-const NOTIFY_THREAD_NAME = '投稿内容完了通知'
+export const SEO_NOTIFY_THREAD_NAME = '投稿内容完了通知'
+export const SNS_NOTIFY_THREAD_NAME = 'SNS投稿内容完了通知'
 const ERROR_THREAD_NAME = '画像生成エラー'
 
 const APPROVE_EMOJI = '🍓'
@@ -39,8 +40,7 @@ const IMAGE_TYPE_LABEL: Record<'eyecatch' | 'body', string> = {
   body: '本文画像',
 }
 
-let notifyThreadCache: ThreadChannel | null = null
-let errorThreadCache: ThreadChannel | null = null
+const threadCache = new Map<string, ThreadChannel>()
 
 export function createDiscordClient() {
   return new Client({
@@ -72,10 +72,13 @@ async function getOrCreateThread(channel: TextChannel, name: string): Promise<Th
   })
 }
 
-async function ensureThreads(client: Client, channelId: string) {
+async function ensureThread(client: Client, channelId: string, name: string): Promise<ThreadChannel> {
+  const cached = threadCache.get(name)
+  if (cached) return cached
   const channel = (await client.channels.fetch(channelId)) as TextChannel
-  if (!notifyThreadCache) notifyThreadCache = await getOrCreateThread(channel, NOTIFY_THREAD_NAME)
-  if (!errorThreadCache) errorThreadCache = await getOrCreateThread(channel, ERROR_THREAD_NAME)
+  const thread = await getOrCreateThread(channel, name)
+  threadCache.set(name, thread)
+  return thread
 }
 
 export async function postCompletionNotice(
@@ -83,12 +86,13 @@ export async function postCompletionNotice(
   channelId: string,
   title: string,
   message: string,
-  url?: string
+  url?: string,
+  threadName: string = SEO_NOTIFY_THREAD_NAME
 ) {
-  await ensureThreads(client, channelId)
+  const thread = await ensureThread(client, channelId, threadName)
   const lines = [`**${title}**`, message]
   if (url) lines.push(url)
-  await notifyThreadCache!.send(lines.join('\n'))
+  await thread.send(lines.join('\n'))
 }
 
 export type ReviewBatchInput = {
@@ -104,7 +108,7 @@ const MENTION_USER_IDS = (process.env.MENTION_USER_IDS ?? '')
   .filter(Boolean)
 
 export async function postReviewBatch(client: Client, channelId: string, batch: ReviewBatchInput) {
-  await ensureThreads(client, channelId)
+  const errorThread = await ensureThread(client, channelId, ERROR_THREAD_NAME)
   createBatch(batch.batchId, batch.articleTitle)
 
   const mentions = MENTION_USER_IDS.map((id) => `<@${id}>`).join(' ')
@@ -117,14 +121,14 @@ export async function postReviewBatch(client: Client, channelId: string, batch: 
     `- ${REVISE_EMOJI}（修正指示して再生成）`,
     `- ${REDO_EMOJI}（指示なしで作り直す）`,
   ]
-  await errorThreadCache!.send(introLines.join('\n'))
+  await errorThread.send(introLines.join('\n'))
 
   for (const item of batch.items) {
     const itemId = `${batch.batchId}:${item.itemKey}`
     createItem(itemId, batch.batchId, item)
 
     const attachment = new AttachmentBuilder(Buffer.from(item.imageBase64, 'base64'), { name: `${item.itemKey}.png` })
-    const msg = await errorThreadCache!.send({
+    const msg = await errorThread.send({
       content: `▼${IMAGE_TYPE_LABEL[item.imageType]}\n理由: ${item.errorReason}`,
       files: [attachment],
     })
@@ -154,8 +158,9 @@ export function getBatchStatus(batchId: string): { resolved: boolean; decisions?
 
   if (!batch.completed_at) {
     markBatchCompleted(batchId)
-    if (errorThreadCache) {
-      errorThreadCache
+    const errorThread = threadCache.get(ERROR_THREAD_NAME)
+    if (errorThread) {
+      errorThread
         .send(`✅ このバッチ(${items.length}件)の判定が揃いました。ワークフローが再開されます。`)
         .catch(() => {})
     }

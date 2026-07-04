@@ -12,7 +12,7 @@ Workflow 03（SEO記事生成）の画像品質チェック（Gemini）でNGと�
 3. **そのバッチ内の全アイテムが確定するまで、n8n側は先に進まない**（複数枚NGが出ていた場合、全部にリアクションが付くまで待つ）
 4. n8n側はWaitノード（`resume: timeInterval`、30秒間隔）で `GET /review-batch/:batchId/status` をポーリングしており、全件確定したタイミングで判定結果を受け取ってワークフローを再開する
 
-記事生成が正常完了した際の「投稿内容完了通知」も、`POST /notify` 経由でこのbotが「投稿内容完了通知」スレッドに投稿する。
+記事生成が正常完了した際の「投稿内容完了通知」や、SNS投稿の修正完了通知も、`POST /notify` 経由でこのbotが投稿する。通知先スレッドは`thread`パラメータ（`"seo"` / `"sns"`）で切り替わる（省略時は`"seo"`扱い＝「投稿内容完了通知」スレッド）。SEO記事（Workflow 03）とSNS投稿（Workflow 04）の通知が同じスレッドに混ざると見づらいため、SNS側は別スレッド「SNS投稿内容完了通知」に分離している（2026-07-04）。
 
 **設計メモ**: 当初はn8nのWaitノード（`resume: webhook`）でbotからn8nへ直接resume URLを叩く方式を試したが、n8n内部のトークン/署名/webhookパス照合の挙動が安定せず、コンテナ間ネットワーク越しの呼び出しでも解消しなかったため、単純なポーリング方式（`resume: timeInterval` + ステータス確認エンドポイント）に切り替えた。実運用上のUX差は「反映まで最大30秒のラグがある」程度で、確実さを優先している。
 
@@ -94,8 +94,10 @@ n8n側がポーリングする。未確定の間は `{ "resolved": false }`。�
 ### `POST /notify`
 
 ```json
-{ "title": "記事を下書き保存しました", "message": "「転職タイミングを...」", "url": "https://career-uranai.site/admin/articles/xxx" }
+{ "title": "記事を下書き保存しました", "message": "「転職タイミングを...」", "url": "https://career-uranai.site/admin/articles/xxx", "thread": "seo" }
 ```
+
+`thread`は省略可（省略時は`"seo"`扱い）。`"seo"` → 「投稿内容完了通知」スレッド、`"sns"` → 「SNS投稿内容完了通知」スレッド。
 
 ## データの持ち方
 

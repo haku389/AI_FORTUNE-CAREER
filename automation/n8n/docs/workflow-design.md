@@ -85,6 +85,12 @@ NG表現（サイト本体の禁止事項と同一）:
 あなたは今すぐ辞める運命です / 病気・精神疾患の断定 / 法律・医療・金融の断定
 ```
 
+### 固有名詞化の禁止（全コンテンツ生成共通、2026-07-04追加）
+
+元ネタ（Workflow 01が収集したニュース等）に具体的な企業名・サービス名が含まれていても、SNS投稿・記事本文でそれをそのまま列挙しない。一般読者はその企業名・ニュースを知らない/覚えていないことが多く、話がピンとこなくなるため。「シャープ、アリババのAI戦略シフト」のような固有名詞の羅列ではなく、「大手企業のAI活用が進むニュース」のように誰でもわかる一般化した言い方に変換してから使うこと。
+
+このルールはWorkflow 02（`Claudeで投稿案生成`）・Workflow 03（`Claudeで記事生成`）・Workflow 04（`Claudeで再生成`）のsystem promptに共通で入れている。実際にユーザーからの修正指示で発覚した問題点であり、特定の1記事だけの問題ではなく生成全体に共通する注意点として反映した。
+
 ---
 
 ## 2. Workflow 01: 情報収集
@@ -277,6 +283,8 @@ n8n側では何もしない。人間が `/admin/articles` を開き、内容を�
 4. 判定が揃ったら「レビュー結果を反映」で決定を反映（approve→そのまま採用、revise/redo→`needs_regen`フラグを立てる）。「再生成が必要か」(IF) で分岐し、必要なものだけ「再生成対象を展開」以下で再生成・再QAし、結果を元の配列にマージして手順1のチェック（「レビューが必要か」）に戻る。これを、その時点でNGな画像が無くなるまで繰り返す
 5. 全画像`ok:true`になったら「最終アップロード準備」以降でアイキャッチ・本文画像をまとめてアップロードし、記事を保存。保存後「完了通知」でbotの`/notify`を叩き、「投稿内容完了通知」スレッドにも投稿する
 
+**`/notify`の通知スレッドは種別ごとに分かれている（2026-07-04追加）**: bot側の`/notify`は`thread`パラメータ（`"seo"` or `"sns"`）でどのスレッドに投稿するか選べる。省略時は既存の「投稿内容完了通知」（SEO記事保存完了、Workflow 03用）にフォールバックする。Workflow 04（SNS修正完了通知）は明示的に`thread: "sns"`を指定し、別スレッド「SNS投稿内容完了通知」に投稿する。これはSEO記事とSNS投稿の通知が同じスレッドに混ざって見づらいというユーザーからのフィードバックを受けての変更（詳細: discord-bot側の実装は`automation/discord-bot/src/discordBot.ts`の`SEO_NOTIFY_THREAD_NAME`/`SNS_NOTIFY_THREAD_NAME`、マッピングは`server.ts`の`NOTIFY_THREAD_BY_KEY`）。
+
 **デバッグ時の教訓（2026-07-03、この機能の実装で新たに得たもの）**:
 - **n8nのWaitノード（`resume: webhook`）は、実運用では避けてポーリング方式にした**: 当初はn8nの`$execution.resumeUrl`をbotに渡し、判定確定後にbotからそのURLへPOSTして再開する設計だった。しかし実際に叩くと`404 The workflow for execution "X" does not contain a waiting webhook with a matching path/method`が発生し、n8n本体のソース（`packages/cli/src/webhooks/waiting-webhooks.ts`）まで読んで検証しても原因を特定できなかった（トークン検証は通過していたので401ではなく404になっていた＝`getNodeWebhooks()`によるpath/method照合の時点で失敗していたが、その照合ロジック自体は標準的なWaitノード設定であれば通るはずのものだった）。深追いすると時間対効果が悪いと判断し、`resume: timeInterval`（`amount: 30, unit: "seconds"`）でn8n側が能動的にbotの状態確認エンドポイント（`GET /review-batch/:id/status`）をポーリングする方式に設計変更した。UXの差は「判定から反映まで最大30秒のラグがある」程度で、確実さを優先した。**教訓: Wait-on-webhookの伝達手段（URLを外部に渡してPUSHしてもらう）は、コンテナ間ネットワーキングや署名検証など不確実要素が多い。同じ「一時停止→外部イベントで再開」を実現したいだけなら、`resume: timeInterval` + 素朴なポーリングの方が圧倒的にデバッグしやすく、原因不明のまま時間を溶かすリスクが低い**
 - **botコンテナ内からは`localhost`でn8nに到達できない**: n8nが生成する`$execution.resumeUrl`は`N8N_HOST`（このプロジェクトでは`localhost`、ブラウザアクセス用）を元にしているため、別コンテナで動くbotから見るとそれは自分自身を指してしまう。上記のポーリング方式への変更で、bot→n8nへの直接呼び出し自体が不要になり、この問題も同時に解消した（もしwebhook方式を続ける場合は、docker-composeのサービス名(`n8n:5678`)へURLを書き換える処理が必要）
@@ -307,7 +315,10 @@ Notionの「Webhookを送る」自動化アクションは有料プラン限定�
 2. `処理対象を絞り込み`: `property_status` が `approved` または `revision_requested` の行だけ残す
 3. `Statusで分岐`（IF）
    - **true（approved）**: `プラットフォームへ投稿(未実装)`（現状はログ出力のみのプレースホルダー）→ `Status:queuedに更新`
-   - **false（revision_requested）**: `パターンガイド付与`（Workflow 02と同じ`guides`オブジェクトを再利用）→ `Claudeで再生成`（`RevisionMemo`の内容を修正指示としてプロンプトに埋め込み、tool-useで`submit_post`を呼ばせる）→ `再生成結果を整形`→ `Notion内容を更新`（Pattern/Hook/Body/CTA/Hashtags/ImagePromptを上書きし、`RevisionMemo`をクリア、`Status`を`draft`に戻す）→ `修正完了を通知`（Discord bot経由で再通知、ユーザーは同じ流れをもう一度繰り返せる）
+   - **false（revision_requested）**: `パターンガイド付与`（Workflow 02と同じ`guides`オブジェクトを再利用）→ `Claudeで再生成`（`RevisionMemo`の内容を修正指示としてプロンプトに埋め込み、tool-useで`submit_post`を呼ばせる）→ `再生成結果を整形`（修正前の値も`previous_*`として保持）→ `修正履歴をページに追記`（Notion block append。ページ本文の末尾に「🔁 修正履歴」として修正指示・変更前・変更後を追記。プロパティ上書き前に実行するため履歴が消えない）→ `Notion内容を更新`（Pattern/Hook/Body/CTA/Hashtags/ImagePromptを上書きし、`RevisionMemo`をクリア、`Status`を`draft`に戻す）→ `修正完了を通知`（Discord bot経由で「SNS投稿内容完了通知」スレッドへ再通知、ユーザーは同じ流れをもう一度繰り返せる）
+
+### 修正履歴の確認方法（2026-07-04追加）
+Notionのプロパティは常に最新版で上書きされるため、過去の修正前の文面はプロパティ上には残らない。その代わり、**Notionページ本文（プロパティ欄の下）に修正のたびブロックが追記されていく**ので、そこで変更前後を見比べられる。1回目の修正、2回目の修正…と時系列で下に積み上がっていく設計（履歴を上書きせず追記し続ける）。
 
 ### 現時点のスコープ
 SNS各社のAPI（X/Instagram/LINE）は未契約のため、**実際の自動投稿は行わない**（`プラットフォームへ投稿(未実装)`はプレースホルダー）。承認・修正のループ自体は完全に動作確認済み。
