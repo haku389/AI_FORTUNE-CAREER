@@ -393,6 +393,384 @@
           "name": "Notion account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fd1981f3-3368-45b2-827b-b992b79f5b8e",
+              "leftValue": "={{ $json.property_platform }}",
+              "rightValue": "X",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b9876c38-e35f-46aa-81fd-26a73831138e",
+      "name": "投稿処理を振り分け",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function isWideChar(cp) {\n  return (\n    (cp >= 0x1100 && cp <= 0x115F) ||\n    (cp >= 0x2E80 && cp <= 0x303E) ||\n    (cp >= 0x3041 && cp <= 0x33FF) ||\n    (cp >= 0x3400 && cp <= 0x4DBF) ||\n    (cp >= 0x4E00 && cp <= 0x9FFF) ||\n    (cp >= 0xA000 && cp <= 0xA4CF) ||\n    (cp >= 0xAC00 && cp <= 0xD7A3) ||\n    (cp >= 0xF900 && cp <= 0xFAFF) ||\n    (cp >= 0xFF00 && cp <= 0xFF60) ||\n    (cp >= 0xFFE0 && cp <= 0xFFE6)\n  );\n}\nfunction xWeightedLength(str) {\n  let len = 0;\n  for (const ch of str) len += isWideChar(ch.codePointAt(0)) ? 2 : 1;\n  return len;\n}\nfunction truncateToXLimit(str, limit) {\n  if (xWeightedLength(str) <= limit) return str;\n  const ellipsis = '\\u2026';\n  const budget = limit - xWeightedLength(ellipsis);\n  let result = '';\n  let len = 0;\n  for (const ch of Array.from(str)) {\n    const w = isWideChar(ch.codePointAt(0)) ? 2 : 1;\n    if (len + w > budget) break;\n    result += ch;\n    len += w;\n  }\n  return result + ellipsis;\n}\n\nfunction composeReply(body, cta, hashtags, limit) {\n  const sep = '\\n\\n';\n  const sepLen = xWeightedLength(sep);\n  let ctaPart = cta || '';\n  let hashtagsPart = hashtags || '';\n  const tailLen = (ctaPart ? sepLen + xWeightedLength(ctaPart) : 0) + (hashtagsPart ? sepLen + xWeightedLength(hashtagsPart) : 0);\n  let bodyBudget = limit - tailLen;\n  if (bodyBudget < 20) {\n    // CTA+Hashtagsだけで枠を圧迫しすぎる場合は、Hashtagsを先に諦めてBody分を確保する\n    hashtagsPart = '';\n    bodyBudget = limit - (ctaPart ? sepLen + xWeightedLength(ctaPart) : 0);\n  }\n  const bodyTrunc = bodyBudget > 0 ? truncateToXLimit(body || '', bodyBudget) : '';\n  const parts = [bodyTrunc, ctaPart, hashtagsPart].filter(Boolean);\n  let result = parts.join(sep);\n  if (xWeightedLength(result) > limit) result = truncateToXLimit(result, limit);\n  return result;\n}\n\nconst item = $input.first().json;\nconst X_LIMIT = 280;\n\nconst mainText = truncateToXLimit(item.property_hook ?? '', X_LIMIT);\n\n// Body(本文)が長く全部は収まらないことが多いため、CTA・Hashtagsを優先的に残し、\n// Bodyだけを自動で切り詰める(単純結合→末尾カットだと、CTA/Hashtagsが真っ先に消えてしまうため)\nconst replyText = composeReply(item.property_body, item.property_cta, item.property_hashtags, X_LIMIT);\n\nconst diagnosisText = '気になった方は、無料の簡易診断もどうぞ\\u{1F447}\\nhttps://career-uranai.site/shindan';\n\nreturn [{\n  json: {\n    page_id: item.id,\n    platform: item.property_platform,\n    name: item.property_name,\n    main_text: mainText,\n    reply_text: replyText,\n    diagnosis_text: diagnosisText,\n    add_diagnosis_link: item.property_add_diagnosis_link === true,\n    image_url: item.property_article_image_url || ''\n  }\n}];"
+      },
+      "id": "dc9e692a-ece3-4a81-9144-7232d37e1170",
+      "name": "X:投稿文を組み立て",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "24569178-be30-439c-bcca-d745c6465bd0",
+              "leftValue": "={{ $json.image_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c19add25-098e-4605-b19d-caa107736339",
+      "name": "X:画像が必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        860,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.image_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "f7e2f01a-3a1e-4519-98c3-1526d803a25b",
+      "name": "X:画像をダウンロード",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://upload.twitter.com/1.1/media/upload.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twitterOAuth1Api",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "media",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3ae6425f-a077-49ef-bc05-7807d2f95d76",
+      "name": "X:画像をアップロード",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        -380
+      ],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "B6i4MzBBRqjwNpiQ",
+          "name": "X OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const mediaIdString = $input.first().json.media_id_string ?? '';\nconst built = $('X:投稿文を組み立て').first().json;\nreturn [{ json: { ...built, media_id_string: mediaIdString } }];"
+      },
+      "id": "0655ae0b-7e4a-4821-a1a4-a465327d7137",
+      "name": "X:画像アップロード結果を整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nreturn [{ json: { ...built, media_id_string: '' } }];"
+      },
+      "id": "3e3bf35e-53c1-4a67-99a4-f5361a3a2e5d",
+      "name": "X:画像なし",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/tweets",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twitterOAuth1Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.main_text, ...($json.media_id_string ? { media: { media_ids: [$json.media_id_string] } } : {}) }) }}",
+        "options": {}
+      },
+      "id": "03ad19af-dece-40eb-af8d-821e6bee2a48",
+      "name": "X:メイン投稿",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1740,
+        -280
+      ],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "B6i4MzBBRqjwNpiQ",
+          "name": "X OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ms = (Math.random() * 37 + 3) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "827ca1d4-f9de-426d-a12d-5dd8990cfac1",
+      "name": "X:ランダム待機1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1960,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/tweets",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twitterOAuth1Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.reply_text, reply: { in_reply_to_tweet_id: $('X:メイン投稿').first().json.data.id } }) }}",
+        "options": {}
+      },
+      "id": "e90afec1-8cfe-4701-8bf8-f88d1edeec0f",
+      "name": "X:リプライ投稿",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2180,
+        -280
+      ],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "B6i4MzBBRqjwNpiQ",
+          "name": "X OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "76d6650f-2a15-448b-ad61-d91fbc0c8b19",
+              "leftValue": "={{ $('X:投稿文を組み立て').first().json.add_diagnosis_link }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b306be81-0760-4d46-b005-e06b62d4a2c6",
+      "name": "X:診断リンクが必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2400,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ms = (Math.random() * 37 + 3) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "0747be94-22c1-4eb1-92b1-dd573bde954f",
+      "name": "X:ランダム待機2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/tweets",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twitterOAuth1Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.diagnosis_text, reply: { in_reply_to_tweet_id: $('X:リプライ投稿').first().json.data.id } }) }}",
+        "options": {}
+      },
+      "id": "86ba0f64-16b4-4c7c-a2cc-a7b9d00cd84d",
+      "name": "X:診断誘導リプライ投稿",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2840,
+        -380
+      ],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "B6i4MzBBRqjwNpiQ",
+          "name": "X OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nconst mainId = $('X:メイン投稿').first().json.data.id;\nconst replyId = $('X:リプライ投稿').first().json.data.id;\nconst diagId = $('X:診断誘導リプライ投稿').first().json.data.id;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_tweet_id: mainId,\n    reply_tweet_id: replyId,\n    diagnosis_tweet_id: diagId,\n    main_tweet_url: `https://x.com/reiko_career1/status/${mainId}`\n  }\n}];"
+      },
+      "id": "7f89fab9-f5b2-4897-b8ba-d08656e780c3",
+      "name": "X:投稿結果をまとめる(診断あり)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3060,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nconst mainId = $('X:メイン投稿').first().json.data.id;\nconst replyId = $('X:リプライ投稿').first().json.data.id;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_tweet_id: mainId,\n    reply_tweet_id: replyId,\n    diagnosis_tweet_id: null,\n    main_tweet_url: `https://x.com/reiko_career1/status/${mainId}`\n  }\n}];"
+      },
+      "id": "76606fef-8819-4bc1-a9da-379f75e3752c",
+      "name": "X:投稿結果をまとめる(診断なし)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.page_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "posted"
+            }
+          ]
+        }
+      },
+      "id": "0928f0ee-68fe-413b-ab90-13ea59795ce8",
+      "name": "X:Statusをpostedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        3280,
+        -280
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://discord-bot:3100/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: 'Xへ投稿しました', message: `${$json.name}\\n${$json.main_tweet_url}`, thread: 'sns' }) }}",
+        "options": {}
+      },
+      "id": "35534616-7c1d-461e-84f7-82ffc31c2920",
+      "name": "X:投稿完了を通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3500,
+        -280
+      ],
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -444,7 +822,7 @@
       "main": [
         [
           {
-            "node": "プラットフォームへ投稿(未実装)",
+            "node": "投稿処理を振り分け",
             "type": "main",
             "index": 0
           }
@@ -523,11 +901,209 @@
           }
         ]
       ]
+    },
+    "投稿処理を振り分け": {
+      "main": [
+        [
+          {
+            "node": "X:投稿文を組み立て",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "プラットフォームへ投稿(未実装)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:投稿文を組み立て": {
+      "main": [
+        [
+          {
+            "node": "X:画像が必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:画像が必要か": {
+      "main": [
+        [
+          {
+            "node": "X:画像をダウンロード",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "X:画像なし",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:画像をダウンロード": {
+      "main": [
+        [
+          {
+            "node": "X:画像をアップロード",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:画像をアップロード": {
+      "main": [
+        [
+          {
+            "node": "X:画像アップロード結果を整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:画像アップロード結果を整形": {
+      "main": [
+        [
+          {
+            "node": "X:メイン投稿",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:画像なし": {
+      "main": [
+        [
+          {
+            "node": "X:メイン投稿",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:メイン投稿": {
+      "main": [
+        [
+          {
+            "node": "X:ランダム待機1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:ランダム待機1": {
+      "main": [
+        [
+          {
+            "node": "X:リプライ投稿",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:リプライ投稿": {
+      "main": [
+        [
+          {
+            "node": "X:診断リンクが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:診断リンクが必要か": {
+      "main": [
+        [
+          {
+            "node": "X:ランダム待機2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "X:投稿結果をまとめる(診断なし)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:ランダム待機2": {
+      "main": [
+        [
+          {
+            "node": "X:診断誘導リプライ投稿",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:診断誘導リプライ投稿": {
+      "main": [
+        [
+          {
+            "node": "X:投稿結果をまとめる(診断あり)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:投稿結果をまとめる(診断あり)": {
+      "main": [
+        [
+          {
+            "node": "X:Statusをpostedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:投稿結果をまとめる(診断なし)": {
+      "main": [
+        [
+          {
+            "node": "X:Statusをpostedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:Statusをpostedに更新": {
+      "main": [
+        [
+          {
+            "node": "X:投稿完了を通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "errorWorkflow": "lIpM7Yx68fFjTmqa"
   },
   "pinData": {}
 }

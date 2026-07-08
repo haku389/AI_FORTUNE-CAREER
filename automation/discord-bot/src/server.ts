@@ -6,14 +6,16 @@ import {
   getBatchStatus,
   SEO_NOTIFY_THREAD_NAME,
   SNS_NOTIFY_THREAD_NAME,
+  WORKFLOW_ERROR_THREAD_NAME,
   type ReviewBatchInput,
 } from './discordBot.js'
 
-// n8n側は短いキー('seo'/'sns')で送ってくる。実際のDiscordスレッド名はここでのみ管理し、
+// n8n側は短いキー('seo'/'sns'/'error')で送ってくる。実際のDiscordスレッド名はここでのみ管理し、
 // ワークフロー側に日本語のスレッド名をハードコードしなくて済むようにしている。
 const NOTIFY_THREAD_BY_KEY: Record<string, string> = {
   seo: SEO_NOTIFY_THREAD_NAME,
   sns: SNS_NOTIFY_THREAD_NAME,
+  error: WORKFLOW_ERROR_THREAD_NAME,
 }
 
 export function createServer(client: Client, channelId: string) {

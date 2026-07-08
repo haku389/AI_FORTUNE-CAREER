@@ -29,6 +29,7 @@ import {
 
 export const SEO_NOTIFY_THREAD_NAME = '投稿内容完了通知'
 export const SNS_NOTIFY_THREAD_NAME = 'SNS投稿内容完了通知'
+export const WORKFLOW_ERROR_THREAD_NAME = 'エラー検知'
 const ERROR_THREAD_NAME = '画像生成エラー'
 
 const APPROVE_EMOJI = '🍓'

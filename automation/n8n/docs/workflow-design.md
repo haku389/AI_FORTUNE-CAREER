@@ -309,7 +309,7 @@ Notion「SNS投稿下書き」DBに以下のプロパティ・ボタンを追加
 - **内容OK（ボタン）**: 押すと `Status` を `approved` に変更するだけ（Edit propertyアクション）
 - **RevisionMemo（テキスト）**: 修正したい内容を先に書く
 - **RequestRevision（ボタン）**: 押すと `Status` を `revision_requested` に変更するだけ
-- **AddDiagnosisLink（チェックリスト）**: X/Threadsで、返信ポストにさらに診断誘導リンクを追加するかどうかのフラグ（投稿ロジック実装時に使う予定、Workflow 04自体はまだ参照していない）
+- **AddDiagnosisLink（チェックリスト）**: X/Threadsで、返信ポストにさらに診断誘導リンクを追加するかどうかのフラグ（現在Xの投稿ロジックで参照している。チェックされていれば診断誘導リプライを追加、されていなければ本文リプライまでで終了）
 
 Notionの「Webhookを送る」自動化アクションは有料プラン限定のため使わず、**ボタンは`Status`プロパティを変更するだけに留め、変化の検知は全部n8n側のポーリングで行う**設計にしている。GASでのWebhook自作も技術的には可能だが、ポーリングだけで完結する方が構成がシンプルなためGASは不採用。
 
@@ -317,23 +317,71 @@ Notionの「Webhookを送る」自動化アクションは有料プラン限定�
 1. `定期実行(5分毎)`（または手動実行）→ Notion `getAll` で全行取得
 2. `処理対象を絞り込み`: `property_status` が `approved` または `revision_requested` の行だけ残す
 3. `Statusで分岐`（IF）
-   - **true（approved）**: `プラットフォームへ投稿(未実装)`（現状はログ出力のみのプレースホルダー）→ `Status:queuedに更新`
+   - **true（approved）**: `投稿処理を振り分け`（IF、`property_platform === 'X'`）
+     - **X**: 4.1節参照
+     - **それ以外（Instagram/Threads/LINE）**: `プラットフォームへ投稿(未実装)`（現状はログ出力のみのプレースホルダー）→ `Status:queuedに更新`
    - **false（revision_requested）**: `パターンガイド付与`（Workflow 02と同じ`guides`オブジェクトを再利用）→ `Claudeで再生成`（`RevisionMemo`の内容を修正指示としてプロンプトに埋め込み、tool-useで`submit_post`を呼ばせる）→ `再生成結果を整形`（修正前の値も`previous_*`として保持）→ `修正履歴をページに追記`（Notion block append。ページ本文の末尾に「🔁 修正履歴」として修正指示・変更前・変更後を追記。プロパティ上書き前に実行するため履歴が消えない）→ `Notion内容を更新`（Pattern/Hook/Body/CTA/Hashtags/ImagePromptを上書きし、`RevisionMemo`をクリア、`Status`を`draft`に戻す）→ `修正完了を通知`（Discord bot経由で「SNS投稿内容完了通知」スレッドへ再通知、ユーザーは同じ流れをもう一度繰り返せる）
 
 ### 修正履歴の確認方法（2026-07-04追加）
 Notionのプロパティは常に最新版で上書きされるため、過去の修正前の文面はプロパティ上には残らない。その代わり、**Notionページ本文（プロパティ欄の下）に修正のたびブロックが追記されていく**ので、そこで変更前後を見比べられる。1回目の修正、2回目の修正…と時系列で下に積み上がっていく設計（履歴を上書きせず追記し続ける）。
 
-### 現時点のスコープ
-SNS各社のAPI（X/Instagram/LINE）は未契約のため、**実際の自動投稿は行わない**（`プラットフォームへ投稿(未実装)`はプレースホルダー）。承認・修正のループ自体は完全に動作確認済み。
+### 4.1 X（旧Twitter）への実投稿（2026-07-08実装）
 
-SNS APIキーが揃い、実際の自動投稿を実装する段階になったら、このワークフローに投稿ノードを追加する。その際も「同一文面の連投を避ける」「自動リプライはしない」という[設計書](../../../unified_fortuneTelling/docs/career-uranai-content-automation-design.md)の方針を守ること。X/Threadsは本文投稿の後に返信ポストで補足し、`AddDiagnosisLink`がチェックされている場合はさらにその返信への返信で診断導線を貼る構成を予定。Instagramは画像/ショート動画メインでプロフィール誘導を意識した単一投稿構成を予定。
+Xのみ実際の自動投稿を実装済み。Instagram/Threads/LINEは未着手（プレースホルダーのまま）。
 
-### デバッグ時の教訓（2026-07-04）
-- **n8nのNotion `getAll`が返すプロパティ名は、Notion上の表示名そのままではない**。実際には `property_` プレフィックス+snake_caseに変換される（例: Notion上の表示名`Status`は`property_status`、`RevisionMemo`は`property_revision_memo`、`Platform`は`property_platform`として`json`に入る）。`id`や`name`など一部フィールドはプレフィックスなしでそのまま出る。これに気づかず`$json.Status`のような参照で組んだため、`処理対象を絞り込み`のフィルタが常に0件になり、3回分のポーリング実行が無駄になった。実行結果のraw JSONを直接ダンプして初めて気づけたので、Notionノードを新しく使うときは想定で書かず、まず1回実行してoutputの実データを確認すること。
+**認証**: n8nの「X OAuth API」credential（`twitterOAuth1Api`、OAuth 1.0a）を使用。OAuth 2.0ではなくOAuth 1.0aを選んだ理由は、画像投稿で使う旧v1.1 media/uploadエンドポイントがOAuth 1.0aでしか使えないため（v2の新media uploadエンドポイントはOAuth 2.0限定）。Developer PortalのApp作成者アカウントと実際に投稿するXアカウント（@reiko_career1）は別アカウントで問題ない。3-legged OAuthで@reiko_career1としてログイン・許可することで、そのアカウントとして投稿できるようになる。
+
+**投稿フロー**（`投稿処理を振り分け`のtrue(X)分岐）:
+1. `X:投稿文を組み立て`: Hookをメイン投稿用テキストに、Body+CTA+Hashtagsをリプライ用テキストに変換。Xの文字数制限（280、全角2/半角1換算）を超える場合は自動で切り詰める。**CTA・Hashtagsを優先的に残し、Bodyだけを切り詰める**設計（単純に末尾から切ると、一番伝えたいCTA/Hashtagsが真っ先に消えてしまうため）。実データで検証したところ、Body単体だけで既に280文字相当を超えるケースが普通にあり、この優先順位付けは必須だった
+2. `X:画像が必要か`（`property_article_image_url`の有無で分岐。現状SNS投稿には画像生成が無いため、実質常にfalse側=`X:画像なし`を通る。画像ありの経路（`X:画像をダウンロード`→旧v1.1 media/uploadへ`X:画像をアップロード`）は実装済みだが、テストデータが無く未検証）
+3. `X:メイン投稿`（`POST /2/tweets`）→ `X:ランダム待機1`（3〜40秒のランダム待機。連続投稿に見えないようにするための意図的なディレイ、ユーザー指定）→ `X:リプライ投稿`（`reply.in_reply_to_tweet_id`でメイン投稿への返信として投稿）
+4. `X:診断リンクが必要か`（`property_add_diagnosis_link`）
+   - true: `X:ランダム待機2`（同じくランダム3〜40秒）→ `X:診断誘導リプライ投稿`（リプライへの返信という形で、`https://career-uranai.site/shindan`への誘導文を投稿。スレッドが縦に連なる構成）
+   - false: スキップ
+5. `X:Statusをpostedに更新`（Notion `Status`を`posted`に）→ `X:投稿完了を通知`（Discord bot経由で「SNS投稿内容完了通知」スレッドへ、投稿URLとともに通知）
+
+**ランダム待機の実装**: n8nのWaitノードではなく、Codeノード内で`await new Promise(resolve => setTimeout(resolve, ms))`を使用（`resume: timeInterval`のWaitノードは固定値向けで、動的な乱数待機時間には不向きなため、Codeノードで直接await sleepする方がシンプル）。
+
+**動作確認**: 実際に@reiko_career1へ投稿・返信まで成功（2026-07-08、execution #862）。[https://x.com/reiko_career1/status/2074775510576668983](https://x.com/reiko_career1/status/2074775510576668983)
+
+**デバッグ時の教訓（2026-07-08）**:
+- **XのAPIクレジット(従量課金)は「Developer PortalでAppを作成したアカウント」に紐づく**。投稿する@reiko_career1アカウント自体にクレジットを積んでも反映されない。エラーメッセージに含まれる`account_id`と、投稿アカウントの`/2/users/me`で返るidを見比べることで、クレジットが正しいアカウントに乗っているか判別できる（今回は誤って別アカウントに課金してしまい、Projectを作り直すことになった）
+- Body本文だけでXの1投稿の文字数上限を超えることが多いため、「本文＋CTA＋ハッシュタグを結合してから末尾で切る」実装だと、一番重要なCTA/ハッシュタグが毎回消えてしまう。優先度の高い要素を先に確保してから、可変長のBody側だけを詰める設計にする必要があった
+
+**未実装（今後）**: X/Instagram/ThreadsのAPIキーが揃い次第、Threadsも同じパターンで実装予定。Instagramは画像/ショート動画メインでプロフィール誘導を意識した単一投稿構成になる想定で、X/Threadsのスレッド形式とはロジックが異なる。
 
 ---
 
-## 6. スコアリング設計
+## 6. Workflow 05: エラー通知（2026-07-08実装）
+
+ファイル: [`05_error_notifications.template.json`](../workflows/05_error_notifications.template.json)
+
+### 目的
+Workflow 01〜04のいずれかでエラーが発生した際に、Discordの「エラー検知」スレッドへ自動通知する。X投稿のクレジット不足エラーが気づかれないまま何度もリトライされ続けた、という実際の出来事を受けて追加した。
+
+### 仕組み: n8nの「Error Workflow」機能
+各ワークフロー個別にエラーハンドリングを組み込むのではなく、n8nが標準で持つ「Error Workflow」機能を使う。ワークフローの`settings.errorWorkflow`にこのワークフローのIDを設定しておくと、そのワークフロー内でどのノードがエラーになっても自動的にこのワークフローが呼ばれる（`Error Trigger`ノードが起点）。01〜04すべてに設定済み。
+
+`Error Trigger`ノードに渡ってくるデータの形:
+```json
+{
+  "execution": { "id": "...", "url": "...", "lastNodeExecuted": "...", "error": { "message": "...", "stack": "..." } },
+  "workflow": { "id": "...", "name": "..." }
+}
+```
+
+### 処理フロー
+`Error Trigger` → `エラー内容を整形`（Codeノード。`err.message`の内容をキーワードマッチングし、「Xのクレジット不足」「Notion認証エラー」「Claude APIレート制限」等、よくあるパターンを日本語の一文に変換してから、生のエラーメッセージ・失敗したノード名・実行詳細URLと合わせてDiscordメッセージを組み立てる。パターンに一致しない場合は「原因不明のエラーです」+生メッセージにフォールバックする）→ `Discordへ通知`（bot `/notify`、`thread: 'error'`）
+
+### テスト方法
+`Error Trigger`ノードを**手動実行**すると、n8nが自動でダミーのエラーデータ（`Example Error Message`等）を入れてくれる仕様があるため、実際にどこかのワークフローを故意に失敗させなくても、Discord通知の見た目を確認できる。
+
+### デバッグ時の教訓（2026-07-08）
+- エラーメッセージのパターンマッチングは、実際に発生したエラー文言を追加していく形で育てるしかない。X APIは同じ種類のエラー（クレジット不足）でも`"CreditsDepleted"`という文言の時と`"Payment required - perhaps check your payment details?"`という文言の時があり、後者は当初のマッチングに引っかからず「原因不明」に分類されてしまった。生メッセージも必ず一緒に表示しておくことで、パターンが漏れていてもユーザー側で判断できるようにしている。
+
+---
+
+## 7. スコアリング設計
 
 Workflow 01（収集）およびWorkflow 02（SNS案生成）で使うスコアリング。ガイド原案のロジックをそのまま採用。
 
@@ -350,7 +398,7 @@ priority = virality_score + seo_score + affiliate_intent_bonus
 
 ---
 
-## 7. タグ語彙について（SEO記事）
+## 8. タグ語彙について（SEO記事）
 
 career-uranai.siteの診断結果ページは、記事の`tags`と診断結果（星座・転職タイプ・本命星・MBTI傾向・タイミング・年齢層・性別・業種）の一致度でおすすめ記事を表示する仕組みが既にある。Workflow 03で記事を生成する際は、`GET /api/n8n/tags` で取得できる語彙から選ぶこと（語彙外の値は保存時に無視される）。
 
@@ -359,7 +407,7 @@ career-uranai.siteの診断結果ページは、記事の`tags`と診断結果�
 
 ---
 
-## 8. 今後の検討事項（未実装・方針未確定、2026-07-01時点でのユーザー発言を記録）
+## 9. 今後の検討事項（未実装・方針未確定、2026-07-01時点でのユーザー発言を記録）
 
 以下はユーザーから出たアイデアだが、本人の言葉で「まだ正確に決まったわけではない」と明言されているため、**実装はしていない**。方針が固まった時点で着手する。
 
