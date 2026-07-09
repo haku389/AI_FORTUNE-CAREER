@@ -1,0 +1,250 @@
+{
+  "name": "06_recurring_templates",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 06_recurring_templates\n\n星座・MBTI・九星気学ネタの定期投稿(ニュースと無関係な評判テンプレート)。\n\n曜日割り当て:\n- 月: ①星座別タイミング型\n- 水: ②共感型\n- 金: ③ランキング型(星座)\n- 日: ④〜⑧(MBTI/本命星/比較型)を週替わりでローテーション\n- 火・木・土: なし(ニュース反応型の投稿のみ)\n\n星座・MBTI・本命星の「結果」は実占いの計算ではなく、\nキャラクター設定(白石玲子)に沿った創作コンテンツとして生成する。\n\n生成後は既存のNotion承認フロー(内容OK/RequestRevision)にそのまま乗る。\n\n詳細: docs/workflow-design.md 参照",
+        "height": 340,
+        "width": 460
+      },
+      "id": "36c07f13-0df1-48a0-beb8-da28a22d6769",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "03e5aeae-38c8-4ceb-9a8f-ee311354e8b7",
+      "name": "手動実行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "213063a2-0727-4cc5-b720-a3729348e5dd",
+      "name": "定期実行(毎日9時JST)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -460,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const TEMPLATES = {\n  1: { name: \"定期テンプレート①: 星座別タイミング型\", structure: `【投稿1】\n今週、転職に動くべき星座を発表します🔮\n木星と土星の配置から読むと——\n🔥 今週の転職運BEST3は...\n↓\n\n【返信1】\n1位 {{星座名}}⚡ → {{理由・アドバイス}}\n2位 {{星座名}} → {{理由・アドバイス}}\n3位 {{星座名}} → {{理由・アドバイス}}\n\n【返信2】\n逆に今週は慎重にいきたい星座🌑\n{{星座名}}: {{理由}}\n\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  2: { name: \"定期テンプレート②: 共感型\", structure: `【投稿1】\n「転職したいけど、今じゃない気がする」\n\nそれ、星座的にはかなり重要なサインかもしれない。\n続きを。👇\n\n【返信1】\n占星術では、土星が逆行している時期に\n「まだ早い」という直感が働くことがある。\n\nこの感覚を無視して動くと——\n\n【返信2】\n「今じゃない感」を持っている方は\n転職スコアを確認してみてください。\n感覚と数字が一致することが多いです🔮\n\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  3: { name: \"定期テンプレート③: ランキング型(星座)\", structure: `【投稿1】\n転職成功率が高い星座ランキング、発表します🔮\n\n12位: {{星座名}} — {{一言}}\n11位: {{星座名}} — {{一言}}\n10位: {{星座名}} — {{一言}}\n9位: {{星座名}} — {{一言}}\n8位: {{星座名}} — {{一言}}\n7位: {{星座名}} — {{一言}}\n6位: {{星座名}} — {{一言}}\n5位: {{星座名}} — {{一言}}\n4位: {{星座名}} — {{一言}}\n\n3位以上はこのスレッドで。\n↓\n\n【返信1】\n3位: {{星座名}}\n理由: {{説明}}\n\n2位: {{星座名}}\n理由: {{説明}}\n\n1位: {{星座名}}🏆\n理由: {{説明}}\n\n※ランキングはあくまで傾向です。\n個人の星はそれぞれ異なります。\n\n【返信2】\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  4: { name: \"定期テンプレート④: MBTI×転職 全体ランキング型\", structure: `【投稿1】\n転職で成功しやすいMBTIタイプランキング、発表します🔮\n\n16位: {{タイプ名}} — {{一言}}\n15位: {{タイプ名}} — {{一言}}\n14位: {{タイプ名}} — {{一言}}\n13位: {{タイプ名}} — {{一言}}\n12位: {{タイプ名}} — {{一言}}\n11位: {{タイプ名}} — {{一言}}\n10位: {{タイプ名}} — {{一言}}\n9位: {{タイプ名}} — {{一言}}\n8位: {{タイプ名}} — {{一言}}\n7位: {{タイプ名}} — {{一言}}\n6位: {{タイプ名}} — {{一言}}\n\n5位以上はこのスレッドで。\n↓\n\n【返信1】\n5位: {{タイプ名}}\n理由: {{説明}}\n\n4位: {{タイプ名}}\n理由: {{説明}}\n\n3位: {{タイプ名}}\n理由: {{説明}}\n\n2位: {{タイプ名}}\n理由: {{説明}}\n\n1位: {{タイプ名}}🏆\n理由: {{説明}}\n\n※あくまで傾向です。個人の星や性格は一人ひとり異なります。\n\n【返信2】\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  5: { name: \"定期テンプレート⑤: MBTI×転職 一部ランキング型\", structure: `【投稿1】\n転職エージェントを使いこなせるMBTIタイプ、上位6つを発表します🔮\n\n6位: {{タイプ名}} — {{一言}}\n5位: {{タイプ名}} — {{一言}}\n4位: {{タイプ名}} — {{一言}}\n\n3位以上はこのスレッドで。\n↓\n\n【返信1】\n3位: {{タイプ名}}\n理由: {{説明}}\n\n2位: {{タイプ名}}\n理由: {{説明}}\n\n1位: {{タイプ名}}🏆\n理由: {{説明}}\n\n【返信2】\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  6: { name: \"定期テンプレート⑥: 職種×MBTI 1つ絞り込み型\", structure: `【投稿1】\nマーケターに転職して活躍している人、MBTIは何が多いか調べました。\n\n結果、ある傾向が見えてきた——\n↓\n\n【返信1】\n圧倒的に多かったのは {{タイプ名}}。\n\n理由は3つ。\n\n① {{理由}}\n② {{理由}}\n③ {{理由}}\n\n逆に向いていないと言われがちなのは {{タイプ名}}。\nただし{{補足}}。\n\n【返信2】\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  7: { name: \"定期テンプレート⑦: 本命星×転職 ランキング型\", structure: `【投稿1】\n九星気学の本命星で見る「転職に向いている年」ランキングを発表します🔮\n\n9位: {{本命星名}} — {{一言}}\n8位: {{本命星名}} — {{一言}}\n7位: {{本命星名}} — {{一言}}\n6位: {{本命星名}} — {{一言}}\n5位: {{本命星名}} — {{一言}}\n\n4位以上はこのスレッドで。\n↓\n\n【返信1】\n4位: {{本命星名}} — {{説明}}\n3位: {{本命星名}} — {{説明}}\n2位: {{本命星名}} — {{説明}}\n\n1位: {{本命星名}}🏆\n理由: {{説明}}\n\n【返信2】\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` },\n  8: { name: \"定期テンプレート⑧: 比較型\", structure: `【投稿1】\n同じ転職でも、INTJとENFPではアプローチが真逆です🔮\n\nどちらが自分に近いか、読みながら確認してみてください。\n↓\n\n【返信1】\n🧠 INTJ（建築家型）\n→ {{転職での特徴・傾向}}\n→ 向いている職種: {{職種名}}\n→ 注意点: {{注意}}\n\n💡 ENFP（広報運動家型）\n→ {{転職での特徴・傾向}}\n→ 向いている職種: {{職種名}}\n→ 注意点: {{注意}}\n\n【返信2】\n気になった方は、無料の簡易診断で自分の運勢もチェックしてみてください🔮\nhttps://career-uranai.site/shindan` }\n};\n\nconst JST_OFFSET_MS = 9 * 60 * 60 * 1000;\nconst nowJST = new Date(Date.now() + JST_OFFSET_MS);\nconst dow = nowJST.getUTCDay(); // JST換算後のDateなのでgetUTCDay()がJSTの曜日になる(0=日,1=月,...,6=土)\n\nlet templateId = null;\nif (dow === 1) templateId = 1; // 月: 星座別タイミング型\nelse if (dow === 3) templateId = 2; // 水: 共感型\nelse if (dow === 5) templateId = 3; // 金: ランキング型(星座)\nelse if (dow === 0) {\n  // 日: MBTI/本命星/比較型(4〜8)を週替わりでローテーション\n  const rotation = [4, 5, 6, 7, 8];\n  const daysSinceEpoch = Math.floor(nowJST.getTime() / (24 * 60 * 60 * 1000));\n  const weekNum = Math.floor(daysSinceEpoch / 7);\n  templateId = rotation[weekNum % rotation.length];\n}\n// 火・木・土は定期テンプレートなし(templateIdはnullのまま)\n\nif (templateId === null) {\n  if ($mode === 'manual') {\n    // 手動実行(Execute workflow)時は、動作確認のため曜日を無視してテンプレート1を強制的に使う。\n    // 定期実行(スケジュールトリガー)の場合のみ、対象日以外は何もしない挙動を維持する。\n    templateId = 1;\n  } else {\n    return []; // 今日は対象日ではない。後続ノードは空配列を受けて何もしない\n  }\n}\n\nreturn [{\n  json: {\n    template_id: templateId,\n    template_name: TEMPLATES[templateId].name,\n    template_structure: TEMPLATES[templateId].structure\n  }\n}];"
+      },
+      "id": "ecf53ac8-55b0-4ab8-b43c-33e8453fb42d",
+      "name": "今日のテンプレートを判定",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 2000,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"定期テンプレートに沿ったSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          hook: { type: \"string\", description: \"投稿1として単独で使われる。テンプレートの【投稿1】部分に対応\" },\n          body: { type: \"string\", description: \"返信1として単独で使われる。テンプレートの【返信1】部分に対応\" },\n          cta: { type: \"string\", description: \"返信2として単独で使われる。テンプレートの【返信2】部分に対応(LINE誘導リンクを含む)\" }\n        },\n        required: [\"hook\", \"body\", \"cta\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」等）。** 一人称は「私」。丁寧な「です・ます」調。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない。\\n\\n以下のテンプレート構造に沿って、星座/MBTI/九星気学ネタのSNS投稿案を作成すること。二重の波括弧で囲まれた部分（プレースホルダー）を、実際の内容で創作して埋めること(本物の占いの計算結果ではなく、キャラクター設定に沿った創作コンテンツとして自然に書く)。\\n\\n【重要】テンプレートの構成(投稿1/返信1/返信2に分かれている箇所、絵文字、「このスレッドで」「↓」等の合図、ランキングの出す順序)は、そのテンプレートの通りに厳密に守ること。改変しない。\\n\\n【重要】URLリンクは、テンプレートの返信2(最後の投稿)に既に書かれている診断リンクだけにすること。投稿1や返信1に、自分でリンクや「登録はこちら」等の誘導を新たに追加しない。\\n\\n---テンプレート構造---\\n\" + $json.template_structure,\n  messages: [\n    { role: \"user\", content: \"このテンプレートに沿って、今週分の投稿案を1つ作成してください。\" }\n  ]\n}) }}"
+      },
+      "id": "c947ef93-8ecb-40f9-a20e-2328914dd826",
+      "name": "Claudeでテンプレート投稿生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        60
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "d7cseTHsEiAVSIr0",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = $json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst p = toolUse.input;\nconst src = $('今日のテンプレートを判定').first().json;\n\nreturn [{\n  json: {\n    name: (p.hook || '無題').slice(0, 60),\n    platform: 'X',\n    post_type: '定期テンプレート',\n    pattern_used: src.template_name,\n    hook: p.hook ?? '',\n    body: p.body ?? '',\n    cta: p.cta ?? '',\n    hashtags: '',\n    image_prompt: '',\n    target_persona: '',\n    source_urls: '',\n    article_image_url: '',\n    scheduled_post_datetime: ''\n  }\n}];"
+      },
+      "id": "6551b230-529b-4cf3-9a27-3e68d8acb7d8",
+      "name": "レスポンス整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": "2b702e64-205f-4692-b325-229e394c9748",
+        "title": "={{ $json.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Platform|select",
+              "selectValue": "={{ $json.platform }}"
+            },
+            {
+              "key": "PostType|select",
+              "selectValue": "={{ $json.post_type }}"
+            },
+            {
+              "key": "PatternUsed|rich_text",
+              "textContent": "={{ $json.pattern_used }}"
+            },
+            {
+              "key": "Hook|rich_text",
+              "textContent": "={{ $json.hook }}"
+            },
+            {
+              "key": "Body|rich_text",
+              "textContent": "={{ $json.body }}"
+            },
+            {
+              "key": "CTA|rich_text",
+              "textContent": "={{ $json.cta }}"
+            },
+            {
+              "key": "Hashtags|rich_text",
+              "textContent": "={{ $json.hashtags }}"
+            },
+            {
+              "key": "ImagePrompt|rich_text",
+              "textContent": "={{ $json.image_prompt }}"
+            },
+            {
+              "key": "TargetPersona|rich_text",
+              "textContent": "={{ $json.target_persona }}"
+            },
+            {
+              "key": "SourceURLs|rich_text",
+              "textContent": "={{ $json.source_urls }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "draft"
+            },
+            {
+              "key": "ArticleImageURL|rich_text",
+              "textContent": "={{ $json.article_image_url }}"
+            }
+          ]
+        }
+      },
+      "id": "73e9e491-afac-40df-8fea-c63a4e33b34a",
+      "name": "Notionへ下書き保存",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        60
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "手動実行": {
+      "main": [
+        [
+          {
+            "node": "今日のテンプレートを判定",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "定期実行(毎日9時JST)": {
+      "main": [
+        [
+          {
+            "node": "今日のテンプレートを判定",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "今日のテンプレートを判定": {
+      "main": [
+        [
+          {
+            "node": "Claudeでテンプレート投稿生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeでテンプレート投稿生成": {
+      "main": [
+        [
+          {
+            "node": "レスポンス整形",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "レスポンス整形": {
+      "main": [
+        [
+          {
+            "node": "Notionへ下書き保存",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "lIpM7Yx68fFjTmqa"
+  }
+}

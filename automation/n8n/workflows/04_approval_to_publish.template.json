@@ -195,7 +195,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 1500,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"修正版のSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          pattern_used: { type: \"string\" },\n          hook: { type: \"string\" },\n          body: { type: \"string\" },\n          cta: { type: \"string\" },\n          hashtags: { type: \"array\", items: { type: \"string\" } },\n          image_prompt: { type: \"string\" }\n        },\n        required: [\"pattern_used\", \"hook\", \"body\", \"cta\", \"hashtags\", \"image_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」等）。** 一人称は「私」。丁寧な「です・ます」調。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない。\\n\\n固有名詞化の禁止（例外あり）: 元ネタに具体的な企業名・サービス名・ニュース名が含まれていても、無条件にそのまま列挙しない。判断基準は「一般読者の大半が、業界に詳しくなくてもその名前を知っている/直近でよく見聞きしている」レベルかどうか。該当する場合（誰もが知る国民的ニュース、日常的に使われる超大手ブランドが絡む大きな話題など、今まさに話題になっていて多くの人が認知しているもの）は、固有名詞をそのまま使ってよい。検索されるキーワードと一致しやすくSEO・アルゴリズム上有利になるため、むしろ積極的に使うこと。該当しない場合（例:「シャープ、アリババのAI戦略シフト」のように、業界内では話題でも一般読者には馴染みが薄いニュース）は、「大手企業のAI活用が進むニュース」のように誰でもわかる一般化した言い方に変換してから使うこと。\\n\\n以前作成した投稿案に対して、担当者から修正指示が来ている。指示を反映して書き直すこと。プラットフォーム別の「型」も踏まえること(✅そのまま/⚠️和らげて使う/🚫使わない)。\\n\\n\" + $json.platform_guide,\n  messages: [\n    { role: \"user\", content: `プラットフォーム: ${$json.property_platform}\\n投稿タイプ: ${$json.property_post_type}\\n想定読者: ${$json.property_target_persona}\\n\\n---以前の投稿案---\\nHook: ${$json.property_hook}\\nBody: ${$json.property_body}\\nCTA: ${$json.property_cta}\\nHashtags: ${$json.property_hashtags}\\n\\n---修正指示---\\n${$json.property_revision_memo}` }\n  ]\n}) }}"
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 1500,\n  tools: [\n    {\n      name: \"submit_post\",\n      description: \"修正版のSNS投稿案を提出する\",\n      input_schema: {\n        type: \"object\",\n        properties: {\n          pattern_used: { type: \"string\" },\n          hook: { type: \"string\", description: \"投稿1として単独で使われる。問いかけで終えず、続きが気になる断定的な一言で締める\" },\n          body: { type: \"string\", description: \"返信1として単独で使われる。hookで示唆した内容への答え・理由・洞察\" },\n          cta: { type: \"string\", description: \"返信2として単独で使われる。エンゲージメント型(問いかけ)かコンバージョン型(LINE登録訴求)のどちらかを内容に応じて選ぶ\" },\n          hashtags: { type: \"array\", items: { type: \"string\" }, description: \"必須ではない。合わない場合は空配列でよい\" },\n          image_prompt: { type: \"string\" }\n        },\n        required: [\"pattern_used\", \"hook\", \"body\", \"cta\", \"hashtags\", \"image_prompt\"]\n      }\n    }\n  ],\n  tool_choice: { type: \"tool\", name: \"submit_post\" },\n  system: \"あなたは「白石玲子｜キャリア未来鑑定士」です。**キャラクター名は必ず「白石玲子」という漢字表記のまま使うこと。英訳・意訳・ローマ字化は絶対にしない（誤り例:「White Stone Leiko」等）。** 一人称は「私」。丁寧な「です・ます」調。占い師というより経験豊富な転職アドバイザーのように話す。不安を煽りすぎず、断定しすぎない。\\n\\n固有名詞化の禁止（例外あり）: 元ネタに具体的な企業名・サービス名・ニュース名が含まれていても、無条件にそのまま列挙しない。判断基準は「一般読者の大半が、業界に詳しくなくてもその名前を知っている/直近でよく見聞きしている」レベルかどうか。該当する場合（誰もが知る国民的ニュース、日常的に使われる超大手ブランドが絡む大きな話題など、今まさに話題になっていて多くの人が認知しているもの）は、固有名詞をそのまま使ってよい。検索されるキーワードと一致しやすくSEO・アルゴリズム上有利になるため、むしろ積極的に使うこと。該当しない場合（例:「シャープ、アリババのAI戦略シフト」のように、業界内では話題でも一般読者には馴染みが薄いニュース）は、「大手企業のAI活用が進むニュース」のように誰でもわかる一般化した言い方に変換してから使うこと。\\n\\n投稿の構成ルール(2026-07-08改訂): hook・body・ctaはそれぞれ別の投稿(hook=投稿1、body=返信1、cta=返信2)として使われる。以下の役割を厳守すること。\\n- hook(投稿1): 元ネタへの言及＋「これは重要な意味があるかもしれない」という断定的な一言＋続きがあることを示す合図（「続きを。\\u{1F447}」「答えはこのスレッドで。」等）で締める。**読者に問いかけて終わってはいけない**。「〜と不安になる。」のように感情や状況を述べるだけで完結させるのもNG。答えを知りたくなる\\u201c謎かけ\\u201dの状態で止めること\\n- body(返信1): hookで匂わせた内容の\\u201c答え\\u201d（理由・背景・具体的な洞察）。ここで内容として完結させる\\n- cta(返信2): 純粋な行動喚起のみ。以下のどちらかを、内容に応じて判断して選ぶこと\\n  - エンゲージメント型: 短い問いかけで締める（コメントを誘発する）\\n  - コンバージョン型: 「気になった方は、無料の簡易診断で確認してみてください。https://career-uranai.site/shindan」のような診断ページへの誘導\\n  - 判断基準: 投稿の内容が具体的な診断・鑑定への関心を引き出せる内容ならコンバージョン型、読者自身の意見や体験を聞き出したい内容ならエンゲージメント型\\n- hashtags: 必須ではない。パターン的に合わない場合は空配列でよい\\n\\n以前作成した投稿案に対して、担当者から修正指示が来ている。指示を反映して書き直すこと。プラットフォーム別の「型」も踏まえること(✅そのまま/⚠️和らげて使う/🚫使わない)。\\n\\n\" + $json.platform_guide,\n  messages: [\n    { role: \"user\", content: `プラットフォーム: ${$json.property_platform}\\n投稿タイプ: ${$json.property_post_type}\\n想定読者: ${$json.property_target_persona}\\n\\n---以前の投稿案---\\nHook: ${$json.property_hook}\\nBody: ${$json.property_body}\\nCTA: ${$json.property_cta}\\nHashtags: ${$json.property_hashtags}\\n\\n---修正指示---\\n${$json.property_revision_memo}` }\n  ]\n}) }}"
       },
       "id": "141a7ca2-0972-42ac-abc6-3eadf7d85d31",
       "name": "Claudeで再生成",
@@ -214,7 +214,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const content = $json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst p = toolUse.input;\nconst src = $('パターンガイド付与').first().json;\n\nconst JST_OFFSET_MS = 9 * 60 * 60 * 1000;\nconst nowJST = new Date(Date.now() + JST_OFFSET_MS);\nconst pad = (v) => String(v).padStart(2, '0');\nconst revisedAtJst = `${nowJST.getUTCFullYear()}-${pad(nowJST.getUTCMonth() + 1)}-${pad(nowJST.getUTCDate())} ${pad(nowJST.getUTCHours())}:${pad(nowJST.getUTCMinutes())}`;\n\nreturn [{\n  json: {\n    page_id: src.id,\n    pattern_used: p.pattern_used ?? '',\n    hook: p.hook ?? '',\n    body: p.body ?? '',\n    cta: p.cta ?? '',\n    hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(', ') : (p.hashtags ?? ''),\n    image_prompt: p.image_prompt ?? '',\n    platform: src.property_platform,\n    name: src.property_name,\n    // 修正前の内容(Notionページ本文への履歴追記用。プロパティ上書き前の値をここで保持しておく)\n    previous_pattern_used: src.property_pattern_used ?? '',\n    previous_hook: src.property_hook ?? '',\n    previous_body: src.property_body ?? '',\n    previous_cta: src.property_cta ?? '',\n    previous_hashtags: src.property_hashtags ?? '',\n    previous_image_prompt: src.property_image_prompt ?? '',\n    revision_memo: src.property_revision_memo ?? '',\n    revised_at_jst: revisedAtJst\n  }\n}];"
+        "jsCode": "const content = $json.content ?? [];\nconst toolUse = content.find(b => b.type === 'tool_use' && b.name === 'submit_post');\nif (!toolUse) {\n  throw new Error('Claude応答にtool_useブロックが見つかりませんでした: ' + JSON.stringify(content).slice(0, 300));\n}\nconst p = toolUse.input;\nconst src = $('パターンガイド付与').first().json;\n\nconst JST_OFFSET_MS = 9 * 60 * 60 * 1000;\nconst nowJST = new Date(Date.now() + JST_OFFSET_MS);\nconst pad = (v) => String(v).padStart(2, '0');\nconst revisedAtJst = `${nowJST.getUTCFullYear()}-${pad(nowJST.getUTCMonth() + 1)}-${pad(nowJST.getUTCDate())} ${pad(nowJST.getUTCHours())}:${pad(nowJST.getUTCMinutes())}`;\n\nreturn [{\n  json: {\n    page_id: src.id,\n    pattern_used: p.pattern_used ?? '',\n    hook: p.hook ?? '',\n    body: p.body ?? '',\n    cta: p.cta ?? '',\n    hashtags: Array.isArray(p.hashtags) ? p.hashtags.join(' ') : (p.hashtags ?? ''),\n    image_prompt: p.image_prompt ?? '',\n    platform: src.property_platform,\n    name: src.property_name,\n    // 修正前の内容(Notionページ本文への履歴追記用。プロパティ上書き前の値をここで保持しておく)\n    previous_pattern_used: src.property_pattern_used ?? '',\n    previous_hook: src.property_hook ?? '',\n    previous_body: src.property_body ?? '',\n    previous_cta: src.property_cta ?? '',\n    previous_hashtags: src.property_hashtags ?? '',\n    previous_image_prompt: src.property_image_prompt ?? '',\n    revision_memo: src.property_revision_memo ?? '',\n    revised_at_jst: revisedAtJst\n  }\n}];"
       },
       "id": "fe33d192-d17d-40cd-af76-87552226527b",
       "name": "再生成結果を整形",
@@ -429,7 +429,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function isWideChar(cp) {\n  return (\n    (cp >= 0x1100 && cp <= 0x115F) ||\n    (cp >= 0x2E80 && cp <= 0x303E) ||\n    (cp >= 0x3041 && cp <= 0x33FF) ||\n    (cp >= 0x3400 && cp <= 0x4DBF) ||\n    (cp >= 0x4E00 && cp <= 0x9FFF) ||\n    (cp >= 0xA000 && cp <= 0xA4CF) ||\n    (cp >= 0xAC00 && cp <= 0xD7A3) ||\n    (cp >= 0xF900 && cp <= 0xFAFF) ||\n    (cp >= 0xFF00 && cp <= 0xFF60) ||\n    (cp >= 0xFFE0 && cp <= 0xFFE6)\n  );\n}\nfunction xWeightedLength(str) {\n  let len = 0;\n  for (const ch of str) len += isWideChar(ch.codePointAt(0)) ? 2 : 1;\n  return len;\n}\nfunction truncateToXLimit(str, limit) {\n  if (xWeightedLength(str) <= limit) return str;\n  const ellipsis = '\\u2026';\n  const budget = limit - xWeightedLength(ellipsis);\n  let result = '';\n  let len = 0;\n  for (const ch of Array.from(str)) {\n    const w = isWideChar(ch.codePointAt(0)) ? 2 : 1;\n    if (len + w > budget) break;\n    result += ch;\n    len += w;\n  }\n  return result + ellipsis;\n}\n\nfunction composeReply(body, cta, hashtags, limit) {\n  const sep = '\\n\\n';\n  const sepLen = xWeightedLength(sep);\n  let ctaPart = cta || '';\n  let hashtagsPart = hashtags || '';\n  const tailLen = (ctaPart ? sepLen + xWeightedLength(ctaPart) : 0) + (hashtagsPart ? sepLen + xWeightedLength(hashtagsPart) : 0);\n  let bodyBudget = limit - tailLen;\n  if (bodyBudget < 20) {\n    // CTA+Hashtagsだけで枠を圧迫しすぎる場合は、Hashtagsを先に諦めてBody分を確保する\n    hashtagsPart = '';\n    bodyBudget = limit - (ctaPart ? sepLen + xWeightedLength(ctaPart) : 0);\n  }\n  const bodyTrunc = bodyBudget > 0 ? truncateToXLimit(body || '', bodyBudget) : '';\n  const parts = [bodyTrunc, ctaPart, hashtagsPart].filter(Boolean);\n  let result = parts.join(sep);\n  if (xWeightedLength(result) > limit) result = truncateToXLimit(result, limit);\n  return result;\n}\n\nconst item = $input.first().json;\nconst X_LIMIT = 280;\n\nconst mainText = truncateToXLimit(item.property_hook ?? '', X_LIMIT);\n\n// Body(本文)が長く全部は収まらないことが多いため、CTA・Hashtagsを優先的に残し、\n// Bodyだけを自動で切り詰める(単純結合→末尾カットだと、CTA/Hashtagsが真っ先に消えてしまうため)\nconst replyText = composeReply(item.property_body, item.property_cta, item.property_hashtags, X_LIMIT);\n\nconst diagnosisText = '気になった方は、無料の簡易診断もどうぞ\\u{1F447}\\nhttps://career-uranai.site/shindan';\n\nreturn [{\n  json: {\n    page_id: item.id,\n    platform: item.property_platform,\n    name: item.property_name,\n    main_text: mainText,\n    reply_text: replyText,\n    diagnosis_text: diagnosisText,\n    add_diagnosis_link: item.property_add_diagnosis_link === true,\n    image_url: item.property_article_image_url || ''\n  }\n}];"
+        "jsCode": "function isWideChar(cp) {\n  return (\n    (cp >= 0x1100 && cp <= 0x115F) ||\n    (cp >= 0x2E80 && cp <= 0x303E) ||\n    (cp >= 0x3041 && cp <= 0x33FF) ||\n    (cp >= 0x3400 && cp <= 0x4DBF) ||\n    (cp >= 0x4E00 && cp <= 0x9FFF) ||\n    (cp >= 0xA000 && cp <= 0xA4CF) ||\n    (cp >= 0xAC00 && cp <= 0xD7A3) ||\n    (cp >= 0xF900 && cp <= 0xFAFF) ||\n    (cp >= 0xFF00 && cp <= 0xFF60) ||\n    (cp >= 0xFFE0 && cp <= 0xFFE6)\n  );\n}\nfunction xWeightedLength(str) {\n  let len = 0;\n  for (const ch of str) len += isWideChar(ch.codePointAt(0)) ? 2 : 1;\n  return len;\n}\nfunction truncateToXLimit(str, limit) {\n  if (limit <= 0) return '';\n  if (xWeightedLength(str) <= limit) return str;\n  const ellipsis = '\\u2026';\n  const budget = limit - xWeightedLength(ellipsis);\n  let result = '';\n  let len = 0;\n  for (const ch of Array.from(str)) {\n    const w = isWideChar(ch.codePointAt(0)) ? 2 : 1;\n    if (len + w > budget) break;\n    result += ch;\n    len += w;\n  }\n  return result + ellipsis;\n}\n\n// reply1(返信1) = Body+Hashtags。Hashtagsを優先的に残し、Bodyだけを自動で切り詰める\nfunction composeReply1(body, hashtags, limit) {\n  const sep = '\\n\\n';\n  const sepLen = xWeightedLength(sep);\n  let hashtagsPart = hashtags || '';\n  let bodyBudget = limit - (hashtagsPart ? sepLen + xWeightedLength(hashtagsPart) : 0);\n  if (bodyBudget < 20) {\n    hashtagsPart = '';\n    bodyBudget = limit;\n  }\n  const bodyTrunc = bodyBudget > 0 ? truncateToXLimit(body || '', bodyBudget) : '';\n  const parts = [bodyTrunc, hashtagsPart].filter(Boolean);\n  let result = parts.join(sep);\n  if (xWeightedLength(result) > limit) result = truncateToXLimit(result, limit);\n  return result;\n}\n\nconst item = $input.first().json;\nconst X_LIMIT = 280;\n\nconst mainText = truncateToXLimit(item.property_hook ?? '', X_LIMIT);\nconst reply1Text = composeReply1(item.property_body, item.property_hashtags, X_LIMIT);\n// reply2(返信2) = CTA単独。他と枠を取り合わないため単純に自身の280文字予算だけで切り詰める\nconst reply2Text = truncateToXLimit(item.property_cta ?? '', X_LIMIT);\n\nconst diagnosisText = '気になった方は、無料の簡易診断もどうぞ\\u{1F447}\\nhttps://career-uranai.site/shindan';\n\nreturn [{\n  json: {\n    page_id: item.id,\n    platform: item.property_platform,\n    name: item.property_name,\n    main_text: mainText,\n    reply1_text: reply1Text,\n    reply2_text: reply2Text,\n    diagnosis_text: diagnosisText,\n    add_diagnosis_link: item.property_add_diagnosis_link === true,\n    image_url: item.property_article_image_url || ''\n  }\n}];"
       },
       "id": "dc9e692a-ece3-4a81-9144-7232d37e1170",
       "name": "X:投稿文を組み立て",
@@ -603,7 +603,7 @@
         "nodeCredentialType": "twitterOAuth1Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.reply_text, reply: { in_reply_to_tweet_id: $('X:メイン投稿').first().json.data.id } }) }}",
+        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.reply1_text, reply: { in_reply_to_tweet_id: $('X:メイン投稿').first().json.data.id } }) }}",
         "options": {}
       },
       "id": "e90afec1-8cfe-4701-8bf8-f88d1edeec0f",
@@ -676,7 +676,7 @@
         "nodeCredentialType": "twitterOAuth1Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.diagnosis_text, reply: { in_reply_to_tweet_id: $('X:リプライ投稿').first().json.data.id } }) }}",
+        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.diagnosis_text, reply: { in_reply_to_tweet_id: $('X:CTA投稿').first().json.data.id } }) }}",
         "options": {}
       },
       "id": "86ba0f64-16b4-4c7c-a2cc-a7b9d00cd84d",
@@ -696,7 +696,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nconst mainId = $('X:メイン投稿').first().json.data.id;\nconst replyId = $('X:リプライ投稿').first().json.data.id;\nconst diagId = $('X:診断誘導リプライ投稿').first().json.data.id;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_tweet_id: mainId,\n    reply_tweet_id: replyId,\n    diagnosis_tweet_id: diagId,\n    main_tweet_url: `https://x.com/reiko_career1/status/${mainId}`\n  }\n}];"
+        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nconst mainId = $('X:メイン投稿').first().json.data.id;\nconst replyId = $('X:リプライ投稿').first().json.data.id;\nconst ctaId = $('X:CTA投稿').first().json.data.id;\nconst diagId = $('X:診断誘導リプライ投稿').first().json.data.id;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_tweet_id: mainId,\n    reply_tweet_id: replyId,\n    cta_tweet_id: ctaId,\n    diagnosis_tweet_id: diagId,\n    main_tweet_url: `https://x.com/reiko_career1/status/${mainId}`\n  }\n}];"
       },
       "id": "7f89fab9-f5b2-4897-b8ba-d08656e780c3",
       "name": "X:投稿結果をまとめる(診断あり)",
@@ -709,7 +709,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nconst mainId = $('X:メイン投稿').first().json.data.id;\nconst replyId = $('X:リプライ投稿').first().json.data.id;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_tweet_id: mainId,\n    reply_tweet_id: replyId,\n    diagnosis_tweet_id: null,\n    main_tweet_url: `https://x.com/reiko_career1/status/${mainId}`\n  }\n}];"
+        "jsCode": "const built = $('X:投稿文を組み立て').first().json;\nconst mainId = $('X:メイン投稿').first().json.data.id;\nconst replyId = $('X:リプライ投稿').first().json.data.id;\nconst ctaId = $('X:CTA投稿').first().json.data.id;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_tweet_id: mainId,\n    reply_tweet_id: replyId,\n    cta_tweet_id: ctaId,\n    diagnosis_tweet_id: null,\n    main_tweet_url: `https://x.com/reiko_career1/status/${mainId}`\n  }\n}];"
       },
       "id": "76606fef-8819-4bc1-a9da-379f75e3752c",
       "name": "X:投稿結果をまとめる(診断なし)",
@@ -771,6 +771,45 @@
         -280
       ],
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ms = (Math.random() * 37 + 3) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "c1bd8b4a-ab8a-4d8c-8af2-3eeba2b53a60",
+      "name": "X:ランダム待機CTA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/tweets",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twitterOAuth1Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $('X:投稿文を組み立て').first().json.reply2_text, reply: { in_reply_to_tweet_id: $('X:リプライ投稿').first().json.data.id } }) }}",
+        "options": {}
+      },
+      "id": "c69cac02-55fc-4a0b-b30f-3320b1d8a021",
+      "name": "X:CTA投稿",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        -140
+      ],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "B6i4MzBBRqjwNpiQ",
+          "name": "X OAuth account"
+        }
+      }
     }
   ],
   "connections": {
@@ -1019,7 +1058,7 @@
       "main": [
         [
           {
-            "node": "X:診断リンクが必要か",
+            "node": "X:ランダム待機CTA",
             "type": "main",
             "index": 0
           }
@@ -1093,6 +1132,28 @@
         [
           {
             "node": "X:投稿完了を通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:ランダム待機CTA": {
+      "main": [
+        [
+          {
+            "node": "X:CTA投稿",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X:CTA投稿": {
+      "main": [
+        [
+          {
+            "node": "X:診断リンクが必要か",
             "type": "main",
             "index": 0
           }
