@@ -16,6 +16,7 @@ export type AnswerScore = {
   prefecture?: string;      // 希望都道府県（Q14）
   independent?: number;     // 独立志向スコア（Q15）
   salary_focus?: number;    // 年収重視スコア（Q16）
+  current_income?: string;  // 現在の年収レンジ（Q16.5）
   barrier?: string;         // 転職障壁（Q17）
   work_style?: string;      // 働き方タイプ（Q18）
   org_size?: string;        // 組織規模（Q19）
@@ -66,7 +67,7 @@ export const QUESTIONS: Question[] = [
     block: 1,
     tag: '🌑 月が映す — 本音の深さ',
     planet: '月',
-    q: '仕事の悩みを、誰かに打ち明けられないまま心の奥にしまっていることはある？',
+    q: '仕事の悩みを、誰かに打ち明けられないまま心の奥にしまっていることはありますか？',
     hint: '月は「隠れた感情と本音」を映す惑星。夜中に浮かぶ思いこそが、今の星の声です。',
     opts: [
       { sym: 'Lock',          main: 'いつもそう感じている',   hint: '誰にも言えない本音がある',   s: { urgency_add: 2, suppression: 3 } },
@@ -92,7 +93,7 @@ export const QUESTIONS: Question[] = [
     block: 1,
     tag: '🪐 土星が刻む — 時間の積み重ね',
     planet: '土星',
-    q: '今の職場に何年いる？また、転職は今回が何回目になる？',
+    q: '今の職場に何年いらっしゃいますか？また、転職は今回が何回目になりますか？',
     hint: '土星は「時間と経験の蓄積」を司る惑星。あなたが積み上げてきたものが、市場価値を決めます。',
     opts: [
       { sym: 'Sprout', main: '在籍3年未満・初転職',        hint: '社会人経験が浅め。若さが武器',       s: { urgency_add: 1, tenure: 'short_first' } },
@@ -108,7 +109,7 @@ export const QUESTIONS: Question[] = [
     block: 2,
     tag: '☿ 水星が映す — 思考の星型',
     planet: '水星',
-    q: 'あなたのMBTIタイプに近いのはどれ？わからない場合は、直感で一番しっくりくるものを選んで',
+    q: 'あなたのMBTIタイプに近いのはどれ？わからない場合は、直感で一番しっくりくるものを選んでくださいね',
     hint: '水星は「思考と言語」を司る惑星。あなたの思考パターンが職種マッチングの精度を高めます。',
     opts: [
       { sym: 'Brain',         main: 'INTJ / INTP / ENTJ / ENTP（論理・戦略・革新系）', hint: 'NT型 — 理論的・独立した思考', s: { mbti: 'NT' } },
@@ -135,7 +136,7 @@ export const QUESTIONS: Question[] = [
     block: 2,
     tag: '♂ 火星が試す — プレッシャーへの応え方',
     planet: '火星',
-    q: '締め切りや急なトラブルが来たとき、あなたの星はどう反応する？',
+    q: '締め切りや急なトラブルが来たとき、あなたの星はどう反応するでしょうか？',
     hint: '火星は「行動と闘争心」を司る惑星。プレッシャーへの反応が、あなたに向く職場環境を示します。',
     opts: [
       { sym: 'Flame',  main: '燃えて集中力が増す',          hint: '追い込まれた方が力が出るタイプ', s: { stress_type: 'energize' } },
@@ -148,7 +149,7 @@ export const QUESTIONS: Question[] = [
     block: 2,
     tag: '🪐 土星が示す — 理想のリーダー像',
     planet: '土星',
-    q: '上司にするなら、どんなタイプの人のもとで一番力が発揮できる？',
+    q: '上司にするなら、どんなタイプの人のもとで一番力を発揮できますか？',
     hint: '土星は「組織と規律」を司る惑星。相性のいい上司タイプが、職場環境選びの指針になります。',
     opts: [
       { sym: 'UserCheck', main: '方向性を示してあとは任せてくれる人',   hint: '自律性を重視するタイプ',       s: { leadership: 'delegate' } },
@@ -174,7 +175,7 @@ export const QUESTIONS: Question[] = [
     block: 2,
     tag: '☀️ 太陽が問う — 直感か論理か',
     planet: '太陽',
-    q: '大事な決断をするとき、あなたの太陽はどちらに光を当てる？',
+    q: '大事な決断をするとき、あなたの太陽はどちらに光を当てるでしょうか？',
     hint: '太陽は「本質と自己表現」を照らす惑星。意思決定スタイルが、向く仕事の深さを示します。',
     opts: [
       { sym: 'Sparkles',      main: '「なんとなくこれだ」という直感を信じる', hint: '内側の声を信頼するタイプ', s: { decision: 'intuition' } },
@@ -231,7 +232,7 @@ export const QUESTIONS: Question[] = [
     tag: '♃ 木星が授ける — 天から与えられた役割',
     planet: '木星',
     q: '次のステージで担いたい仕事の役割は？（複数選択可）',
-    hint: '木星は「使命と才能の開花」を告げる惑星。あなたが輝ける役割を直感で選んでください。',
+    hint: '木星は「使命と才能の開花」を告げる惑星。あなたが輝ける役割を直感で選んでみてくださいね。',
     multi: true,
     opts: [
       // 常時表示（業界問わず）
@@ -349,7 +350,7 @@ export const QUESTIONS: Question[] = [
     block: 3,
     tag: '⛢ 天王星が呼ぶ — 変革への渇望',
     planet: '天王星',
-    q: '転職とは別に、副業・フリーランス・起業といった「自分の可能性を広げる動き」に興味はある？',
+    q: '転職とは別に、副業・フリーランス・起業といった「自分の可能性を広げる動き」に興味はありますか？',
     hint: '天王星は「革新と自由」を司る惑星。あなたの枠を超えたい気持ちが、星の読みに深みを加えます。',
     opts: [
       { sym: 'Star',       main: '強く興味がある。すでに動き始めている', hint: '自分の世界を切り開こうとしている', s: { independent: 4, urgency_add: 1 } },
@@ -362,13 +363,28 @@ export const QUESTIONS: Question[] = [
     block: 3,
     tag: '♀ 金星が正直に問う — お金と魂の優先順位',
     planet: '金星',
-    q: '年収について、あなたの星は今どこを向いている？',
+    q: '年収について、あなたの星は今どこを向いているでしょうか？',
     hint: '金星は「豊かさと価値観」を司る惑星。お金への正直な気持ちが、転職の方向性を決めます。',
     opts: [
       { sym: 'Leaf',       main: '年収より「やりがい」と「環境」を重視したい', hint: '心の豊かさを優先',                 s: { salary_focus: 1 } },
       { sym: 'TrendingUp', main: '今より少し上がれば十分',                    hint: '最低限のベースアップを望んでいる', s: { salary_focus: 2 } },
       { sym: 'Gem',        main: '明確に年収アップを狙いたい',               hint: '収入アップが主要な動機',           s: { salary_focus: 4, urgency_add: 1 } },
       { sym: 'Trophy',     main: '将来のために今は年収にこだわる',           hint: '長期的な経済設計を考えている',     s: { salary_focus: 3, urgency_add: 1 } },
+    ],
+  },
+  {
+    block: 3,
+    tag: '♀ 金星が知る — 今の豊かさの座標',
+    planet: '金星',
+    q: '差し支えなければ、現在の年収を教えていただけますか？',
+    hint: '金星は「今の豊かさ」を映す惑星。現在地を知ることで、より精度の高い転職先のマッチングができます。答えたくない場合は「回答しない」を選んでくださいね。',
+    opts: [
+      { sym: 'Sprout',     main: '300万円未満',        hint: '', s: { current_income: 'under_300' } },
+      { sym: 'Leaf',       main: '300〜500万円未満',   hint: '', s: { current_income: '300_500' } },
+      { sym: 'TrendingUp', main: '500〜700万円未満',   hint: '', s: { current_income: '500_700' } },
+      { sym: 'Gem',        main: '700〜1000万円未満',  hint: '', s: { current_income: '700_1000' } },
+      { sym: 'Trophy',     main: '1000万円以上',       hint: '', s: { current_income: '1000_plus' } },
+      { sym: 'HelpCircle', main: '回答しない',          hint: '', s: { current_income: 'undisclosed' } },
     ],
   },
   {
@@ -429,7 +445,7 @@ export const QUESTIONS: Question[] = [
     block: 4,
     tag: '♃ 木星が描く — 5年後の星図',
     planet: '木星',
-    q: '5年後、木星があなたをどこへ連れて行ってほしい？',
+    q: '5年後、木星にどこへ連れて行ってほしいですか？',
     hint: '木星は「成長と未来」を司る惑星。5年後のビジョンが、今どこに転職すべきかを示しています。',
     opts: [
       { sym: 'Crown',      main: 'チームや組織を率いるリーダーの位置',          hint: '人を動かす立場で輝きたい',       s: { vision: 'leader', urgency_add: 1 } },
@@ -444,7 +460,7 @@ export const QUESTIONS: Question[] = [
     block: 5,
     tag: '🪐 土星が測る — 自分の市場価値',
     planet: '土星',
-    q: '今の自分のスキルや経験について、土星の目で正直に見るとどう思う？',
+    q: '今の自分のスキルや経験について、土星の目で正直に見るとどう思いますか？',
     hint: '土星は「現実と評価」を司る惑星。自己評価の正直さが、最適なキャリア戦略を生みます。',
     opts: [
       { sym: 'Gem',        main: '胸を張って他社でも通用すると思う',       hint: '市場価値に自信がある',       s: { market_value: 90, urgency_add: 1 } },
@@ -485,13 +501,13 @@ export const QUESTIONS: Question[] = [
     block: 6,
     tag: '🌟 冥王星が照らす — 変容への覚悟',
     planet: '冥王星',
-    q: 'すべての星を読み終えた今、あなたはどんな言葉が一番心に響く？',
+    q: 'すべての星を読み終えた今、あなたはどんな言葉が一番心に響きますか？',
     hint: '冥王星は「変容と再生」を司る惑星。最後の選択が、あなたの星の総意を表しています。',
     opts: [
-      { sym: 'Zap',      main: '「もう動くタイミングは来ている。あとは踏み出すだけ」', hint: '行動への確信がある',       s: { determination: 4, urgency_add: 3 } },
-      { sym: 'Sparkles', main: '「星の示す方向を信じて、まず一歩だけ踏み出してみて」', hint: '慎重に、でも動き始めたい', s: { determination: 3, urgency_add: 2 } },
-      { sym: 'Moon',     main: '「焦らなくていい。準備を整えれば必ず道は開ける」',     hint: 'じっくり準備を整えたい',  s: { determination: 2, urgency_add: 1 } },
-      { sym: 'Sprout',   main: '「まだ今じゃない。今は力を蓄える時期」',               hint: '今はまだ充電が必要',      s: { determination: 1, urgency_add: 0 } },
+      { sym: 'Zap',      main: '「もう動くタイミングは来ているかもしれません。あとは踏み出すだけです」', hint: '行動への確信がある',       s: { determination: 4, urgency_add: 3 } },
+      { sym: 'Sparkles', main: '「星の示す方向を信じて、まず一歩だけ踏み出してみてくださいね」',         hint: '慎重に、でも動き始めたい', s: { determination: 3, urgency_add: 2 } },
+      { sym: 'Moon',     main: '「焦らなくても大丈夫です。準備を整えれば道が開けていくでしょう」',       hint: 'じっくり準備を整えたい',  s: { determination: 2, urgency_add: 1 } },
+      { sym: 'Sprout',   main: '「まだ今ではないのかもしれません。今は力を蓄える時期です」',             hint: '今はまだ充電が必要',      s: { determination: 1, urgency_add: 0 } },
     ],
   },
 ];
@@ -500,7 +516,7 @@ export const QUESTIONS: Question[] = [
 export const BLOCKS = [
   { num: 1, title: '土星が刻む「今の場所と時間」', icon: '🪐', questionCount: 4 },
   { num: 2, title: 'キャリア未来鑑定士が読み解く「魂の色」',       icon: '✨', questionCount: 6 },
-  { num: 3, title: '木星が照らす「次の場所」',         icon: '♃', questionCount: 8 },
+  { num: 3, title: '木星が照らす「次の場所」',         icon: '♃', questionCount: 9 },
   { num: 4, title: '月が守る「魂の居場所」',           icon: '🌙', questionCount: 4 },
   { num: 5, title: '星が映す「隠れた自分」',           icon: '☀️', questionCount: 3 },
   { num: 6, title: '冥王星が問う「最後の扉」',         icon: '🌟', questionCount: 1 },

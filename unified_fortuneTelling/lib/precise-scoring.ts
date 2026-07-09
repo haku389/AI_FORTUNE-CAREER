@@ -78,15 +78,18 @@ export function calcPreciseScore(
     'wait';
 
   // ── readiness スコア ──
-  // Q22(index 22): 市場価値自己評価 → mvScore
-  // Q23(index 23): 他者評価 → evScore
-  // Q24(index 24): 行動起点 → readinessAdd
+  // Q23(index 23): 市場価値自己評価 → mvScore
+  // Q24(index 24): 他者評価 → evScore
+  // Q25(index 25): 行動起点 → readinessAdd
   // Q7(index 6):   ストレス反応 → stressAdj
   // Q9(index 8):   コミュニケーション型 → commAdj
+  // ※Block3に「現在の年収」質問(index 17)を追加したため、それ以降の質問のindexは
+  //   旧バージョンから全て+1されている。今後質問を追加・削除する際は、この関数内の
+  //   決め打ちindex参照を必ず全て見直すこと（過去に1件ズレたまま気づかず本番稼働していた）。
 
-  const q21Ans = answers[22]; // 市場価値自己評価
-  const q22Ans = answers[23]; // 他者評価
-  const q23Ans = answers[24]; // 行動起点
+  const q21Ans = answers[23]; // 市場価値自己評価
+  const q22Ans = answers[24]; // 他者評価
+  const q23Ans = answers[25]; // 行動起点
   const q7Ans  = answers[6];  // ストレス反応
   const q9Ans  = answers[8];  // コミュニケーション型
 
@@ -100,14 +103,14 @@ export function calcPreciseScore(
 
   const mvScore     = typeof q21Ans === 'number' ? (marketValueMap[q21Ans] ?? 60) : 60;
   const evScore     = typeof q22Ans === 'number' ? (externalViewScores[q22Ans] ?? 73) : 73;
-  const readinessAdd = typeof q23Ans === 'number' ? (Q[24].opts[q23Ans]?.s?.readiness_add ?? 0) : 0;
+  const readinessAdd = typeof q23Ans === 'number' ? (Q[25].opts[q23Ans]?.s?.readiness_add ?? 0) : 0;
   const stressAdj   = typeof q7Ans  === 'number' ? (stressAdjMap[q7Ans] ?? 0) : 0;
   const commAdj     = typeof q9Ans  === 'number' ? (commAdjMap[q9Ans] ?? 0) : 0;
 
   const score_readiness = Math.max(52, Math.min(97, Math.round((mvScore + evScore) / 2 + readinessAdd + stressAdj + commAdj)));
 
   // ── market スコア（現職場とのミスマッチ度）──
-  // 使用: Q8(index 7)=リーダー像, Q11(index 10)=現業界, Q18(index 18)=働き方, Q19(index 19)=組織規模, Q20(index 20)=WLB
+  // 使用: Q8(index 7)=リーダー像, Q11(index 10)=現業界, Q19(index 19)=働き方, Q20(index 20)=組織規模, Q21(index 21)=WLB
 
   const INDUSTRY_PROFILES: Record<string, { work_style: string; org_size: string; wlb: string; leader: string }> = {
     it:           { work_style: 'remote',    org_size: 'startup', wlb: 'health',  leader: 'delegate' },
@@ -137,14 +140,14 @@ export function calcPreciseScore(
     : null;
 
   const q8Ans  = answers[7];
-  const q17Ans = answers[18];
-  const q18Ans = answers[19];
-  const q19Ans = answers[20];
+  const q17Ans = answers[19];
+  const q18Ans = answers[20];
+  const q19Ans = answers[21];
 
   const leadership = typeof q8Ans  === 'number' ? (Q[7].opts[q8Ans]?.s?.leadership ?? null) : null;
-  const workStyle  = typeof q17Ans === 'number' ? (Q[18].opts[q17Ans]?.s?.work_style ?? null) : null;
-  const orgSize    = typeof q18Ans === 'number' ? (Q[19].opts[q18Ans]?.s?.org_size ?? null) : null;
-  const wlbPref    = typeof q19Ans === 'number' ? (Q[20].opts[q19Ans]?.s?.wlb ?? null) : null;
+  const workStyle  = typeof q17Ans === 'number' ? (Q[19].opts[q17Ans]?.s?.work_style ?? null) : null;
+  const orgSize    = typeof q18Ans === 'number' ? (Q[20].opts[q18Ans]?.s?.org_size ?? null) : null;
+  const wlbPref    = typeof q19Ans === 'number' ? (Q[21].opts[q19Ans]?.s?.wlb ?? null) : null;
 
   let score_market: number;
   const profile = currentIndustryKey ? INDUSTRY_PROFILES[currentIndustryKey] : null;
