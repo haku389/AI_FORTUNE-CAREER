@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import AgentLink from '@/components/result/AgentLink'
+import { MatchedAgent, GENERIC_AGENTS } from '@/lib/affiliateAgents'
 import RecommendedArticles from '@/components/result/RecommendedArticles'
 import ReikoBubble from '@/components/result/ReikoBubble'
 import { ZODIAC } from '@/lib/zodiac'
@@ -21,7 +22,6 @@ type MonthAdvice = {
 }
 type TopJob = { job: string; score: number; reason: string }
 type IndustryMatch = { name: string; emoji: string }
-type AgentMatch = { name: string; url: string; desc: string; luna: string }
 
 type DiagnoseRow = {
   id: string
@@ -39,7 +39,7 @@ type DiagnoseRow = {
   monthly_advice: MonthAdvice[] | null
   top_jobs: TopJob[] | null
   top_industries: IndustryMatch[] | null
-  recommended_agents: AgentMatch[] | null
+  recommended_agents: MatchedAgent[] | null
   created_at: string
 }
 
@@ -91,7 +91,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const adviceList: MonthAdvice[] = Array.isArray(row.monthly_advice) ? row.monthly_advice : []
   const topJobs: TopJob[] = Array.isArray(row.top_jobs) ? row.top_jobs.slice(0, 3) : []
   const topIndustries: IndustryMatch[] = Array.isArray(row.top_industries) ? row.top_industries : []
-  const agents: AgentMatch[] = Array.isArray(row.recommended_agents) ? row.recommended_agents : []
+  const agents: MatchedAgent[] = Array.isArray(row.recommended_agents) ? row.recommended_agents : []
 
   const diagDate = new Date(row.created_at)
   const dateStr = `${diagDate.getFullYear()}年${diagDate.getMonth() + 1}月${diagDate.getDate()}日`
@@ -224,14 +224,29 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
             {agents.length > 0 && (
               <>
                 <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p style={{ fontSize: 10, color: '#3a4870', marginBottom: 10 }}>【PR】本記事にはアフィリエイト広告が含まれます</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                   {agents.map(agent => (
-                    <AgentLink key={agent.name} agent={agent} />
+                    <AgentLink key={agent.programName} agent={agent} />
                   ))}
                 </div>
-                <p style={{ fontSize: 10, color: '#3a4870', marginTop: 10, textAlign: 'right' }}>※ 広告を含みます</p>
               </>
             )}
+
+            <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【他にもこんな選択肢も】</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {GENERIC_AGENTS.map(g => (
+                <a
+                  key={g.name}
+                  href={g.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 11, color: '#7888b8', textDecoration: 'underline' }}
+                >
+                  {g.name}
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

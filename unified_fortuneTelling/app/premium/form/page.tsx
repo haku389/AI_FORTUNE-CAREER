@@ -15,7 +15,8 @@ import { getMoonSign, getMoonSignKeyword } from '@/lib/moonSign'
 import { getHonmeiStar, getHonmeiStarKeyword, HonmeiStar } from '@/lib/honmeiStar'
 import { QUESTIONS, BLOCKS } from '@/lib/precise-questions'
 import { calcPreciseScore, TIMINGS, PreciseScoreResult } from '@/lib/precise-scoring'
-import { calcJobMatch, JobMatch, IndustryMatch, AgentMatch } from '@/lib/jobMatch'
+import { calcJobMatch, JobMatch, IndustryMatch } from '@/lib/jobMatch'
+import { matchAffiliateAgents, MatchedAgent, GENERIC_AGENTS } from '@/lib/affiliateAgents'
 import { calcMonthlyAdvice, MonthAdvice } from '@/lib/monthlyAdvice'
 import { getPreciseKansen } from '@/lib/precise-kansen'
 
@@ -41,7 +42,7 @@ type PreciseResult = {
   scoreResult: PreciseScoreResult
   topJobs: JobMatch[]
   topIndustries: IndustryMatch[]
-  agents: AgentMatch[]
+  agents: MatchedAgent[]
   monthlyAdvice: MonthAdvice[]
   kansenText: string
   paymentIntentId: string
@@ -248,7 +249,8 @@ export default function PrecisePage() {
     const roles = Array.isArray(answers[12]) ? (answers[12] as number[]).map(i => QUESTIONS[12].opts[i]?.s?.role ?? '') : typeof answers[12] === 'number' ? [QUESTIONS[12].opts[answers[12]]?.s?.role ?? ''] : []
     const industries = Array.isArray(answers[11]) ? (answers[11] as number[]).map(i => QUESTIONS[11].opts[i]?.s?.industry ?? '') : typeof answers[11] === 'number' ? [QUESTIONS[11].opts[answers[11]]?.s?.industry ?? ''] : []
 
-    const { topJobs, topIndustries, agents } = calcJobMatch(mbti, motivation, roles, industries, sunSign?.name, moonSignVal, honmeiStarVal)
+    const { topJobs, topIndustries, topIndustryKeys } = calcJobMatch(mbti, motivation, roles, industries, sunSign?.name, moonSignVal, honmeiStarVal)
+    const agents = matchAffiliateAgents(topIndustryKeys)
 
     // AI鑑定文 & AI3ヶ月アドバイスをバックグラウンドで並列取得
     const kansenPromise = fetch('/api/precise-kansen', {
@@ -1012,27 +1014,43 @@ export default function PrecisePage() {
             )}
 
             {/* おすすめエージェント */}
-            <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {agents.map(agent => (
+            {agents.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
+                <p style={{ fontSize: 10, color: '#3a4870', marginBottom: 10 }}>【PR】本記事にはアフィリエイト広告が含まれます</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                  {agents.map(agent => (
+                    <div
+                      key={agent.programName}
+                      onClick={() => trackEvent('affiliate_click', { name: agent.programName, source: 'premium_form' })}
+                      style={{ background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: '#a898f8', fontWeight: 700 }}>{agent.advertiserName}</span>
+                        {agent.rewardText && <span style={{ fontSize: 10, color: '#3a4870' }}>{agent.rewardText}</span>}
+                      </div>
+                      <div dangerouslySetInnerHTML={{ __html: agent.adLink.rawCode }} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* 他にもこんな選択肢も（非アフィリエイト） */}
+            <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【他にもこんな選択肢も】</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {GENERIC_AGENTS.map(g => (
                 <a
-                  key={agent.name}
-                  href={agent.url}
+                  key={g.name}
+                  href={g.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackEvent('affiliate_click', { name: agent.name, source: 'premium_form' })}
-                  style={{ display: 'block', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}
+                  style={{ fontSize: 11, color: '#7888b8', textDecoration: 'underline' }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, color: '#a898f8', fontWeight: 700 }}>{agent.name}</span>
-                    <span style={{ fontSize: 10, color: '#3a4870' }}>→ 詳細を見る</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: '#7888b8', marginBottom: 6 }}>{agent.desc}</div>
-                  <div style={{ fontSize: 11, color: '#dde4f8', lineHeight: 1.6 }}>🌙 {agent.luna}</div>
+                  {g.name}
                 </a>
               ))}
             </div>
-            <p style={{ fontSize: 10, color: '#3a4870', marginTop: 10, textAlign: 'right' }}>※ 広告を含みます</p>
           </div>
 
           {/* ══ セクション4: 3ヶ月アドバイス ══ */}
