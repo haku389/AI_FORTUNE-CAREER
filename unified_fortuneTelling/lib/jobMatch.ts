@@ -136,6 +136,20 @@ const JOB_REASONS: Record<JobName, string> = {
   '教育・研修コンテンツ開発':     '人の成長を支えたいという想いと表現力が、学びの設計という仕事に最大限に活きます。',
 };
 
+// ── 業界ラベル（affiliateAgents.tsのおすすめ理由生成でも使用） ──
+export const INDUSTRY_LABELS: Record<string, IndustryMatch> = {
+  it:         { name: 'IT・Web・SaaS',         emoji: '💻' },
+  consulting: { name: 'コンサル・経営企画',     emoji: '🎯' },
+  healthcare: { name: '医療・ヘルスケア',       emoji: '🏥' },
+  finance:    { name: '金融・不動産',           emoji: '💰' },
+  creative:   { name: 'クリエイティブ・広告',   emoji: '🎨' },
+  education:  { name: '教育・福祉',             emoji: '📚' },
+  maker:      { name: 'メーカー・製造業',       emoji: '🏭' },
+  hr:         { name: 'HR・人材・エージェント', emoji: '👥' },
+  ec:         { name: 'EC・小売・サービス',     emoji: '🛒' },
+  other:      { name: 'その他・幅広く',         emoji: '🌐' },
+};
+
 // ── 業界 → 推薦エージェント ──
 export function calcJobMatch(
   mbti: string,
@@ -196,20 +210,6 @@ export function calcJobMatch(
     const [job] = top3Entries[i]
     topJobs.push({ job, score: displayScores[i], reason: JOB_REASONS[job as JobName] })
   }
-
-  // 業界ラベル
-  const INDUSTRY_LABELS: Record<string, IndustryMatch> = {
-    it:         { name: 'IT・Web・SaaS',         emoji: '💻' },
-    consulting: { name: 'コンサル・経営企画',     emoji: '🎯' },
-    healthcare: { name: '医療・ヘルスケア',       emoji: '🏥' },
-    finance:    { name: '金融・不動産',           emoji: '💰' },
-    creative:   { name: 'クリエイティブ・広告',   emoji: '🎨' },
-    education:  { name: '教育・福祉',             emoji: '📚' },
-    maker:      { name: 'メーカー・製造業',       emoji: '🏭' },
-    hr:         { name: 'HR・人材・エージェント', emoji: '👥' },
-    ec:         { name: 'EC・小売・サービス',     emoji: '🛒' },
-    other:      { name: 'その他・幅広く',         emoji: '🌐' },
-  };
 
   const topIndustryKeys = industries.length > 0 ? industries.slice(0, 3) : ['other'];
 

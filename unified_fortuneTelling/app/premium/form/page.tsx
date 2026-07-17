@@ -49,7 +49,7 @@ type PreciseResult = {
 }
 
 /* ─── Helpers ─── */
-const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '天の声を言葉に降ろしています']
+const LOAD_STEPS = ['星座の位置を確認', '月と本命星を読み取り', '転職運を精密計算', 'MBTIとの相性を分析', '鑑定メッセージを作成']
 
 function pad2(n: number) {
   return String(n).padStart(2, '0')
@@ -250,7 +250,10 @@ export default function PrecisePage() {
     const industries = Array.isArray(answers[11]) ? (answers[11] as number[]).map(i => QUESTIONS[11].opts[i]?.s?.industry ?? '') : typeof answers[11] === 'number' ? [QUESTIONS[11].opts[answers[11]]?.s?.industry ?? ''] : []
 
     const { topJobs, topIndustries, topIndustryKeys } = calcJobMatch(mbti, motivation, roles, industries, sunSign?.name, moonSignVal, honmeiStarVal)
-    const agents = matchAffiliateAgents(topIndustryKeys)
+    const areaAns = answers[13]
+    const areaKeys = Array.isArray(areaAns) ? (areaAns as number[]).map(i => QUESTIONS[13].opts[i]?.s?.area) : typeof areaAns === 'number' ? [QUESTIONS[13].opts[areaAns]?.s?.area] : []
+    const areaKey = areaKeys.find(k => k && k !== 'any') ?? null
+    const agents = matchAffiliateAgents(topIndustryKeys, { age: calcAgeFromBirthday(year, month, day), areaKey })
 
     // AI鑑定文 & AI3ヶ月アドバイスをバックグラウンドで並列取得
     const kansenPromise = fetch('/api/precise-kansen', {
@@ -622,7 +625,7 @@ export default function PrecisePage() {
                   transition: 'opacity .2s', fontFamily: 'var(--font-sans)', letterSpacing: 1,
                 }}
               >
-                26問の精密診断を始める →
+                {QUESTIONS.length}問の精密診断を始める →
               </button>
             </div>
           </>
@@ -998,21 +1001,21 @@ export default function PrecisePage() {
             {/* おすすめエージェント */}
             {agents.length > 0 && (
               <>
-                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
-                <p style={{ fontSize: 10, color: '#3a4870', marginBottom: 10 }}>【PR】本記事にはアフィリエイト広告が含まれます</p>
+                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 4 }}>【おすすめ転職エージェント】</div>
+                <p style={{ fontSize: 9, color: '#3a4870', marginBottom: 10 }}>PR：アフィリエイト広告を含みます</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                   {agents.map(agent => (
-                    <div
+                    <a
                       key={agent.programName}
+                      href={agent.destinationUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={() => trackEvent('affiliate_click', { name: agent.programName, source: 'premium_form' })}
-                      style={{ background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px' }}
+                      style={{ display: 'block', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <span style={{ fontSize: 13, color: '#a898f8', fontWeight: 700 }}>{agent.advertiserName}</span>
-                        {agent.rewardText && <span style={{ fontSize: 10, color: '#3a4870' }}>{agent.rewardText}</span>}
-                      </div>
-                      <div dangerouslySetInnerHTML={{ __html: agent.adLink.rawCode }} />
-                    </div>
+                      <div style={{ fontSize: 13, color: '#a898f8', fontWeight: 700, marginBottom: 4 }}>{agent.programName}</div>
+                      <p style={{ fontSize: 11, color: '#dde4f8', lineHeight: 1.6, margin: 0 }}>{agent.recommendReason}</p>
+                    </a>
                   ))}
                 </div>
               </>

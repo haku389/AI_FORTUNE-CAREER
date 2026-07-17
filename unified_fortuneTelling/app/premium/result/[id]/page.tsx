@@ -223,8 +223,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
             {agents.length > 0 && (
               <>
-                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 8 }}>【おすすめ転職エージェント】</div>
-                <p style={{ fontSize: 10, color: '#3a4870', marginBottom: 10 }}>【PR】本記事にはアフィリエイト広告が含まれます</p>
+                <div style={{ fontSize: 11, color: '#7888b8', marginBottom: 4 }}>【おすすめ転職エージェント】</div>
+                <p style={{ fontSize: 9, color: '#3a4870', marginBottom: 10 }}>PR：アフィリエイト広告を含みます</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                   {agents.map(agent => (
                     <AgentLink key={agent.programName} agent={agent} />
