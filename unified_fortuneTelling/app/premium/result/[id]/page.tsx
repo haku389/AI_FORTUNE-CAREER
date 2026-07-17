@@ -227,7 +227,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                 <p style={{ fontSize: 9, color: '#3a4870', marginBottom: 10 }}>PR：アフィリエイト広告を含みます</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                   {agents.map(agent => (
-                    <AgentLink key={agent.programName} agent={agent} />
+                    <AgentLink key={agent.programName} agent={agent} diagnoseId={row.id} />
                   ))}
                 </div>
               </>

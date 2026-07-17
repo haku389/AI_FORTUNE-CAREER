@@ -1,15 +1,33 @@
 'use client'
 
+import { useEffect } from 'react'
 import { trackEvent } from '@/lib/gtag'
+import { trackAgentEvent } from '@/lib/agentAnalyticsClient'
 import { MatchedAgent } from '@/lib/affiliateAgents'
 
-export default function AgentLink({ agent }: { agent: MatchedAgent }) {
+export default function AgentLink({
+  agent,
+  diagnoseId,
+  source = 'premium_saved',
+}: {
+  agent: MatchedAgent
+  diagnoseId?: string
+  source?: string
+}) {
+  useEffect(() => {
+    trackAgentEvent(agent.programName, 'impression', { diagnoseId, source })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agent.programName])
+
   return (
     <a
       href={agent.destinationUrl}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => trackEvent('affiliate_click', { name: agent.programName, source: 'premium_saved' })}
+      onClick={() => {
+        trackEvent('affiliate_click', { name: agent.programName, source })
+        trackAgentEvent(agent.programName, 'click', { diagnoseId, source })
+      }}
       style={{
         display: 'block',
         background: '#111c36',

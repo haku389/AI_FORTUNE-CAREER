@@ -153,13 +153,14 @@ function buildRecommendReason(industryLabel: string | null, ageLabel: string | n
 }
 
 /**
- * 診断で向いていると出た業界(複数)を優先しつつ、
+ * 診断で向いていると出た業界(複数、優先順位あり)を優先しつつ、
  * EPC(優先度指標) × 確定率 で承認済み案件をランキングする。
  *
- * 業界マッチの有無を最優先の並び替えキーとし、EPC×確定率は同じマッチ層の中でのみ
- * 比較する（段階的ソート）。実データはEPCが案件間で数十〜数百倍差になることがあり、
- * 単純な加算スコア(industryHit*定数 + epc*...)だとEPCの差が業界マッチのボーナスを
- * 飲み込んでしまい、診断結果に関わらず同じ高EPC案件ばかり出る結果になってしまうため。
+ * 「向いている職種・業界」セクションの表示順（topIndustryKeysの並び=1位が先頭）を
+ * 最優先の並び替えキーとする。EPC×確定率は同じ業界順位の中でのみ比較する（段階的ソート）。
+ * 単に「マッチしたかどうか」の二値でソートすると、2位以降の業界にたまたま高EPCの案件があると
+ * それが1位の業界の案件より上に来てしまい、「向いている業界」の並びとエージェントの並びに
+ * ズレが生まれるため、業界の順位そのものをソートキーにしている。
  */
 export function matchAffiliateAgents(
   topIndustryKeys: string[],
@@ -174,17 +175,18 @@ export function matchAffiliateAgents(
 
   const scored = eligible.map(program => {
     const matchedKey = matchedIndustryKey(program, topIndustryKeys);
-    const industryHit = matchedKey ? 1 : 0;
+    // 一致した業界の「向いている業界」内での順位（0=1位）。一致なしは最下位扱い
+    const industryRank = matchedKey ? topIndustryKeys.indexOf(matchedKey) : topIndustryKeys.length;
     const epc = program.epc ?? 0;
     const confirmationRate = program.confirmationRate ?? 50; // 未取得時は中間値扱い
     // 確定率が極端に低い案件はEPCが高く見えても割り引く（CLAUDE.md記載の判断基準に準拠）
     const confirmationFactor = Math.max(0.3, confirmationRate / 100);
     const epcScore = epc * confirmationFactor;
-    return { program, matchedKey, industryHit, epcScore };
+    return { program, matchedKey, industryRank, epcScore };
   });
 
   scored.sort((a, b) => {
-    if (b.industryHit !== a.industryHit) return b.industryHit - a.industryHit;
+    if (a.industryRank !== b.industryRank) return a.industryRank - b.industryRank;
     return b.epcScore - a.epcScore;
   });
 

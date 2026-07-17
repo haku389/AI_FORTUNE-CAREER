@@ -4,12 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
 import ShareBlock from '@/components/result/ShareBlock'
+import AgentLink from '@/components/result/AgentLink'
 import RecommendedArticlesClient from '@/components/result/RecommendedArticlesClient'
 import { buildResultTags, calcAgeFromBirthday } from '@/lib/articleTags'
 import ReikoBubble from '@/components/result/ReikoBubble'
 import Image from 'next/image'
 import * as LucideIcons from 'lucide-react'
-import { trackEvent } from '@/lib/gtag'
 import { getZodiac, ZodiacInfo } from '@/lib/zodiac'
 import { getMoonSign, getMoonSignKeyword } from '@/lib/moonSign'
 import { getHonmeiStar, getHonmeiStarKeyword, HonmeiStar } from '@/lib/honmeiStar'
@@ -1005,17 +1005,7 @@ export default function PrecisePage() {
                 <p style={{ fontSize: 9, color: '#3a4870', marginBottom: 10 }}>PR：アフィリエイト広告を含みます</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                   {agents.map(agent => (
-                    <a
-                      key={agent.programName}
-                      href={agent.destinationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => trackEvent('affiliate_click', { name: agent.programName, source: 'premium_form' })}
-                      style={{ display: 'block', background: '#111c36', border: '1px solid #2a3f72', borderRadius: 10, padding: '12px 14px', textDecoration: 'none' }}
-                    >
-                      <div style={{ fontSize: 13, color: '#a898f8', fontWeight: 700, marginBottom: 4 }}>{agent.programName}</div>
-                      <p style={{ fontSize: 11, color: '#dde4f8', lineHeight: 1.6, margin: 0 }}>{agent.recommendReason}</p>
-                    </a>
+                    <AgentLink key={agent.programName} agent={agent} diagnoseId={resultId ?? undefined} source="premium_form" />
                   ))}
                 </div>
               </>

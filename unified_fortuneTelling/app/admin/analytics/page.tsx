@@ -1,32 +1,38 @@
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { supabaseAdmin, type SeoArticle } from '@/lib/supabaseAdmin'
+import { ADMIN_COOKIE_NAME, verifySessionCookie } from '@/lib/adminAuth'
 import { getStatsByArticleId, avgDwellSeconds, completionRate, recommendedClickRate } from '@/lib/articleAnalytics'
+import { getDiagnosisStats, getAgentStats } from '@/lib/diagnosisAnalytics'
 import AdminHeader from '../AdminHeader'
-import AnalyticsTable, { type AnalyticsRow } from './AnalyticsTable'
+import AnalyticsTabs from './AnalyticsTabs'
+import { type AnalyticsRow } from './AnalyticsTable'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminAnalyticsPage() {
-  const [{ data }, statsByArticleId] = await Promise.all([
+  const cookieStore = await cookies()
+  const authed = await verifySessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value)
+  if (!authed) {
+    redirect('/admin/login')
+  }
+
+  const [{ data }, statsByArticleId, diagnosisStats, agentStats] = await Promise.all([
     supabaseAdmin.from('seo_articles').select('*').order('updated_at', { ascending: false }),
     getStatsByArticleId(),
+    getDiagnosisStats(),
+    getAgentStats(),
   ])
 
   const articles = (data ?? []) as SeoArticle[]
 
-  const rows: AnalyticsRow[] = articles.map((a) => {
+  const articleRows: AnalyticsRow[] = articles.map((a) => {
     const stats = statsByArticleId[a.id]
     const empty = {
-      views: 0,
-      scroll25: 0,
-      scroll50: 0,
-      scroll75: 0,
-      scroll100: 0,
-      quickClicks: 0,
-      detailedClicks: 0,
-      dwellTimeTotalSeconds: 0,
-      dwellTimeCount: 0,
-      recommendedImpressions: 0,
-      recommendedClicks: 0,
+      views: 0, scroll25: 0, scroll50: 0, scroll75: 0, scroll100: 0,
+      quickClicks: 0, detailedClicks: 0,
+      dwellTimeTotalSeconds: 0, dwellTimeCount: 0,
+      recommendedImpressions: 0, recommendedClicks: 0,
     }
     const s = stats ?? empty
     return {
@@ -48,19 +54,7 @@ export default async function AdminAnalyticsPage() {
   return (
     <div style={{ minHeight: '100dvh', background: '#070c1a', padding: '32px 20px', maxWidth: 1100, margin: '0 auto' }}>
       <AdminHeader title="アナリティクス" />
-
-      {rows.length === 0 ? (
-        <div style={{ color: '#7888b8', fontSize: 13, textAlign: 'center', padding: '60px 0' }}>
-          まだ記事がありません。
-        </div>
-      ) : (
-        <>
-          <div style={{ color: '#5a6a9a', fontSize: 11, marginBottom: 14 }}>
-            列見出しをクリックすると並び替えできます。
-          </div>
-          <AnalyticsTable rows={rows} />
-        </>
-      )}
+      <AnalyticsTabs articleRows={articleRows} diagnosisStats={diagnosisStats} agentStats={agentStats} />
     </div>
   )
 }
