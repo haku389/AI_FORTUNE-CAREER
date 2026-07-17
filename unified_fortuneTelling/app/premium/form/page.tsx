@@ -435,38 +435,20 @@ export default function PrecisePage() {
             <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0c060', marginBottom: 28, textAlign: 'center' }}>
               精密鑑定を受ける
             </div>
-            <div style={{ position: 'relative', width: '100%', marginTop: 22, marginBottom: 28 }}>
+            <div style={{ width: '100%', marginTop: 22, marginBottom: 28 }}>
               {/* 案内文の吹き出し */}
               <div
                 style={{
                   background: '#111c36',
                   border: '1px solid #2a3f72',
                   borderRadius: 12,
-                  padding: '14px 16px 14px 16px',
-                  paddingTop: 22,
+                  padding: '14px 16px',
                 }}
               >
                 <p style={{ fontSize: 12, color: '#dde4f8', textAlign: 'center', lineHeight: 1.8, margin: 0 }}>
                   精密鑑定を受けるにはLINEアカウントが必要です。<br />
                   ログイン後、あなたの占い結果に基づいて<br />定期的に転職情報をお届けします。
                 </p>
-              </div>
-              {/* アイコン+名前: 吹き出しの左上に重ねる */}
-              <div style={{ position: 'absolute', top: -20, left: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                    border: '2px solid #f0f4ff',
-                    boxShadow: '0 0 10px #f0f4ff22',
-                  }}
-                >
-                  <Image src="/白石玲子.png" alt="白石玲子" width={40} height={40} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <span style={{ fontSize: 11, color: '#a898f8', whiteSpace: 'nowrap' }}>白石玲子｜キャリア未来鑑定士</span>
               </div>
             </div>
 
