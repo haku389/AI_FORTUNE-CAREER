@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import Stars from '@/components/Stars'
+import PolicyFooter from '@/components/PolicyFooter'
 import { supabaseAdmin, type SeoArticle } from '@/lib/supabaseAdmin'
 import { publishDueScheduledArticles } from '@/lib/publishScheduled'
 
@@ -70,6 +71,8 @@ export default async function ColumnIndexPage() {
           </div>
         )}
       </div>
+
+      <PolicyFooter />
     </div>
   )
 }

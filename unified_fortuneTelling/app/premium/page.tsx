@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
+import PolicyFooter from '@/components/PolicyFooter'
 
 export const metadata: Metadata = {
   title: '精密転職鑑定 | キャリア未来鑑定士 白石玲子',
@@ -166,6 +167,7 @@ export default function PremiumLandingPage() {
         >
           💎 精密診断を受ける →
         </Link>
+        <PolicyFooter />
       </div>
     </main>
   )

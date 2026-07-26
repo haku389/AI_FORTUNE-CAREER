@@ -483,7 +483,7 @@ export default function DiagnosisPage() {
             診断を始める →
           </button>
           <p style={{ fontSize: 10, color: '#5a6a9a', marginTop: 12, textAlign: 'center' }}>
-            診断を始めることで<a href="/terms" style={{ color: '#7888b8' }}>利用規約</a>・<a href="/privacy" style={{ color: '#7888b8' }}>プライバシーポリシー</a>に同意したものとみなされます
+            診断を始めることで<a href="/terms" style={{ color: '#7888b8' }}>利用規約</a>、<a href="/privacy" style={{ color: '#7888b8' }}>プライバシーポリシー</a>に同意したものとみなされます
           </p>
         </div>
       </div>

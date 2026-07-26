@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
 import MoonImage from '@/components/MoonImage'
+import PolicyFooter from '@/components/PolicyFooter'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
@@ -199,6 +200,7 @@ export default function ShindanStartPage() {
         >
           ✨ 転職診断する →
         </Link>
+        <PolicyFooter />
       </div>
     </main>
   )

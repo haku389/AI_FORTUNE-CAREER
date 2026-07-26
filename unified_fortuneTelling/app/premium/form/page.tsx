@@ -435,9 +435,6 @@ export default function PrecisePage() {
         {/* ── LINEログイン前: ログイン画面のみ表示 ── */}
         {!lineUserId ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
-            <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0c060', marginBottom: 28, textAlign: 'center' }}>
-              精密鑑定を受ける
-            </div>
             <div style={{ width: '100%', marginTop: 22, marginBottom: 28 }}>
               {/* 案内文の吹き出し */}
               <div
@@ -445,9 +442,12 @@ export default function PrecisePage() {
                   background: '#111c36',
                   border: '1px solid #2a3f72',
                   borderRadius: 12,
-                  padding: '14px 16px',
+                  padding: '20px 16px',
                 }}
               >
+                <div style={{ fontFamily: 'var(--font-mincho)', fontSize: 22, fontWeight: 900, color: '#f0c060', marginBottom: 14, textAlign: 'center' }}>
+                  精密鑑定を受ける
+                </div>
                 <p style={{ fontSize: 12, color: '#dde4f8', textAlign: 'center', lineHeight: 1.8, margin: 0 }}>
                   精密鑑定を受けるにはLINEアカウントが必要です。<br />
                   ログイン後、あなたの占い結果に基づいて<br />定期的に転職情報をお届けします。

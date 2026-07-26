@@ -199,6 +199,28 @@ NG表現（サイト本体の禁止事項と同一）:
 ### Body（返信1）にはリンクを入れない
 CTA（返信2）以外の投稿にURLを入れないこと、という制約をsystem promptに明示している。Claudeが自主的に本文中にリンクを追加してしまうことがあったため、「返信2に既にあるリンク以外は追加しない」という否定形の指示を入れて対応した。
 
+### Instagram専用の構成ルール（2026-07-27追加）
+
+X/Threadsの「hook=投稿1・body=返信1・cta=返信2」という返信スレッド前提の構成ルールは、Instagram（投稿1件＝1キャプションのみ、返信スレッドの概念がない）には当てはまらない。従来はこのX/Threads向けルールがInstagramにも無条件に適用されており、生成される文面が実態と合わない状態だった（Instagramは未実装のまま放置されていたため実害はなかったが、実装着手にあたって修正した）。
+
+`プラットフォーム別パターン選択`ノードに`platform_guide`（型の一覧）と並行して`composition_rules`（プラットフォーム別の構成ルール）を追加し、system prompt側もハードコードの構成ルールを`$json.composition_rules`参照に置き換えた。X/Threads/LINEは従来通りの返信スレッド前提ルール（`threadRules`）、Instagramのみ専用ルール（`instagramRules`）を使う。
+
+**Instagram専用ルールの内容（2026-07-27、実機テストのフィードバックを受けて同日中に改訂）**:
+- hook/body/ctaは3投稿ではなく、1つのキャプションとして結合される前提（hook=冒頭の一文、body=本文、cta=締め）
+- cta（元は「コンバージョン型」として`/shindan`への直リンクを想定）は、**Instagramのキャプションはリンクがクリックできない**ため「プロフィールのリンクから鑑定を受けてみませんか」のようなプロフィール誘導文に変更
+- hashtags: 最大5個程度（2025年12月のInstagram公式推奨、[sns-viral-patterns.md](./sns-viral-patterns.md)記載の知見をプロンプトに反映）
+- 投稿は常にサムネイル1枚＋コンテンツ画像5〜10枚＋（システム側が自動付与する）固定の閉じ画像、というカルーセル構成。当初「パターンA(単一画像)/パターンB(カルーセル)」の2択・画像には文字を一切含めない設計だったが、「キャプションメインだと投稿品質が低い」「パッと見て内容がわかるサムネイルが欲しい」というユーザーフィードバックを受けて全面的に作り直した（詳細は[§4.3](#43-instagramへの実投稿2026-07-27実装同日中に構成を大幅改訂)参照）
+- 新規フィールド`ig_thumbnail_headline`（サムネイルに大きく描画する見出し。パッと見て投稿内容がわかる短い言葉）・`ig_thumbnail_scene`（サムネイルの絵柄）・`ig_content_images`（`{scene, text}`の配列、5〜10件、投稿内容に応じて可変）をtool_use schemaに追加。旧`ig_pattern`/`image_prompts`フィールドは廃止。Instagram生成時は`レスポンス整形`ノードが`ig_thumbnail_headline`の有無で分岐し、`JSON.stringify({thumbnail: {...}, content_images: [...]})`をNotionの`ImagePrompt`列に格納する（Notionのデータベーススキーマ変更を避けるため、既存のテキスト列にJSON文字列として相乗りさせる設計は踏襲）
+- **画像には文字を含める**方針に転換（初期実装は「AI画像生成は日本語文字を正確に描けない」ため文字なしにしていたが、Workflow04側にGemini品質チェック+再試行の仕組みを追加することで対応することにした）
+
+**画像生成方式の決定経緯（2026-07-27）**: 当初はnext/og（Satori/JSXベース、`app/api/og`と同じ仕組み）でテキストオーバーレイ画像を実装したが、ユーザーによるデザインレビューで不採用となった。SEO記事の本文画像・アイキャッチと同じ「OpenAI gpt-image-2 + 固定スタイル指示（STYLE_PREFIX）」方式に統一し、投稿間の世界観を揃える方針に変更。
+
+**実データ検証（2026-07-27）**: Anthropic APIに実際にリクエストを送り動作確認済み（新旧両方の設計で検証）。
+- 旧設計（`ig_pattern="A"`、MBTIあるある型）: `image_prompts`1件、cta「プロフィールのリンクから鑑定を受けてみませんか」、hashtags5個 — 想定通り
+- 旧設計（`ig_pattern="B"`、12星座の転職運ランキング）: `image_prompts`10件（各星座を象徴する文字なしイラスト描写）、bodyに全12星座のランキングをテキストで開示 — 想定通り
+- 検証中に**bodyに`**太字**`のMarkdown記法が混入する**問題を発見（InstagramのキャプションはMarkdownをレンダリングしないため記号がそのまま表示されてしまう）。system prompt冒頭のキャラクター設定部分に「Markdown記法は使わないこと」を追記して解消を確認（全プラットフォーム共通の指示として追加したため、X/Threads/LINE側の同種のリスクも合わせて予防した）
+- 新設計（サムネイル+コンテンツ画像、MBTIあるある型）: `ig_thumbnail_headline`「あなたのMBTIタイプに向いている業種・働き方」、`ig_content_images`7件（各要素に絵柄+短いテキストの組）— 想定通り
+
 ---
 
 ## 4. Workflow 03: SEO記事生成 → career-uranai.site へ下書き保存
@@ -333,18 +355,24 @@ Notionの「Webhookを送る」自動化アクションは有料プラン限定�
 ### 修正履歴の確認方法（2026-07-04追加）
 Notionのプロパティは常に最新版で上書きされるため、過去の修正前の文面はプロパティ上には残らない。その代わり、**Notionページ本文（プロパティ欄の下）に修正のたびブロックが追記されていく**ので、そこで変更前後を見比べられる。1回目の修正、2回目の修正…と時系列で下に積み上がっていく設計（履歴を上書きせず追記し続ける）。
 
-### 4.1 X（旧Twitter）への実投稿（2026-07-08実装）
+### 投稿開始直後にStatusを`queued`へ倒すガード（2026-07-26追加、重複投稿インシデントの再発防止）
 
-Xのみ実際の自動投稿を実装済み。Instagram/Threads/LINEは未着手（プレースホルダーのまま）。
+**インシデント**: Threads実投稿の初回テスト（[§4.2](#42-threadsへの実投稿2026-07-26実装)）で、`Threads:リプライ1-作成`が権限不足（`threads_manage_replies`未取得）で失敗した。この時Notionの`Status`は`approved`のまま変化しないため、5分毎の`定期実行`ポーリングが同じ行を何度も「処理対象」として拾い直し、**メイン投稿の`作成`からやり直してしまった**。結果、リプライのないメイン投稿だけが実行のたびに複製され、3件の意図しない投稿が実際に公開されてしまった（`Threads:リプライ1-作成`の権限不足自体は解消済みだが、根本原因である「失敗時にStatusが動かない」設計はXの投稿ロジックにも同様に存在していた。Xがこれまで問題化しなかったのは初回投稿が偶然成功していたため）。
+
+**修正**: `投稿処理を振り分け`（X判定）・`投稿処理を振り分け(Threads)`それぞれのtrue分岐を、実際の投稿処理ノード（`X:投稿文を組み立て`/`Threads:投稿文を組み立て`）1本だけでなく、新規ノード`X:Statusをqueuedに更新`/`Threads:Statusをqueuedに更新`（Notion `Status`を`queued`に変更するだけ）へも同時にファンアウトさせた。同じ上流ノードから2つの下流ノードへ接続しているだけなので、投稿文組み立て側の`$input`には影響しない（各ブランチは独立して同じ入力を受け取る）。これにより、投稿処理が始まった時点で`approved`から外れるため、途中で失敗しても次のポーリングでは「処理対象を絞り込み」（`approved`/`revision_requested`のみを拾う）に一致しなくなり、再実行されない。
+
+**運用上の注意**: 失敗時は`Status`が`queued`のまま止まる（`posted`にはならない）。Discordのエラー通知は届くので気づけるが、**自動リトライはしない設計**にしてある。人間が実際に何が公開されたかを確認したうえで、Notion側で`Status`を手動で戻す（続きだけ手動投稿する／`approved`に戻して最初からやり直す、など）か判断する運用とする。
+
+X・Threadsは実際の自動投稿を実装済み（[§4.2](#42-threadsへの実投稿2026-07-26実装)）。Instagram/LINEは未着手（プレースホルダーのまま）。
 
 **認証**: n8nの「X OAuth API」credential（`twitterOAuth1Api`、OAuth 1.0a）を使用。OAuth 2.0ではなくOAuth 1.0aを選んだ理由は、画像投稿で使う旧v1.1 media/uploadエンドポイントがOAuth 1.0aでしか使えないため（v2の新media uploadエンドポイントはOAuth 2.0限定）。Developer PortalのApp作成者アカウントと実際に投稿するXアカウント（@reiko_career1）は別アカウントで問題ない。3-legged OAuthで@reiko_career1としてログイン・許可することで、そのアカウントとして投稿できるようになる。
 
 **投稿フロー**（`投稿処理を振り分け`のtrue(X)分岐）:
 1. `X:投稿文を組み立て`: Hookをメイン投稿用テキストに、Body+CTA+Hashtagsをリプライ用テキストに変換。Xの文字数制限（280、全角2/半角1換算）を超える場合は自動で切り詰める。**CTA・Hashtagsを優先的に残し、Bodyだけを切り詰める**設計（単純に末尾から切ると、一番伝えたいCTA/Hashtagsが真っ先に消えてしまうため）。実データで検証したところ、Body単体だけで既に280文字相当を超えるケースが普通にあり、この優先順位付けは必須だった
 2. `X:画像が必要か`（`property_article_image_url`の有無で分岐。現状SNS投稿には画像生成が無いため、実質常にfalse側=`X:画像なし`を通る。画像ありの経路（`X:画像をダウンロード`→旧v1.1 media/uploadへ`X:画像をアップロード`）は実装済みだが、テストデータが無く未検証）
-3. `X:メイン投稿`（`POST /2/tweets`）→ `X:ランダム待機1`（3〜40秒のランダム待機。連続投稿に見えないようにするための意図的なディレイ、ユーザー指定）→ `X:リプライ投稿`（`reply.in_reply_to_tweet_id`でメイン投稿への返信として投稿）
+3. `X:メイン投稿`（`POST /2/tweets`）→ `X:ランダム待機1`（2〜5秒のランダム待機。連続投稿に見えないようにするための意図的なディレイ、ユーザー指定。当初3〜40秒だったが2026-07-26にユーザー判断で短縮）→ `X:リプライ投稿`（`reply.in_reply_to_tweet_id`でメイン投稿への返信として投稿）
 4. `X:診断リンクが必要か`（`property_add_diagnosis_link`）
-   - true: `X:ランダム待機2`（同じくランダム3〜40秒）→ `X:診断誘導リプライ投稿`（リプライへの返信という形で、`https://career-uranai.site/shindan`への誘導文を投稿。スレッドが縦に連なる構成）
+   - true: `X:ランダム待機2`（同じくランダム2〜5秒）→ `X:診断誘導リプライ投稿`（リプライへの返信という形で、`https://career-uranai.site/shindan`への誘導文を投稿。スレッドが縦に連なる構成）
    - false: スキップ
 5. `X:Statusをpostedに更新`（Notion `Status`を`posted`に）→ `X:投稿完了を通知`（Discord bot経由で「SNS投稿内容完了通知」スレッドへ、投稿URLとともに通知）
 
@@ -356,7 +384,98 @@ Xのみ実際の自動投稿を実装済み。Instagram/Threads/LINEは未着手
 - **XのAPIクレジット(従量課金)は「Developer PortalでAppを作成したアカウント」に紐づく**。投稿する@reiko_career1アカウント自体にクレジットを積んでも反映されない。エラーメッセージに含まれる`account_id`と、投稿アカウントの`/2/users/me`で返るidを見比べることで、クレジットが正しいアカウントに乗っているか判別できる（今回は誤って別アカウントに課金してしまい、Projectを作り直すことになった）
 - Body本文だけでXの1投稿の文字数上限を超えることが多いため、「本文＋CTA＋ハッシュタグを結合してから末尾で切る」実装だと、一番重要なCTA/ハッシュタグが毎回消えてしまう。優先度の高い要素を先に確保してから、可変長のBody側だけを詰める設計にする必要があった
 
-**未実装（今後）**: X/Instagram/ThreadsのAPIキーが揃い次第、Threadsも同じパターンで実装予定。Instagramは画像/ショート動画メインでプロフィール誘導を意識した単一投稿構成になる想定で、X/Threadsのスレッド形式とはロジックが異なる。
+**未実装（今後）**: Instagramは画像メインでプロフィール誘導を意識した投稿構成になる想定で、X/Threadsのスレッド形式とはロジックが異なるため別設計とする（[§4.2](#42-threadsへの実投稿2026-07-26実装)実装後に着手予定）。
+
+### 4.2 Threadsへの実投稿（2026-07-26実装）
+
+`投稿処理を振り分け`（X判定のIF）のfalse分岐に、新規IFノード`投稿処理を振り分け(Threads)`を追加して連結し、`property_platform === 'Threads'`の場合だけThreadsの投稿チェーンに入るようにした（それ以外＝Instagram/LINEは引き続き`プラットフォームへ投稿(未実装)`のプレースホルダーへ）。
+
+**認証**: Threads API（`graph.threads.net`）は他のMeta系APIと同じくアクセストークンをヘッダに載せるだけのシンプルな認証のため、career-uranai.site向けのHTTP Request（[§4](#4-workflow-03-seo記事生成--career-uranai-siteへ下書き保存)参照）と同じ「HTTP Header Auth」credential（`Authorization: Bearer <長期アクセストークン>`）方式を採用した。X投稿のようなOAuth 1.0a/2.0の3-leggedフローをn8n上に組む必要がなく、長期アクセストークンを1つ発行してcredentialに貼るだけでよい。**credential名は「Threads Access Token」等、分かりやすい名前で作成し、`Threads:`で始まる全HTTP Requestノード（作成・公開・permalink取得、計9ノード）に設定すること**（各ノードの`notes`に設定を促す注記を入れてある）。
+
+**投稿フロー**（`投稿処理を振り分け(Threads)`のtrue分岐）:
+1. `Threads:投稿文を組み立て`: Xと同じ役割分担（Hook→メイン投稿、Body+Hashtags→リプライ1、CTA→リプライ2）で3つのテキストを作る。Threadsの文字数上限は500字で、Xのような全角/半角の重み付けは行わず単純な文字数カウントで切り詰める（Xほどシビアに詰まるケースが少ないため）。Hashtagsを優先して残しBodyだけを切り詰める設計（[§4.1](#41-x旧twitterへの実投稿2026-07-08実装)と同じ理由）
+2. Threads APIは「コンテナ作成→（サーバー処理待ち）→公開」の2段階publish構成のため、メイン投稿・リプライ1・CTA・（該当すれば）診断誘導リプライの4投稿それぞれについて、`作成`（`POST /me/threads`、`media_type: "TEXT"`）→`待機`→`公開`（`POST /me/threads_publish`、`creation_id`）の3ノードを繰り返す。**待機時間は2〜5秒のランダム（2026-07-26、ユーザー判断で設定）**。Meta公式ドキュメントは「コンテナ作成後、平均30秒待ってから公開することを推奨」としており、当初はそれに従い固定30秒にしていたが、Xの待機（連続投稿に見えないようにする意図的ディレイ）と足並みを揃える形でユーザーが短縮を指示した。処理未完了のまま`threads_publish`を呼ぶと失敗する可能性がある点は公式推奨より短くしたことによるトレードオフとして残る（[技術的に不確実な箇所](#42-threadsへの実投稿2026-07-26実装)参照。実際に失敗が頻発するようなら、まず待機時間を伸ばす方向で調整する）
+3. リプライは`reply_to_id`にひとつ前の投稿の公開後IDを渡すことでスレッド化する（Xの`reply.in_reply_to_tweet_id`に相当）
+4. メイン投稿の公開直後にのみ`Threads:メイン投稿-permalink取得`（`GET /{id}?fields=permalink`）を追加している。Threadsの公開レスポンスは投稿IDのみを返しshortcode/permalinkを含まないため、通知に使える公開URLを得るには別途GETが必要（Xは投稿者アカウント名`@reiko_career1`が固定なのでURLをコード側で組み立てられたが、Threadsは同じ方法が使えない）
+5. `Threads:診断リンクが必要か`（`property_add_diagnosis_link`、Xと共通のNotionプロパティを流用。[§5](#5-workflow-04-sns投稿の承認修正検知sns専用)のUI設計に記載の通り、このフラグは元々X/Threadsの両方を想定して設計されていた）
+   - true: CTA公開後に診断誘導リプライを同じ作成→待機→公開のパターンで追加
+   - false: スキップ
+6. `Threads:Statusをpostedに更新`（Notion `Status`を`posted`に、Xと同じNotion credentialを再利用）→ `Threads:投稿完了を通知`（Discord bot `/notify`、`thread: 'sns'`）
+
+**Xと異なり画像投稿は未実装**: Threadsも画像添付自体はAPI上可能（`media_type: "IMAGE"`+`image_url`）だが、現状SNS投稿には画像生成の仕組みがなく（X側も同じ理由で未検証のまま）、テキストのみの投稿として実装した。将来Instagram向けの画像生成パイプライン（[§4.1](#41-x旧twitterへの実投稿2026-07-08実装)末尾参照）ができた場合、同じ画像をThreadsにも流用できる可能性がある。
+
+**技術的に不確実な箇所（2026-07-26、生APIでの部分検証済み・n8nワークフロー経由の実行はまだ）**: 長期アクセストークン取得後、n8nを介さず直接curlで以下を確認した。
+- ✅ `GET /me?fields=id,username` → `{"id":"27682605041360783","username":"reiko_career1"}`。トークン・アカウントとも想定通り
+- ✅ `POST /me/threads`（コンテナ作成、`media_type: "TEXT"`） → `{"id":"18118169212795344"}`。レスポンス形式が標準的なGraph API形式（`{id: "..."}`）であることを確認（公開はせず、コンテナ作成のみで確認を止めた）
+
+一方、以下はまだ未検証（n8nから承認フローを1件通す形での実機テストが必要）:
+- `threads_publish`の呼び出しと、`reply_to_id`によるスレッド化が意図通りネストされるか
+- 2〜5秒の待機で常に処理が完了しているか（Meta公式推奨の「平均30秒」より大幅に短いため、Xより明確に不足しやすい想定。不足時は`threads_publish`が失敗する見込み。エラー時のリトライは現状未実装）
+- `permalink`フィールドがGETで確実に返るか
+
+**必要な設定（2026-07-26完了）**: Meta Developerアプリの権限審査通過→長期アクセストークン取得（[`threads-api-setup.md`](./threads-api-setup.md)の手順通り）→n8nに「Threads Access Token」credential（Header Auth）を作成→`Threads:`で始まる9つのHTTP Requestノード全てに設定、まで完了済み。長期トークンの発行日は2026-07-26、失効目安は2026-09-24（60日後。更新手順は`threads-api-setup.md`参照、`automation/n8n/.env`の`THREADS_APP_SECRET`を使う）。
+
+### 4.3 Instagramへの実投稿（2026-07-27実装、同日中に構成を大幅改訂）
+
+`投稿処理を振り分け(Threads)`のfalse分岐に新規IF`投稿処理を振り分け(Instagram)`を連結し、`property_platform === 'Instagram'`の場合だけInstagramの投稿チェーンに入るようにした（それ以外＝LINEは引き続き`プラットフォームへ投稿(未実装)`のプレースホルダーへ）。
+
+X/Threadsと異なり、Instagramは「テキストのみの投稿」ができず必ず画像が要る。そのため投稿ロジックの前段に画像生成（[§4](#4-workflow-03-seo記事生成--career-uranai-siteへ下書き保存)のSEO記事画像生成と同じOpenAI gpt-image-2 + STYLE_PREFIX方式を流用）が入る点がX/Threadsと大きく異なる。
+
+**認証**: ThreadsやInstagramの投稿APIも他のMeta系APIと同じくHTTP Header Auth（`Authorization: Bearer <長期アクセストークン>`）方式。credential名は「Instagram Access Token」で、`Instagram:`で始まるMeta API呼び出しノードに設定済み。**InstagramはThreadsとApp ID/App Secretが別物**という点は[`instagram-api-setup.md`](./instagram-api-setup.md)に詳しい（同じMetaアプリ内でもユースケースごとに個別発行される）。
+
+#### 投稿構成（2026-07-27、実機テストのフィードバックを受けて改訂）
+
+初期実装では「パターンA(単一画像+キャプション訴求)／パターンB(ランキングカルーセル)」の2択で、画像には一切文字を入れない設計だった。実際に投稿してみたユーザーからのフィードバックで「キャプションメインだと投稿品質が低い」「パッと見て内容がわかるサムネイルが欲しい」という指摘があり、以下の構成に作り直した。
+
+- **投稿は常にカルーセル**（A/Bの区別を廃止）。最低でもサムネイル1枚＋コンテンツ画像が並ぶため、単一画像投稿の分岐は不要になった
+- **1枚目＝サムネイル**: 見出しテキスト（`ig_thumbnail_headline`、[§3](#instagram専用の構成ルール2026-07-27追加)参照）を大きく描画。パッと見て投稿内容がわかることを狙う
+- **中盤＝コンテンツ画像**（5〜10枚、投稿内容に応じて可変）: 各画像に短いテキスト（`ig_content_images[].text`、例:「1位 ENFP」等）を描画
+- **最後の1枚＝プロフィール誘導の固定画像**: AI生成ではなく、ユーザーが別途作成した画像を毎回同じもの使い回す。`Instagram:カルーセル子コンテナ用に展開`ノードの`CLOSING_IMAGE_URL`定数に公開URLを設定する運用（**2026-07-27時点で未設定、空文字のままだとサムネイル+コンテンツ画像のみでカルーセルが作られる**）
+- **画像には文字を含める**（初期実装からの方針転換）。AI画像生成は日本語文字の描画を間違えるリスクがあるため、[§4](#4-workflow-03-seo記事生成--career-uranai-siteへ下書き保存)のSEO記事アイキャッチと同じ「Geminiで品質チェック→NGなら最大3回まで再生成」の仕組みを全画像（サムネイル・コンテンツ画像とも）に適用する
+
+#### 投稿フロー（`投稿処理を振り分け(Instagram)`のtrue分岐）
+
+1. `Instagram:入力を解析`: Notionの`ImagePrompt`列（JSON文字列）から`thumbnail`（見出し+絵柄）と`content_images`（絵柄+テキストの配列）を取り出し、`{type: 'thumbnail'|'content', index, scene, text}`の統一リストに変換する。hook/body/ctaを`\n\n`で連結し、末尾にhashtagsを足して1つのキャプション文字列を作る（Instagramは1投稿1キャプションのため、X/Threadsのような複数投稿への分割は不要）。キャプション上限2200字を超えた場合は末尾を省略する安全策のみ入れている
+2. `Instagram:Statusをqueuedに更新`（X/Threadsと同じ「投稿開始直後にqueuedへ倒す」ガードを最初から適用。[§5該当節](#投稿開始直後にstatusをqueuedへ倒すガード2026-07-26追加重複投稿インシデントの再発防止)参照）
+3. `Instagram:画像プロンプトを展開`: 統一リストを1画像1itemに展開。STYLE_PREFIX（縦長4:5、ゴールド×バイオレット、**文字は正確に読みやすく描画すること**）+ 描く内容 + 「この画像には『{text}』という文字を大きく配置すること（必須）」を1つのプロンプトに組み立て、`attempt: 1`を付与する
+4. `Instagram:生成準備`（初回・後述の再試行ループのどちらから来ても同じ形で受け取る合流点。[§4のアイキャッチ再試行ループ](#4-workflow-03-seo記事生成--career-uranai-siteへ下書き保存)と同じ設計思想）→`Instagram:OpenAIで画像生成`（`output_format: 'jpeg'`、詳細は後述）→`Instagram:Gemini品質チェック`（`gemini-2.5-flash`のマルチモーダル入力で「文字が意味不明に崩れている」「指の本数や体の一部が不自然」等をチェック）→`Instagram:QA判定`
+   - OK → 次へ進む
+   - NG かつ3回未満 → 文字の正確さを強調した補足指示を追記して`Instagram:生成準備`へループバック（`Instagram:リトライが必要か`のIFで分岐）
+   - NG のまま3回到達、`type === 'thumbnail'` → **投稿全体を失敗させる**（`throw new Error`。サムネイルは投稿の顔なので妥協しない。Error Workflow経由でDiscord通知）
+   - NG のまま3回到達、`type === 'content'` → **その画像だけカルーセルから除外**して投稿は続行する（`dropped: true`）
+5. `Instagram:Base64をBinaryに変換`（`dropped`な画像は`skip: true`にして以降スキップ）→`Instagram:スキップか`（IF）→ `skip`なら`Instagram:アップロードスキップ`（`url: null`を付けて素通り）、そうでなければ`Instagram:画像をアップロード`（[§4](#4-workflow-03-seo記事生成--career-uranai-siteへ下書き保存)と同じcareer-uranai.site宛アップロード）。両方とも`Instagram:アップロード結果を統合`に合流する
+6. `Instagram:アップロード結果を統合`: `url`が無い(dropped)画像を除外し、`type==='thumbnail'`を先頭、`type==='content'`をindex順に並べ替えて、1つの`image_urls`配列にまとめる
+7. `Instagram:カルーセル子コンテナ用に展開`: `image_urls`の末尾に固定の`CLOSING_IMAGE_URL`（設定されていれば）を追加してから、1URL1itemに展開する
+8. `Instagram:子コンテナ作成`（`POST /{IG_ID}/media`に`image_url`+`is_carousel_item: true`。閉じ画像も含め全画像に対して実行）→`Instagram:子コンテナを集約`（全コンテナIDを`,`区切りに結合）→`Instagram:カルーセル本体作成`（`media_type: "CAROUSEL"`+`children`+`caption`）
+9. `Instagram:処理待機`→`Instagram:ステータス確認`→`Instagram:処理完了か`のポーリングループ（後述）→`Instagram:公開`→`Instagram:permalink取得`→`Instagram:投稿結果をまとめる`→`Instagram:Statusをpostedに更新`→`Instagram:投稿完了を通知`
+
+**IG_IDはハードコード**: Xが投稿者アカウント名`@reiko_career1`を固定でURL組み立てに使っているのと同じ考え方で、Instagramの投稿系エンドポイントも数値の`IG_ID`（`27238292145850546`）を直接埋め込んでいる。Threadsの`/me/threads`のような`me`エイリアスが使えるかは未検証だったため、確実に動作確認済みの数値IDを使う方を選んだ（`GET /me?fields=id,username`で取得済みの値）。
+
+**画像コストの見積り**: サムネイル1枚＋コンテンツ画像5〜10枚（閉じ画像はAI生成しないためコスト無し）。gpt-image-2 medium品質・1024×1280換算で1枚あたり概算$0.05程度、QA再試行が発生するとその分上乗せされる。1投稿あたり$0.3〜0.6程度を想定（従来のパターンBの見積りとほぼ同水準）。
+
+#### n8n実機テストで発覚した不具合と修正
+
+**1回目のテスト（パターンA、旧設計）で発覚**:
+1. **画像形式がPNGだった**: Instagram Graph APIは公式に「JPEGのみ対応（PNG/WebP不可）」としているにもかかわらず、`Instagram:OpenAIで画像生成`がgpt-image-2のデフォルト形式（PNG）のまま生成していた。修正: リクエストに`output_format: 'jpeg'`を明示指定し、`Instagram:Base64をBinaryに変換`のファイル名・MIMEタイプも`.jpg`/`image/jpeg`に変更した
+2. **公開までの待機が無かった**: `POST /{IG_ID}/media`でコンテナ作成は成功する（`{id: "..."}`が返る）が、Metaサーバー側で画像のダウンロード・処理が完了する前に`media_publish`を呼んでいたため`Bad request`（詳細: `Media ID is not available`）になっていた。Meta公式ドキュメントには「コンテナ作成後の遅延は必須ではない」という記載もあったが、実際には画像処理待ちが必要だった。修正: コンテナ作成の直後に`Instagram:処理待機`（5秒待機）→`Instagram:ステータス確認`（`GET /{id}?fields=id,status_code`）→`Instagram:処理完了か`（`status_code === 'FINISHED'`）のポーリングループを追加し、`FINISHED`になるまで（最大6回=30秒）待ってから`Instagram:公開`を呼ぶようにした。6回待っても完了しない場合はエラーを投げてError Workflowに委ねる（無限リトライはしない）
+
+**上記2点の修正後、実際に投稿は成功した**が、その際にもう1つ不具合が見つかった:
+
+3. **`Instagram:Statusをqueuedに更新`のフィールド名ミス**: `Instagram:入力を解析`はNotionページIDを`page_id`という名前に変換して後段に渡す設計だが、`Instagram:Statusをqueuedに更新`（`入力を解析`の出力からファンアウトする形で接続していた）が変換前のフィールド名`$json.id`を参照したままだった（X/Threadsは変換前の生データから直接ファンアウトしていたため同じ問題が起きなかった）。実害は軽微（投稿自体は成功していたため）だが、これが直っていないと「重複投稿防止ガード」が効かない状態だったため修正した。`$json.id`→`$json.page_id`に変更
+
+**新構成の実機テストで発覚した不具合と修正**:
+
+4. **boolean型IF条件に`singleValue: true`が抜けていた**: `Instagram:リトライが必要か`と`Instagram:スキップか`のIF条件（`{type: "boolean", operation: "true"}`）で`Wrong type: '' is a string but was expecting a boolean`エラーが発生した。X/Threadsの同種のboolean判定IF（`X:診断リンクが必要か`等）は`operator`に`singleValue: true`を含めており、これが無いとn8nがboolean単体の真偽判定として正しく評価できない。今回この2ノードは共通の`if_node`ヘルパー関数を使わず個別に書いたため、このパラメータが漏れていた。修正: 両ノードの`operator`に`singleValue: true`を追加。**教訓: boolean型のIF条件を新規に書く際は、既存の動作実績があるノード（`X:診断リンクが必要か`等）の`operator`オブジェクトをそのままコピーし、個別に書き起こさないこと**
+
+5. **アップロード後にtype/indexが失われ、カルーセルが空になる**: `内容OK`→実行が「成功」扱いで完了したにもかかわらず、実際にはInstagramに何も投稿されていなかった。原因は`Instagram:画像をアップロード`（HTTP Request、career-uranai.siteへのアップロードAPI）のレスポンスが`{url: "..."}`のみで、直前の`type`(`thumbnail`/`content`)・`index`等のフィールドが失われていたこと（[§4のデバッグ教訓](#4-workflow-03-seo記事生成--career-uranai-siteへ下書き保存)と全く同じ「HTTP Requestノード通過でjsonの追加フィールドが消える」パターンで、Workflow03で既に踏んだ落とし穴を再度踏んだ形）。`Instagram:アップロード結果を統合`が`u.json.type === 'thumbnail'`で判定していたため、全画像で`type`が`undefined`となり、`image_urls`が空配列になり、後続の`Instagram:カルーセル子コンテナ用に展開`が0件を返して**投稿処理がエラーも出さず静かに何もしないまま「成功」終了していた**。修正: `Instagram:画像をアップロード`の直後に新規ノード`Instagram:アップロード結果を復元`を追加し、`$('Instagram:Base64をBinaryに変換').item.json`（名前参照、フィールドが消える前の状態）に`url`を合成してから`アップロード結果を統合`に渡すようにした（Workflow03のQAノード群が`$('画像プロンプトを展開').item.json`のような名前参照でこの問題を回避しているのと同じ手法）
+
+#### 今後の検証待ちの点（2026-07-27時点）
+
+- 上記5つの修正後、新しい構成（サムネイル+コンテンツ+固定閉じ画像、全画像に文字入り、QA再試行あり）が最後まで通るかは次回のテストで確認する
+- `CLOSING_IMAGE_URL`は未設定。ユーザーから画像を受け取り次第、`Instagram:カルーセル子コンテナ用に展開`ノードに設定する必要がある
+- Gemini品質チェックのプロンプトは文字の崩れ・解剖学的な不自然さの両方をチェックしているが、実際の判定精度・再試行の発生頻度は未検証
+- ポーリングの待機間隔・最大試行回数（5秒×6回=最大30秒）が十分か。カルーセル本体（複数画像）は単一画像より処理に時間がかかる可能性があり、頻繁に上限に達するようなら間隔・回数を見直す
+- 画像生成〜QA〜アップロード〜投稿までの全体所要時間（サムネイル+コンテンツ5〜10枚の逐次生成+QAが挟まるため、1投稿あたり数分単位になる見込み）
 
 ---
 

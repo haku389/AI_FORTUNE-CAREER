@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { PenLine, HelpCircle, Telescope, Moon } from 'lucide-react'
 import Stars from '@/components/Stars'
+import PolicyFooter from '@/components/PolicyFooter'
 
 export const metadata: Metadata = {
   title: 'キャリア未来鑑定士 白石玲子 | 星座×転職診断サービス',
@@ -90,7 +91,7 @@ export default function InfoPage() {
           <p style={{ fontSize: 14, color: '#8898c8', lineHeight: 2, marginBottom: 36 }}>
             転職するか迷っているすべての人へ。
             <br />
-            星の声があなたの背中をそっと押します。
+            星を読み解き、あなたの背中をそっと押します。
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -178,9 +179,9 @@ export default function InfoPage() {
           </div>
 
           <p style={{ fontSize: 13, color: '#b0bcd8', lineHeight: 2, marginBottom: 16 }}>
-            転職するか迷っている方に向けて、星座・数秘・MBTIを
+            転職するか迷っている方に向けて、星座・九星気学・MBTIを
             組み合わせた独自の鑑定で「今あなたに必要なこと」を
-            星の言葉で伝えます。
+            私の言葉でお伝えします。
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -204,6 +205,20 @@ export default function InfoPage() {
               </div>
             ))}
           </div>
+
+          <Link
+            href="/guide"
+            style={{
+              display: 'block',
+              marginTop: 16,
+              fontSize: 12,
+              color: '#a898f8',
+              textAlign: 'right',
+              textDecoration: 'none',
+            }}
+          >
+            占い図鑑で3つの占術を詳しく見る →
+          </Link>
         </div>
       </div>
 
@@ -346,7 +361,7 @@ export default function InfoPage() {
               num: '04',
               icon: <Moon size={ICON_SIZE} color={ICON_COLOR} strokeWidth={1.5} />,
               title: 'キャリア未来鑑定士が運命を読み解く',
-              desc: '星々の声を手がかりに、あなただけの転職運命をお伝えします。',
+              desc: '星々が示すサインを読み解き、あなただけの転職運命をお伝えします。',
             },
           ].map(({ num, icon, title, desc }, i, arr) => (
             <div key={num} style={{ display: 'flex', gap: 16 }}>
@@ -401,9 +416,9 @@ export default function InfoPage() {
               marginBottom: 20,
             }}
           >
-            星はいつも、あなたの
+            私はいつも星を読み、
             <br />
-            転職タイミングを知っています。
+            あなたの転職タイミングを見つめています。
           </p>
           <Link
             href="/shindan"
@@ -424,6 +439,8 @@ export default function InfoPage() {
           </Link>
         </div>
       </div>
+
+      <PolicyFooter />
     </div>
   )
 }

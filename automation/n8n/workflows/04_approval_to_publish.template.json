@@ -584,7 +584,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const ms = (Math.random() * 37 + 3) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+        "jsCode": "const ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
       },
       "id": "827ca1d4-f9de-426d-a12d-5dd8990cfac1",
       "name": "X:ランダム待機1",
@@ -657,7 +657,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const ms = (Math.random() * 37 + 3) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+        "jsCode": "const ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
       },
       "id": "0747be94-22c1-4eb1-92b1-dd573bde954f",
       "name": "X:ランダム待機2",
@@ -774,7 +774,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const ms = (Math.random() * 37 + 3) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+        "jsCode": "const ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
       },
       "id": "c1bd8b4a-ab8a-4d8c-8af2-3eeba2b53a60",
       "name": "X:ランダム待機CTA",
@@ -810,6 +810,1096 @@
           "name": "X OAuth account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "151f6350-c00c-4b60-810b-a18924e2d72b",
+              "leftValue": "={{ $json.property_platform }}",
+              "rightValue": "Threads",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bb45946d-676b-4278-bae2-19906ca9d4d4",
+      "name": "投稿処理を振り分け(Threads)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function truncateTo(str, limit) {\n  const chars = Array.from(str || '');\n  if (chars.length <= limit) return str || '';\n  const ellipsis = '…';\n  return chars.slice(0, Math.max(0, limit - 1)).join('') + ellipsis;\n}\n\n// reply1(返信1) = Body+Hashtags。Hashtagsを優先的に残し、Bodyだけを自動で切り詰める（Xの実装と同じ優先順位）\nfunction composeReply1(body, hashtags, limit) {\n  const sep = '\\n\\n';\n  let hashtagsPart = hashtags || '';\n  let bodyBudget = limit - (hashtagsPart ? Array.from(sep).length + Array.from(hashtagsPart).length : 0);\n  if (bodyBudget < 20) {\n    hashtagsPart = '';\n    bodyBudget = limit;\n  }\n  const bodyTrunc = bodyBudget > 0 ? truncateTo(body || '', bodyBudget) : '';\n  const parts = [bodyTrunc, hashtagsPart].filter(Boolean);\n  let result = parts.join(sep);\n  if (Array.from(result).length > limit) result = truncateTo(result, limit);\n  return result;\n}\n\nconst item = $input.first().json;\nconst THREADS_LIMIT = 500;\n\nconst mainText = truncateTo(item.property_hook ?? '', THREADS_LIMIT);\nconst reply1Text = composeReply1(item.property_body, item.property_hashtags, THREADS_LIMIT);\n// reply2(返信2) = CTA単独。他と枠を取り合わないため単純に自身の500文字予算だけで切り詰める\nconst reply2Text = truncateTo(item.property_cta ?? '', THREADS_LIMIT);\n\nconst diagnosisText = '気になった方は、無料の簡易診断もどうぞ\\u{1F447}\\nhttps://career-uranai.site/shindan';\n\nreturn [{\n  json: {\n    page_id: item.id,\n    platform: item.property_platform,\n    name: item.property_name,\n    main_text: mainText,\n    reply1_text: reply1Text,\n    reply2_text: reply2Text,\n    diagnosis_text: diagnosisText,\n    add_diagnosis_link: item.property_add_diagnosis_link === true\n  }\n}];"
+      },
+      "id": "b1ceeb4f-a7ef-4df1-a9bf-23c76bbd6541",
+      "name": "Threads:投稿文を組み立て",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ media_type: 'TEXT', text: $json.main_text }) }}"
+      },
+      "id": "c7063817-cb40-4ab3-9287-e579f8948f86",
+      "name": "Threads:メイン投稿-作成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 2〜5秒のランダム待機（Meta公式は「平均30秒」を推奨しているが、ユーザー判断で短縮。\n// 処理未完了のままthreads_publishを呼ぶと失敗する可能性がある点は要注意）\nconst ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "c192d564-ba45-48d4-9902-abf61f17ac02",
+      "name": "Threads:メイン投稿-待機",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ creation_id: $('Threads:メイン投稿-作成').first().json.id }) }}"
+      },
+      "id": "3f5005ae-4743-482c-9ebb-ba0b210dc772",
+      "name": "Threads:メイン投稿-公開",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://graph.threads.net/v1.0/' + $('Threads:メイン投稿-公開').first().json.id + '?fields=permalink' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "0ae71b2b-381e-4db5-9c46-c81a765f5927",
+      "name": "Threads:メイン投稿-permalink取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ media_type: 'TEXT', text: $('Threads:投稿文を組み立て').first().json.reply1_text, reply_to_id: $('Threads:メイン投稿-公開').first().json.id }) }}"
+      },
+      "id": "2b23080f-2f56-4f58-8598-e48d1ff0829e",
+      "name": "Threads:リプライ1-作成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1740,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 2〜5秒のランダム待機（Meta公式は「平均30秒」を推奨しているが、ユーザー判断で短縮。\n// 処理未完了のままthreads_publishを呼ぶと失敗する可能性がある点は要注意）\nconst ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "9a742895-8061-4487-86a5-e17a58d9e37a",
+      "name": "Threads:リプライ1-待機",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1960,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ creation_id: $('Threads:リプライ1-作成').first().json.id }) }}"
+      },
+      "id": "d29bf1f3-536d-4634-bea3-a37ab072d05a",
+      "name": "Threads:リプライ1-公開",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2180,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ media_type: 'TEXT', text: $('Threads:投稿文を組み立て').first().json.reply2_text, reply_to_id: $('Threads:リプライ1-公開').first().json.id }) }}"
+      },
+      "id": "ef486058-7c03-4c7d-ae31-3ab85b7475ad",
+      "name": "Threads:CTA-作成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 2〜5秒のランダム待機（Meta公式は「平均30秒」を推奨しているが、ユーザー判断で短縮。\n// 処理未完了のままthreads_publishを呼ぶと失敗する可能性がある点は要注意）\nconst ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "42b80f2f-d91a-41b9-bb38-c90b75f92a75",
+      "name": "Threads:CTA-待機",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ creation_id: $('Threads:CTA-作成').first().json.id }) }}"
+      },
+      "id": "0c2a7f21-dac3-425e-a81c-a2d198bb0eff",
+      "name": "Threads:CTA-公開",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2840,
+        120
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1c701704-17ec-4e5a-8e60-a54377cdb953",
+              "leftValue": "={{ $('Threads:投稿文を組み立て').first().json.add_diagnosis_link }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d00f12f3-aeac-42a1-8d70-17973e15dd00",
+      "name": "Threads:診断リンクが必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3060,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ media_type: 'TEXT', text: $('Threads:投稿文を組み立て').first().json.diagnosis_text, reply_to_id: $('Threads:CTA-公開').first().json.id }) }}"
+      },
+      "id": "a29c82c9-1138-4b31-8987-0adf162c7f42",
+      "name": "Threads:診断リプライ-作成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        20
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 2〜5秒のランダム待機（Meta公式は「平均30秒」を推奨しているが、ユーザー判断で短縮。\n// 処理未完了のままthreads_publishを呼ぶと失敗する可能性がある点は要注意）\nconst ms = (Math.random() * 3 + 2) * 1000;\nawait new Promise((resolve) => setTimeout(resolve, ms));\nreturn $input.all();"
+      },
+      "id": "e3544ed3-aadf-4f1b-9128-c998f90a595d",
+      "name": "Threads:診断リプライ-待機",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3500,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.threads.net/v1.0/me/threads_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ creation_id: $('Threads:診断リプライ-作成').first().json.id }) }}"
+      },
+      "id": "cb47d66a-36a0-4ccb-a2f9-a2a2546d06ef",
+      "name": "Threads:診断リプライ-公開",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3720,
+        20
+      ],
+      "notes": "credential: Threads用 Header Auth（Authorization: Bearer <長期アクセストークン>）を作成して選択してください",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yWgTNtrsyZxPrgse",
+          "name": "Threads Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const built = $('Threads:投稿文を組み立て').first().json;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_post_id: $('Threads:メイン投稿-公開').first().json.id,\n    reply1_post_id: $('Threads:リプライ1-公開').first().json.id,\n    cta_post_id: $('Threads:CTA-公開').first().json.id,\n    diagnosis_post_id: $('Threads:診断リプライ-公開').first().json.id,\n    main_post_url: $('Threads:メイン投稿-permalink取得').first().json.permalink\n  }\n}];"
+      },
+      "id": "9f6a50c8-5026-4785-8c00-9d832b54d3a4",
+      "name": "Threads:投稿結果をまとめる(診断あり)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3940,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const built = $('Threads:投稿文を組み立て').first().json;\nreturn [{\n  json: {\n    page_id: built.page_id,\n    name: built.name,\n    main_post_id: $('Threads:メイン投稿-公開').first().json.id,\n    reply1_post_id: $('Threads:リプライ1-公開').first().json.id,\n    cta_post_id: $('Threads:CTA-公開').first().json.id,\n    diagnosis_post_id: null,\n    main_post_url: $('Threads:メイン投稿-permalink取得').first().json.permalink\n  }\n}];"
+      },
+      "id": "be27902e-46af-4030-9aaf-cbd827da323a",
+      "name": "Threads:投稿結果をまとめる(診断なし)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.page_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "posted"
+            }
+          ]
+        }
+      },
+      "id": "ad16ddcd-b416-4ce8-b886-486437cb9729",
+      "name": "Threads:Statusをpostedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        4160,
+        120
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://discord-bot:3100/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: 'Threadsへ投稿しました', message: `${$json.name}\\n${$json.main_post_url}`, thread: 'sns' }) }}"
+      },
+      "id": "15803343-cd23-4306-ae33-8a50235f381b",
+      "name": "Threads:投稿完了を通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4380,
+        120
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "queued"
+            }
+          ]
+        }
+      },
+      "id": "b9e6631b-dd43-479a-898d-4fe954b81f13",
+      "name": "X:Statusをqueuedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        -460
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      },
+      "notes": "投稿処理開始直後にStatusをqueuedへ倒し、5分毎ポーリングでの再実行(=重複投稿)を防ぐ。2026-07-26追加。"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "queued"
+            }
+          ]
+        }
+      },
+      "id": "826dbe71-2746-41eb-a950-e9fe75296c5a",
+      "name": "Threads:Statusをqueuedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        -40
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      },
+      "notes": "投稿処理開始直後にStatusをqueuedへ倒し、5分毎ポーリングでの再実行(=重複投稿)を防ぐ。2026-07-26追加。"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c77df627-0d75-4412-9166-06304ecac55e",
+              "leftValue": "={{ $json.property_platform }}",
+              "rightValue": "Instagram",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6bd6bd75-48a7-4af9-9659-26d6143f8a30",
+      "name": "投稿処理を振り分け(Instagram)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nlet parsed = { thumbnail: null, content_images: [] };\ntry {\n  parsed = JSON.parse(item.property_image_prompt || '{}');\n} catch (e) {}\n\nconst thumbnail = parsed.thumbnail && parsed.thumbnail.headline\n  ? parsed.thumbnail\n  : { headline: item.property_name || 'キャリア未来鑑定士 白石玲子', scene: '占星術・キャリアをテーマにした、雰囲気重視の象徴的なイラスト' };\nconst contentImages = Array.isArray(parsed.content_images) && parsed.content_images.length > 0\n  ? parsed.content_images\n  : [{ scene: '占星術・キャリアをテーマにした、雰囲気重視の象徴的なイラスト', text: item.property_hook || '' }];\n\nconst imageSpecs = [\n  { type: 'thumbnail', index: 0, scene: thumbnail.scene, text: thumbnail.headline },\n  ...contentImages.map((c, i) => ({ type: 'content', index: i + 1, scene: c.scene, text: c.text })),\n];\n\nconst hashtagsText = item.property_hashtags || '';\nlet caption = [item.property_hook, item.property_body, item.property_cta].filter(Boolean).join('\\n\\n');\nif (hashtagsText) caption += '\\n\\n' + hashtagsText;\n\n// Instagramのキャプション上限は2200字\nconst CAPTION_LIMIT = 2200;\nconst chars = Array.from(caption);\nif (chars.length > CAPTION_LIMIT) {\n  caption = chars.slice(0, CAPTION_LIMIT - 1).join('') + '…';\n}\n\nreturn [{\n  json: {\n    page_id: item.id,\n    platform: item.property_platform,\n    name: item.property_name,\n    image_specs: imageSpecs,\n    caption\n  }\n}];"
+      },
+      "id": "7d97c846-3a95-4975-9fef-aeb37c5f1431",
+      "name": "Instagram:入力を解析",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.page_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "queued"
+            }
+          ]
+        }
+      },
+      "id": "65ce95c0-7516-4ef8-8725-af5fe4a82df4",
+      "name": "Instagram:Statusをqueuedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        640
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const STYLE_PREFIX = \"ゴールド×バイオレットのグラデーションを基調にした、上品で神秘的な占星術テイストのイラスト。過度に装飾せずシンプルで洗練されたデザイン。星・惑星・幾何学模様のモチーフを控えめに使用。写実的すぎないフラットまたはソフトなグラデーション調のイラストスタイル。縦長(4:5、1024×1280相当)の構図で、主題を中央に配置し上下に適度な余白を持たせる。文字は日本語として正確に読みやすく、崩れないように描画すること。\";\n\nconst src = $('Instagram:入力を解析').first().json;\nreturn src.image_specs.map((spec) => ({\n  json: {\n    page_id: src.page_id,\n    name: src.name,\n    caption: src.caption,\n    type: spec.type,\n    index: spec.index,\n    text: spec.text,\n    attempt: 1,\n    image_prompt: `${STYLE_PREFIX}\\n\\n描く内容: ${spec.scene}\\n\\nこの画像には「${spec.text}」という文字を、読みやすい日本語のテキストとして画像内に大きく配置すること（必須）。`\n  }\n}));"
+      },
+      "id": "c1cb5f4e-db58-43e0-bcf3-dbcaa5870c7f",
+      "name": "Instagram:画像プロンプトを展開",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-image-2', prompt: $json.image_prompt, size: '1024x1280', quality: 'medium', n: 1, output_format: 'jpeg' }) }}"
+      },
+      "id": "9a789509-a695-44a9-91a1-196a2974b67e",
+      "name": "Instagram:OpenAIで画像生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        500
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "V4JMomtU070QmWea",
+          "name": "Header Auth account 4"
+        }
+      },
+      "notes": "Instagram Graph APIはJPEGのみ対応(PNG/WebP不可)のためoutput_format='jpeg'を明示指定(2026-07-27)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $json;\nif (item.dropped || !item.b64) {\n  return { json: { ...item, skip: true } };\n}\nconst buffer = Buffer.from(item.b64, 'base64');\nconst fileName = `ig_${item.page_id}_${item.type}_${item.index}.jpg`;\nconst binary = await this.helpers.prepareBinaryData(buffer, fileName, 'image/jpeg');\nreturn { json: { ...item, skip: false }, binary: { file: binary } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "874b1545-d831-4d51-a31d-b81c85000d79",
+      "name": "Instagram:Base64をBinaryに変換",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://career-uranai.site/api/n8n/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        }
+      },
+      "id": "c5b78eb0-1f78-41f4-9594-61d0557afb8d",
+      "name": "Instagram:画像をアップロード",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        500
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SKjEBIefVpEJsxAL",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const uploads = $input.all();\nconst valid = uploads.filter(u => u.json.url);\n// 並び順: サムネイルを先頭に、以降はコンテンツ画像をindex順\nconst thumbnail = valid.find(u => u.json.type === 'thumbnail');\nconst contents = valid.filter(u => u.json.type === 'content').sort((a, b) => a.json.index - b.json.index);\nconst ordered = thumbnail ? [thumbnail, ...contents] : contents;\n\nconst first = $('Instagram:入力を解析').first().json;\nreturn [{\n  json: {\n    page_id: first.page_id,\n    name: first.name,\n    caption: first.caption,\n    image_urls: ordered.map(o => o.json.url)\n  }\n}];"
+      },
+      "id": "06d1897d-aa26-4e37-aff5-281e115d21fb",
+      "name": "Instagram:アップロード結果を統合",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1740,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v1.0/27238292145850546/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ image_url: $json.image_url, is_carousel_item: true }) }}"
+      },
+      "id": "b6916fc4-262f-4303-92dc-1c8d5f9b25cf",
+      "name": "Instagram:子コンテナ作成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2180,
+        420
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wYh4IV5r2yrcsdnb",
+          "name": "Instagram Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const containers = $input.all();\nconst first = $('Instagram:入力を解析').first().json;\nreturn [{\n  json: {\n    page_id: first.page_id,\n    name: first.name,\n    caption: first.caption,\n    children: containers.map(c => c.json.id).join(',')\n  }\n}];"
+      },
+      "id": "3778ba4f-c452-4b1b-8aef-1a946bd19c57",
+      "name": "Instagram:子コンテナを集約",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v1.0/27238292145850546/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ media_type: 'CAROUSEL', children: $json.children, caption: $json.caption }) }}"
+      },
+      "id": "bf3b717c-9274-4e08-866e-ed1d82286a2e",
+      "name": "Instagram:カルーセル本体作成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2620,
+        420
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wYh4IV5r2yrcsdnb",
+          "name": "Instagram Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v1.0/27238292145850546/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ creation_id: $json.id }) }}"
+      },
+      "id": "abb9fb91-f66f-452b-8b2a-d9cd4ba60631",
+      "name": "Instagram:公開",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2840,
+        500
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wYh4IV5r2yrcsdnb",
+          "name": "Instagram Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://graph.instagram.com/v1.0/' + $json.id + '?fields=id,permalink' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "e8b0d762-789b-4629-90e1-bc28bc44932b",
+      "name": "Instagram:permalink取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3060,
+        500
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wYh4IV5r2yrcsdnb",
+          "name": "Instagram Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Instagram:入力を解析').first().json;\nreturn [{\n  json: {\n    page_id: src.page_id,\n    name: src.name,\n    media_url: $json.permalink || ''\n  }\n}];"
+      },
+      "id": "c808d8c8-f21c-46e7-b110-a8d5efb608dd",
+      "name": "Instagram:投稿結果をまとめる",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.page_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "posted"
+            }
+          ]
+        }
+      },
+      "id": "2143fc89-c529-4190-b690-52350e873438",
+      "name": "Instagram:Statusをpostedに更新",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        3500,
+        500
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "WBOoaBFZB5urw01E",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://discord-bot:3100/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: 'Instagramへ投稿しました', message: `${$json.name}\\n${$json.media_url}`, thread: 'sns' }) }}"
+      },
+      "id": "49815b6e-6d4d-4505-8e3c-87f4ae3087e4",
+      "name": "Instagram:投稿完了を通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3720,
+        500
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $json;\nconst attempt = (item.attempt || 0) + 1;\nconst MAX_ATTEMPTS = 6;\nif (attempt > MAX_ATTEMPTS) {\n  throw new Error(`Instagramのメディア処理が${MAX_ATTEMPTS}回待っても完了しませんでした(直近のstatus_code: ${item.status_code || '不明'})`);\n}\n// Meta公式推奨:「1分間隔で最大5分ほどステータス確認してから公開する」を踏まえた待機+ポーリング\nawait new Promise((resolve) => setTimeout(resolve, 5000));\nreturn { json: { id: item.id, attempt } };"
+      },
+      "id": "ea14419b-053a-4b41-8bb3-2e43b4d673d2",
+      "name": "Instagram:処理待機",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2840,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://graph.instagram.com/v1.0/' + $json.id + '?fields=id,status_code' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "fad2b167-92c2-40f8-a476-912316d791df",
+      "name": "Instagram:ステータス確認",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3060,
+        720
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wYh4IV5r2yrcsdnb",
+          "name": "Instagram Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "38c03966-4a0e-44e4-9a56-997a7c4934a9",
+              "leftValue": "={{ $json.status_code }}",
+              "rightValue": "FINISHED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a4d6e516-61b5-4aa5-bc1b-35c849b574ee",
+      "name": "Instagram:処理完了か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3280,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 初回(画像プロンプトを展開から)・再試行ループバック(QA判定から)のどちらから来ても\n// 同じ形で後段(OpenAIで画像生成)に渡すための合流点。\nreturn $input.all();"
+      },
+      "id": "44ced045-442a-41b3-9cd5-0ca1be3c6f69",
+      "name": "Instagram:生成準備",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ { text: 'この画像はAIで生成されたSNS投稿用イラストです。次のいずれかに明らかに該当しますか: (1)日本語の文字が意味不明に崩れている・読めない・誤字がある、(2)指の本数や体の一部が不自然、(3)全体的に不自然で公開に適さない。該当すれば「NG」、問題なければ「OK」とだけ一言で答えてください。' }, { inline_data: { mime_type: 'image/jpeg', data: $json.data[0].b64_json } } ] }] }) }}"
+      },
+      "id": "f6179846-f8f4-4e05-a28c-558b3130e842",
+      "name": "Instagram:Gemini品質チェック",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        480
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XOMme1Kx0AATD9Vv",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const spec = $('Instagram:生成準備').item.json;\nconst qaJson = $json;\nconst qaText = (qaJson?.candidates?.[0]?.content?.parts ?? []).map(p => p.text || '').join('');\nconst isNG = qaText.includes('NG');\nconst MAX_ATTEMPTS = 3;\nconst b64 = $('Instagram:OpenAIで画像生成').item.json.data?.[0]?.b64_json ?? null;\n\nif (!isNG && b64) {\n  return { json: { ...spec, ok: true, dropped: false, retry: false, b64 } };\n}\n\nif (spec.attempt >= MAX_ATTEMPTS) {\n  if (spec.type === 'thumbnail') {\n    // サムネイルは投稿の顔なので、諦めずに投稿全体を失敗させてError Workflowに委ねる\n    throw new Error(`Instagramサムネイル画像が${MAX_ATTEMPTS}回試行しても改善しませんでした(${qaText || '画像生成自体に失敗'})`);\n  }\n  // コンテンツ画像は諦めてカルーセルから除外する(投稿全体は止めない)\n  return { json: { ...spec, ok: false, dropped: true, retry: false, b64: null } };\n}\n\n// 再試行: 文字の正確さと解剖学的な自然さを補足指示として追記(SEO記事アイキャッチの再試行ロジックと同じ考え方)\nconst correctivePrompt = `${spec.image_prompt}\\n\\n(${spec.attempt}回目の生成で問題が見つかったため再生成中。特に文字「${spec.text}」は日本語として完全に正確に、崩れずはっきりと読める形で描画すること。また手足・指の本数や身体バランスも自然になるよう注意すること。)`;\n\nreturn { json: { ...spec, image_prompt: correctivePrompt, attempt: spec.attempt + 1, retry: true, b64: null } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "9c277ff6-cb9d-4788-86d2-707ac2aae931",
+      "name": "Instagram:QA判定",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7dd5202d-d127-451b-90d9-f11eb74ad35c",
+              "leftValue": "={{ $json.retry }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "725adaa9-fb05-4cb2-936f-904af69f96bd",
+      "name": "Instagram:リトライが必要か",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1740,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "38a60e5e-8131-4b85-afbe-ab799a865db2",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e7929b2e-b4e3-4c8e-98bb-c3e3d2aad8ad",
+      "name": "Instagram:スキップか",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2180,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: { ...$json, url: null } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "e095c027-05de-4dc2-ba87-b072d3829801",
+      "name": "Instagram:アップロードスキップ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $input.first().json;\n// TODO: ユーザー提供の固定プロフィール誘導画像のURLが決まったらここに設定する。\n// 空のままだと閉じ画像なしでカルーセルを作る(サムネイル+コンテンツ画像のみ)。\nconst CLOSING_IMAGE_URL = '';\n\nconst allUrls = CLOSING_IMAGE_URL ? [...src.image_urls, CLOSING_IMAGE_URL] : src.image_urls;\n\nreturn allUrls.map((url, i) => ({\n  json: {\n    page_id: src.page_id,\n    name: src.name,\n    caption: src.caption,\n    image_url: url,\n    index: i\n  }\n}));"
+      },
+      "id": "93a08d72-3a83-445c-a42d-e524aad8375d",
+      "name": "Instagram:カルーセル子コンテナ用に展開",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2840,
+        380
+      ],
+      "notes": "CLOSING_IMAGE_URLにユーザー提供の固定プロフィール誘導画像URLを設定すること(2026-07-27時点で未設定)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// アップロードAPIのレスポンスは{url}のみでtype/index/page_id等が失われるため、\n// Base64をBinaryに変換時点のitemを名前参照で復元してからurlを合成する\n// (Workflow03のHTTP Request経由フィールド消失と同じ問題、同じ対処)。\nconst orig = $('Instagram:Base64をBinaryに変換').item.json;\nreturn { json: { ...orig, url: $json.url } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "a4c2c75e-2312-4a77-b5d0-4c4a8e0179d9",
+      "name": "Instagram:アップロード結果を復元",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        620
+      ]
     }
   ],
   "connections": {
@@ -948,11 +2038,16 @@
             "node": "X:投稿文を組み立て",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "X:Statusをqueuedに更新",
+            "type": "main",
+            "index": 0
           }
         ],
         [
           {
-            "node": "プラットフォームへ投稿(未実装)",
+            "node": "投稿処理を振り分け(Threads)",
             "type": "main",
             "index": 0
           }
@@ -1154,6 +2249,542 @@
         [
           {
             "node": "X:診断リンクが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "投稿処理を振り分け(Threads)": {
+      "main": [
+        [
+          {
+            "node": "Threads:投稿文を組み立て",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Threads:Statusをqueuedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "投稿処理を振り分け(Instagram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:投稿文を組み立て": {
+      "main": [
+        [
+          {
+            "node": "Threads:メイン投稿-作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:メイン投稿-作成": {
+      "main": [
+        [
+          {
+            "node": "Threads:メイン投稿-待機",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:メイン投稿-待機": {
+      "main": [
+        [
+          {
+            "node": "Threads:メイン投稿-公開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:メイン投稿-公開": {
+      "main": [
+        [
+          {
+            "node": "Threads:メイン投稿-permalink取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:メイン投稿-permalink取得": {
+      "main": [
+        [
+          {
+            "node": "Threads:リプライ1-作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:リプライ1-作成": {
+      "main": [
+        [
+          {
+            "node": "Threads:リプライ1-待機",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:リプライ1-待機": {
+      "main": [
+        [
+          {
+            "node": "Threads:リプライ1-公開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:リプライ1-公開": {
+      "main": [
+        [
+          {
+            "node": "Threads:CTA-作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:CTA-作成": {
+      "main": [
+        [
+          {
+            "node": "Threads:CTA-待機",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:CTA-待機": {
+      "main": [
+        [
+          {
+            "node": "Threads:CTA-公開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:CTA-公開": {
+      "main": [
+        [
+          {
+            "node": "Threads:診断リンクが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:診断リンクが必要か": {
+      "main": [
+        [
+          {
+            "node": "Threads:診断リプライ-作成",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Threads:投稿結果をまとめる(診断なし)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:診断リプライ-作成": {
+      "main": [
+        [
+          {
+            "node": "Threads:診断リプライ-待機",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:診断リプライ-待機": {
+      "main": [
+        [
+          {
+            "node": "Threads:診断リプライ-公開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:診断リプライ-公開": {
+      "main": [
+        [
+          {
+            "node": "Threads:投稿結果をまとめる(診断あり)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:投稿結果をまとめる(診断あり)": {
+      "main": [
+        [
+          {
+            "node": "Threads:Statusをpostedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:投稿結果をまとめる(診断なし)": {
+      "main": [
+        [
+          {
+            "node": "Threads:Statusをpostedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threads:Statusをpostedに更新": {
+      "main": [
+        [
+          {
+            "node": "Threads:投稿完了を通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "投稿処理を振り分け(Instagram)": {
+      "main": [
+        [
+          {
+            "node": "Instagram:入力を解析",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "プラットフォームへ投稿(未実装)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:入力を解析": {
+      "main": [
+        [
+          {
+            "node": "Instagram:画像プロンプトを展開",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Instagram:Statusをqueuedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:画像プロンプトを展開": {
+      "main": [
+        [
+          {
+            "node": "Instagram:生成準備",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:OpenAIで画像生成": {
+      "main": [
+        [
+          {
+            "node": "Instagram:Gemini品質チェック",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:Base64をBinaryに変換": {
+      "main": [
+        [
+          {
+            "node": "Instagram:スキップか",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:画像をアップロード": {
+      "main": [
+        [
+          {
+            "node": "Instagram:アップロード結果を復元",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:アップロード結果を統合": {
+      "main": [
+        [
+          {
+            "node": "Instagram:カルーセル子コンテナ用に展開",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:子コンテナ作成": {
+      "main": [
+        [
+          {
+            "node": "Instagram:子コンテナを集約",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:子コンテナを集約": {
+      "main": [
+        [
+          {
+            "node": "Instagram:カルーセル本体作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:カルーセル本体作成": {
+      "main": [
+        [
+          {
+            "node": "Instagram:処理待機",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:公開": {
+      "main": [
+        [
+          {
+            "node": "Instagram:permalink取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:permalink取得": {
+      "main": [
+        [
+          {
+            "node": "Instagram:投稿結果をまとめる",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:投稿結果をまとめる": {
+      "main": [
+        [
+          {
+            "node": "Instagram:Statusをpostedに更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:Statusをpostedに更新": {
+      "main": [
+        [
+          {
+            "node": "Instagram:投稿完了を通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:処理待機": {
+      "main": [
+        [
+          {
+            "node": "Instagram:ステータス確認",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:ステータス確認": {
+      "main": [
+        [
+          {
+            "node": "Instagram:処理完了か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:処理完了か": {
+      "main": [
+        [
+          {
+            "node": "Instagram:公開",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram:処理待機",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:生成準備": {
+      "main": [
+        [
+          {
+            "node": "Instagram:OpenAIで画像生成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:Gemini品質チェック": {
+      "main": [
+        [
+          {
+            "node": "Instagram:QA判定",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:QA判定": {
+      "main": [
+        [
+          {
+            "node": "Instagram:リトライが必要か",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:リトライが必要か": {
+      "main": [
+        [
+          {
+            "node": "Instagram:生成準備",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram:Base64をBinaryに変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:スキップか": {
+      "main": [
+        [
+          {
+            "node": "Instagram:アップロードスキップ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram:画像をアップロード",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:アップロードスキップ": {
+      "main": [
+        [
+          {
+            "node": "Instagram:アップロード結果を統合",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:カルーセル子コンテナ用に展開": {
+      "main": [
+        [
+          {
+            "node": "Instagram:子コンテナ作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram:アップロード結果を復元": {
+      "main": [
+        [
+          {
+            "node": "Instagram:アップロード結果を統合",
             "type": "main",
             "index": 0
           }
